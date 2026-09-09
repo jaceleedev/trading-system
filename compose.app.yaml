@@ -1,0 +1,39 @@
+services:
+  app:
+    build: .
+    image: trading-research-app:local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      TRADING_DATABASE_HOST: postgres
+      TRADING_DATABASE_PORT: "5432"
+      TRADING_DATABASE_NAME: trading
+      TRADING_DATABASE_USER: trading
+      TRADING_DATABASE_PASSWORD: ${TRADING_LOCAL_DB_PASSWORD:-local-research-only}
+    ports:
+      - "127.0.0.1:${TRADING_LOCAL_APP_PORT:-8502}:8501"
+    read_only: true
+    tmpfs:
+      - /tmp:rw,nosuid,nodev,size=128m,mode=1777
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    cpus: 2.0
+    mem_limit: 2g
+    pids_limit: 128
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health', timeout=3).read()"
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

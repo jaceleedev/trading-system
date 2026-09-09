@@ -1,0 +1,24 @@
+# Only reviewed runtime inputs enter an image; exclude local account/capture files.
+**
+!Dockerfile
+!pyproject.toml
+!uv.lock
+!README.md
+!src/
+!src/**
+!app.py
+!alembic.ini
+!migrations/
+!migrations/**
+!configs/
+!configs/research.json
+!configs/account.demo.json
+!configs/backtest.demo.json
+!configs/evaluation.demo.json
+!configs/toss-candles.example.json
+!.streamlit/
+!.streamlit/config.toml
+!scripts/
+!scripts/seed_demo.py
+**/__pycache__/**
+**/*.pyc

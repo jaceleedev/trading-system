@@ -22,3 +22,15 @@ run = "uv run streamlit run app.py"
 [tasks.benchmark]
 description = "Compare synthetic market lookup results and processing speed"
 run = "uv run python scripts/benchmark_market_views.py"
+
+[tasks.app-build]
+description = "Build the locked, isolated local research image"
+run = "docker compose -f compose.yaml -f compose.app.yaml build app"
+
+[tasks.app-up]
+description = "Start the local container dashboard on port 8502"
+run = "docker compose -f compose.yaml -f compose.app.yaml up -d --wait app"
+
+[tasks.backup-check]
+description = "Back up and verify restoration of only the isolated local research DB"
+run = "uv run python scripts/verify_local_backup.py"
