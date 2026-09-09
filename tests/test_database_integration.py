@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -81,3 +82,15 @@ def test_atomic_import_roundtrip_and_immutable_revision(session, tmp_path):
     assert checked_payload(saved) == result
     with pytest.raises(DataError, match="identity collision"):
         save_backtest(session, {**result, "orders_enabled": True})
+
+    from trading_research.evaluation import EvaluationPlan, evaluate
+    from trading_research.evaluations import checked_evaluation, save_evaluation
+    from trading_research.models import EvaluationRow
+
+    plan_raw = json.loads(Path("configs/evaluation.demo.json").read_text())
+    for window, month in zip(plan_raw["windows"], [3, 4, 5], strict=True):
+        window.update(start=f"2025-{month:02}-01", end=f"2025-{month:02}-02")
+    summary, simulations = evaluate(restored, config, EvaluationPlan.parse(plan_raw))
+    assert save_evaluation(session, summary, simulations)
+    assert not save_evaluation(session, summary, simulations)
+    assert checked_evaluation(session, session.get(EvaluationRow, summary["id"])) == summary

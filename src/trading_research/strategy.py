@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 
 from trading_research.data import Bar, Bundle, DataError, decimal_value, timestamp
+from trading_research.numeric import research_arithmetic
 from trading_research.serialization import encode as encode
 from trading_research.serialization import fingerprint as fingerprint
 
@@ -256,6 +257,7 @@ def rank_candidates(view: MarketView, config: ResearchConfig) -> tuple[list[dict
     return candidates, exclusions
 
 
+@research_arithmetic
 def recommend(bundle: Bundle, account: Account, config: ResearchConfig, as_of: datetime) -> dict:
     view = MarketView(bundle, as_of, config.max_staleness_days)
     if account.as_of > view.as_of or (view.as_of - account.as_of).total_seconds() > 86400:
@@ -387,6 +389,7 @@ def recommend(bundle: Bundle, account: Account, config: ResearchConfig, as_of: d
                     "corporate_actions.py",
                     "serialization.py",
                     "errors.py",
+                    "numeric.py",
                 )
             }
         ),

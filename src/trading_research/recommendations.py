@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from trading_research.data import DataError, timestamp
-from trading_research.models import BacktestRow, RecommendationRow
+from trading_research.models import BacktestRow, EvaluationRow, RecommendationRow
 from trading_research.strategy import fingerprint
 
 
@@ -25,7 +25,7 @@ def save_recommendation(session: Session, payload: dict) -> bool:
     return True
 
 
-def checked_payload(row: RecommendationRow | BacktestRow) -> dict:
+def checked_payload(row: RecommendationRow | BacktestRow | EvaluationRow) -> dict:
     if fingerprint(row.payload) != row.payload_sha256:
         raise DataError("Stored result checksum does not match")
     return row.payload

@@ -40,6 +40,13 @@ def main() -> int:
     backtest.add_argument("--simulation", default="configs/backtest.demo.json")
     backtest.add_argument("--config", default="configs/research.json")
     backtest.add_argument("--save", action="store_true")
+    evaluation = sub.add_parser(
+        "evaluate", help="Run all predeclared period/cost cases; never choose a winner"
+    )
+    evaluation.add_argument("--dataset", required=True)
+    evaluation.add_argument("--plan", default="configs/evaluation.demo.json")
+    evaluation.add_argument("--config", default="configs/research.json")
+    evaluation.add_argument("--save", action="store_true")
     sub.add_parser(
         "provider-info",
         help="Inspect the pinned public market API contract; no network or credentials",
@@ -131,6 +138,21 @@ def main() -> int:
                         indent=2,
                     )
                 )
+            elif args.command == "evaluate":
+                from trading_research.data import read_bundle
+                from trading_research.evaluation import EvaluationPlan, evaluate
+                from trading_research.evaluations import save_evaluation
+                from trading_research.strategy import ResearchConfig
+
+                with Session(get_engine()) as session:
+                    bundle = read_bundle(session, args.dataset)
+                summary, backtests = evaluate(
+                    bundle, ResearchConfig.load(args.config), EvaluationPlan.load(args.plan)
+                )
+                if args.save:
+                    with Session(get_engine()) as session, session.begin():
+                        save_evaluation(session, summary, backtests)
+                print(json.dumps(summary, ensure_ascii=False, indent=2))
             elif args.command == "capture-market":
                 from trading_research.capture_store import write_capture
                 from trading_research.toss_market import (
