@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from collections.abc import Iterator, Mapping
 from dataclasses import asdict, dataclass
 from datetime import UTC, date, datetime
 from decimal import ROUND_FLOOR, Decimal
@@ -11,6 +12,7 @@ from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 
 from trading_research.data import Bar, Bundle, DataError, decimal_value, timestamp
+from trading_research.market_index import MarketIndex
 from trading_research.numeric import research_arithmetic
 from trading_research.serialization import encode as encode
 from trading_research.serialization import fingerprint as fingerprint
@@ -110,6 +112,40 @@ class Account:
         )
 
 
+class _ObservedBars(Mapping[str, list[Bar]]):
+    """Materialize a session-ordered history only when that instrument is requested."""
+
+    def __init__(self, index: MarketIndex, as_of: datetime, source: tuple[Bar, ...]):
+        self._index = index
+        self._as_of = as_of
+        self._source = source
+        self._cache: dict[str, list[Bar]] = {}
+
+    def __getitem__(self, identifier: str) -> list[Bar]:
+        if identifier not in self._cache:
+            records = self._index.history(identifier, self._as_of)
+            if not records:
+                raise KeyError(identifier)
+            self._cache[identifier] = list(records)
+        return self._cache[identifier]
+
+    def __iter__(self) -> Iterator[str]:
+        # Explicit whole-mapping iteration retains the eager view's first-visible
+        # source order, even if a symbol's first input row is not yet available.
+        seen = set()
+        for bar in self._source:
+            if (
+                bar.instrument_id not in seen
+                and bar.session_close_at <= self._as_of
+                and bar.available_at <= self._as_of
+            ):
+                seen.add(bar.instrument_id)
+                yield bar.instrument_id
+
+    def __len__(self) -> int:
+        return sum(1 for _ in self)
+
+
 class MarketView:
     def __init__(self, bundle: Bundle, as_of: datetime, max_staleness_days: int = 7):
         if as_of.utcoffset() is None:
@@ -117,16 +153,12 @@ class MarketView:
         self.bundle = bundle
         self.as_of = as_of.astimezone(UTC)
         self.max_staleness_days = max_staleness_days
-        self.instruments = {i.instrument_id: i for i in bundle.instruments}
-        from trading_research.corporate_actions import parse_actions
-
-        self.actions = parse_actions(bundle.manifest.get("corporate_actions", []), self.instruments)
-        self.bars: dict[str, list[Bar]] = {}
-        for bar in bundle.bars:
-            if bar.available_at <= self.as_of and bar.session_close_at <= self.as_of:
-                self.bars.setdefault(bar.instrument_id, []).append(bar)
-        for bars in self.bars.values():
-            bars.sort(key=lambda b: b.session_date)
+        self.index = bundle.market_index
+        self.instruments = self.index.instruments
+        self.actions = self.index.actions
+        self.bars = _ObservedBars(self.index, self.as_of, bundle.bars)
+        self._latest: dict[str, Bar | None] = {}
+        self._fx: dict[str, Decimal] = {}
 
     def local_date(self, instrument_id: str) -> date:
         instrument = self.instruments[instrument_id]
@@ -136,18 +168,14 @@ class MarketView:
     def fx(self, currency: str) -> Decimal:
         if currency == "KRW":
             return ONE
-        quotes = [
-            q
-            for q in self.bundle.fx
-            if q.currency == currency
-            and q.available_at <= self.as_of
-            and q.date <= self.as_of.date()
-        ]
-        if not quotes:
+        if currency in self._fx:
+            return self._fx[currency]
+        quote = self.index.fx_quote(currency, self.as_of)
+        if quote is None:
             raise DataError(f"Missing point-in-time FX for {currency}")
-        quote = max(quotes, key=lambda q: (q.date, q.available_at))
         if (self.as_of.date() - quote.date).days > self.max_staleness_days:
             raise DataError(f"Stale FX for {currency}")
+        self._fx[currency] = quote.krw_per_unit
         return quote.krw_per_unit
 
     def latest(self, instrument_id: str) -> Bar:
@@ -158,10 +186,11 @@ class MarketView:
             raise DataError("Instrument metadata is not yet available")
         if instrument.delisted_on and instrument.delisted_on <= self.local_date(instrument_id):
             raise DataError("Delisted holding requires an explicit recovery valuation")
-        bars = self.bars.get(instrument_id, [])
-        if not bars:
+        if instrument_id not in self._latest:
+            self._latest[instrument_id] = self.index.latest(instrument_id, self.as_of)
+        latest = self._latest[instrument_id]
+        if latest is None:
             raise DataError(f"No available price for {instrument_id}")
-        latest = bars[-1]
         if latest.volume <= 0:
             raise DataError("Latest session has no observed trading volume")
         if (self.local_date(instrument_id) - latest.session_date).days > self.max_staleness_days:
@@ -174,8 +203,8 @@ class MarketView:
     def require_current_units(self, identifier: str) -> None:
         latest = self.latest(identifier)
         if any(
-            a.instrument_id == identifier and latest.session_close_at < a.effective_at <= self.as_of
-            for a in self.actions
+            latest.session_close_at < a.effective_at <= self.as_of
+            for a in self.index.actions_by_instrument.get(identifier, ())
         ):
             raise PostActionPriceError(
                 "A corporate action requires a fresh post-event price before recommendation"
@@ -386,6 +415,7 @@ def recommend(bundle: Bundle, account: Account, config: ResearchConfig, as_of: d
                 for p in (
                     "strategy.py",
                     "data.py",
+                    "market_index.py",
                     "corporate_actions.py",
                     "serialization.py",
                     "errors.py",

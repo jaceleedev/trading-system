@@ -11,7 +11,7 @@ from decimal import ROUND_FLOOR, Decimal
 from functools import lru_cache
 from pathlib import Path
 
-from trading_research.corporate_actions import parse_actions, validate_adjustments
+from trading_research.corporate_actions import validate_adjustments
 from trading_research.data import Bundle, DataError, calendar_date, decimal_value
 from trading_research.ledger import Portfolio
 from trading_research.numeric import research_arithmetic
@@ -65,14 +65,24 @@ class BacktestConfig:
 
 @research_arithmetic
 def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfig) -> dict:
-    instruments = {i.instrument_id: i for i in bundle.instruments}
+    index = bundle.market_index
+    instruments = index.instruments
     for market, identifier in config.benchmarks.items():
         if identifier not in instruments or instruments[identifier].market != market:
             raise DataError("Benchmark is missing or has the wrong market")
         if instruments[identifier].sector != "INDEX":
             raise DataError("Reference instruments must be explicitly tagged with sector INDEX")
-    actions = parse_actions(bundle.manifest.get("corporate_actions", []), instruments)
+    actions = index.actions
     validate_adjustments(bundle, config.start, config.end, actions)
+    action_events = {}
+    for action in actions:
+        action_events.setdefault(action.effective_at.date(), []).append(
+            (action.effective_at, 1, "corporate", action)
+        )
+        if action.payment_at:
+            action_events.setdefault(action.payment_at.date(), []).append(
+                (action.payment_at, 2, "payment", action)
+            )
     books = {
         name: Portfolio(config.initial_cash_krw)
         for name in ("strategy", "KR_reference", "US_reference")
@@ -87,11 +97,6 @@ def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfi
     active_events = None
     sequence = itertools.count()
     active_day_start = active_day_end = None
-    by_instrument = {}
-    for bar in bundle.bars:
-        by_instrument.setdefault(bar.instrument_id, []).append(bar)
-    for bars in by_instrument.values():
-        bars.sort(key=lambda b: b.session_close_at)
 
     @lru_cache(maxsize=8)
     def view_at(at):
@@ -105,10 +110,9 @@ def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfi
             native = latest.close
             # A pre-ex quote is in old share/entitlement units. Mark it mechanically until
             # the first post-event quote arrives, otherwise a deposit can distort unitization.
-            for action in sorted(actions, key=lambda a: a.effective_at):
+            for action in index.actions_by_instrument.get(identifier, ()):
                 if (
-                    action.instrument_id == identifier
-                    and action.event_id in applied_actions
+                    action.event_id in applied_actions
                     and latest.session_close_at < action.effective_at <= at
                 ):
                     if action.kind == "split":
@@ -125,8 +129,8 @@ def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfi
         return book.nav(prices, fx)
 
     def schedule(name, side, identifier, quantity, at):
-        next_bars = [b for b in by_instrument.get(identifier, []) if b.session_close_at > at]
-        if not next_bars or next_bars[0].session_close_at > at + timedelta(days=7):
+        bar = index.next_bar(identifier, at)
+        if bar is None or bar.session_close_at > at + timedelta(days=7):
             histories[name].append(
                 {
                     "status": "unfilled",
@@ -136,7 +140,6 @@ def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfi
                 }
             )
             return
-        bar = next_bars[0]
         order = {
             "name": name,
             "side": side,
@@ -247,11 +250,7 @@ def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfi
         events = []
         if day.day == config.contribution_day and config.monthly_contribution_krw:
             events.append((day_start, 0, "contribution", None))
-        for action in actions:
-            if action.effective_at.date() == day:
-                events.append((action.effective_at, 1, "corporate", action))
-            if action.payment_at and action.payment_at.date() == day:
-                events.append((action.payment_at, 2, "payment", action))
+        events.extend(action_events.get(day, ()))
         # Prior-day decisions have fixed quantities; only execution reads the future raw close.
         for order in pending:
             if day_start <= order["at"] <= close_at:
@@ -408,6 +407,7 @@ def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfi
                     "serialization.py",
                     "errors.py",
                     "numeric.py",
+                    "market_index.py",
                 )
             }
         ),

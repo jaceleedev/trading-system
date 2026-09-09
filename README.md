@@ -63,6 +63,9 @@ uv run trading recommend --dataset synthetic-demo-v1 \
 고정한 세 기간·세 비용 가정을 모두 비교하는 `trading evaluate`와 화면 ‘반복 검증’은
 [검증 계획](docs/EVALUATION.md)을 따른다. 좋은 결과만 골라 전략을 선택하지 않는다.
 
+개발용 `mise run benchmark`는 [처리 속도 측정](docs/PERFORMANCE.md)에 따라 합성 자료에서
+이전 조회 방식과 계산 결과를 비교한 뒤 시간을 측정한다. 투자 성과 검증과는 별개다.
+
 ## 투자 범위
 
 - 개인 주식투자 추가 납입: 월 500,000원. 급여일은 매월 10일이며 다음 납입은 2026-09-10 예정.
