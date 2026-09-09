@@ -1,5 +1,6 @@
 import argparse
 import json
+from pathlib import Path
 
 from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
@@ -39,6 +40,23 @@ def main() -> int:
     backtest.add_argument("--simulation", default="configs/backtest.demo.json")
     backtest.add_argument("--config", default="configs/research.json")
     backtest.add_argument("--save", action="store_true")
+    sub.add_parser(
+        "provider-info",
+        help="Inspect the pinned public market API contract; no network or credentials",
+    )
+    capture = sub.add_parser(
+        "capture-market", help="Capture public market data only; no account or order API"
+    )
+    capture.add_argument(
+        "--endpoint",
+        required=True,
+        choices=["candles", "stocks", "stock-list", "fx", "calendar-kr", "calendar-us"],
+    )
+    capture.add_argument("--query", required=True, help="JSON query file, never a credentials file")
+    capture.add_argument("--pages", type=int, default=1)
+    capture.add_argument("--output", default="var/captures")
+    inspect = sub.add_parser("inspect-capture", help="Verify a saved source capture; no network")
+    inspect.add_argument("path")
     args = parser.parse_args()
     if args.command != "doctor":
         try:
@@ -103,6 +121,53 @@ def main() -> int:
                     with Session(get_engine()) as session, session.begin():
                         save_backtest(session, payload)
                 print(json.dumps(payload, ensure_ascii=False, indent=2))
+            elif args.command == "provider-info":
+                from trading_research.toss_market import CONTRACT, CONTRACT_SHA256
+
+                print(
+                    json.dumps(
+                        {**CONTRACT, "contract_sha256": CONTRACT_SHA256, "orders_enabled": False},
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                )
+            elif args.command == "capture-market":
+                from trading_research.capture_store import write_capture
+                from trading_research.toss_market import (
+                    ENDPOINT_ALIASES,
+                    TossMarketClient,
+                    validate_query,
+                )
+
+                endpoint = ENDPOINT_ALIASES[args.endpoint]
+                query = validate_query(endpoint, json.loads(Path(args.query).read_text()))
+                paths = []
+                client = TossMarketClient.from_env()
+                for envelope in client.capture_pages(endpoint, query, max_pages=args.pages):
+                    path = write_capture(Path(args.output), envelope)
+                    paths.append(str(path))
+                print(
+                    json.dumps(
+                        {
+                            "status": "captured",
+                            "paths": paths,
+                            "validated_market_dataset": False,
+                            "orders_enabled": False,
+                        },
+                        indent=2,
+                    )
+                )
+            elif args.command == "inspect-capture":
+                from trading_research.capture_store import read_capture
+
+                envelope = read_capture(Path(args.path))
+                print(
+                    json.dumps(
+                        {k: v for k, v in envelope.items() if k != "response"},
+                        ensure_ascii=False,
+                        indent=2,
+                    )
+                )
             return 0
         except (ValueError, OSError, SQLAlchemyError) as exc:
             from trading_research.data import DataError
