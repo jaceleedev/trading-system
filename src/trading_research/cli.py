@@ -24,6 +24,16 @@ def main() -> int:
         "import-data", help="Validate and atomically import a dataset revision"
     )
     importer.add_argument("directory")
+    recommendation = sub.add_parser(
+        "recommend", help="Create research recommendations; never orders"
+    )
+    recommendation.add_argument("--dataset", required=True)
+    recommendation.add_argument("--as-of", required=True, help="ISO timestamp including UTC offset")
+    recommendation.add_argument("--account", required=True)
+    recommendation.add_argument("--config", default="configs/research.json")
+    recommendation.add_argument(
+        "--save", action="store_true", help="Persist immutable research output"
+    )
     args = parser.parse_args()
     if args.command != "doctor":
         try:
@@ -57,6 +67,22 @@ def main() -> int:
                         }
                     )
                 )
+            elif args.command == "recommend":
+                from trading_research.data import read_bundle, timestamp
+                from trading_research.recommendations import save_recommendation
+                from trading_research.strategy import Account, ResearchConfig, recommend
+
+                with Session(get_engine()) as session, session.begin():
+                    bundle = read_bundle(session, args.dataset)
+                    payload = recommend(
+                        bundle,
+                        Account.load(args.account),
+                        ResearchConfig.load(args.config),
+                        timestamp(args.as_of),
+                    )
+                    if args.save:
+                        save_recommendation(session, payload)
+                print(json.dumps(payload, ensure_ascii=False, indent=2))
             return 0
         except (ValueError, OSError, SQLAlchemyError) as exc:
             from trading_research.data import DataError

@@ -1,0 +1,16 @@
+{
+  "strategy_version": "momentum-v1",
+  "max_positions": 6,
+  "entry_percentile": "0.30",
+  "exit_percentile": "0.50",
+  "max_position_weight": "0.20",
+  "max_sector_weight": "0.40",
+  "max_market_weight": "0.70",
+  "min_turnover": {"KR": "1000000000", "US": "10000000"},
+  "min_signal_observations": 180,
+  "liquidity_observations": 20,
+  "max_staleness_days": 7,
+  "anchor_tolerance_days": 7,
+  "buy_cost_bps": {"KR": "20", "US": "40"},
+  "sell_cost_bps": {"KR": "40", "US": "40"}
+}
