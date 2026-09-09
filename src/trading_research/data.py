@@ -5,7 +5,7 @@ import hashlib
 import io
 import json
 import re
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, field
 from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
@@ -14,11 +14,47 @@ from zoneinfo import ZoneInfo
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from trading_research.errors import DataError
 from trading_research.models import BarRow, Dataset, FxRow, InstrumentRow
+from trading_research.serialization import encode, fingerprint
 
 
-class DataError(ValueError):
-    """An input cannot be used without silently inventing investment data."""
+def _immutable(*args, **kwargs):
+    raise TypeError("Bundle manifest is immutable")
+
+
+class _ImmutableDict(dict):
+    """A JSON-serializable dictionary whose ordinary mutation methods fail."""
+
+    __setitem__ = __delitem__ = __ior__ = _immutable
+    clear = pop = popitem = setdefault = update = _immutable
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
+
+
+class _ImmutableList(list):
+    """A JSON-serializable list whose ordinary mutation methods fail."""
+
+    __setitem__ = __delitem__ = __iadd__ = __imul__ = _immutable
+    append = clear = extend = insert = pop = remove = reverse = sort = _immutable
+
+    def __copy__(self):
+        return self
+
+    def __deepcopy__(self, memo):
+        return self
+
+
+def _freeze_json(value):
+    if isinstance(value, dict):
+        return _ImmutableDict({key: _freeze_json(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return _ImmutableList(_freeze_json(item) for item in value)
+    return value
 
 
 def decimal_value(value: str, *, positive: bool = True) -> Decimal:
@@ -92,6 +128,19 @@ class Bundle:
     instruments: tuple[Instrument, ...]
     bars: tuple[Bar, ...]
     fx: tuple[FxQuote, ...]
+    content_sha256: str = field(init=False)
+
+    def __post_init__(self):
+        # Detach nested JSON from caller/ORM dictionaries before caching identity.
+        object.__setattr__(self, "manifest", _freeze_json(self.manifest))
+        for name in ("instruments", "bars", "fx"):
+            object.__setattr__(self, name, tuple(getattr(self, name)))
+        content = {"manifest": self.manifest}
+        for name in ("instruments", "bars", "fx"):
+            # Sorting complete canonical records also makes tie ordering stable.
+            # Validation of uniqueness remains the loader's separate concern.
+            content[name] = sorted((asdict(item) for item in getattr(self, name)), key=encode)
+        object.__setattr__(self, "content_sha256", fingerprint(content))
 
     @property
     def id(self) -> str:
@@ -197,7 +246,7 @@ def load_bundle(directory: str | Path) -> Bundle:
     required = {"schema_version", "dataset_id", "label", "source", "kind", "universe", "adjustment"}
     if (
         not isinstance(manifest, dict)
-        or set(manifest) != required
+        or not required <= set(manifest) <= required | {"corporate_actions"}
         or type(manifest["schema_version"]) is not int
         or manifest["schema_version"] != 1
         or any(not isinstance(manifest[k], str) for k in required - {"schema_version"})
@@ -220,6 +269,9 @@ def load_bundle(directory: str | Path) -> Bundle:
     lookup = {i.instrument_id: i for i in instruments}
     if not instruments or len(lookup) != len(instruments):
         raise DataError("Instrument IDs must be nonempty and unique")
+    from trading_research.corporate_actions import parse_actions
+
+    parse_actions(manifest.get("corporate_actions", []), lookup)
     bars = tuple(
         parse_bar(r, lookup) for r in read_csv(files[2], BAR_FIELDS, snapshots["bars.csv"])
     )

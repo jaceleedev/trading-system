@@ -34,6 +34,11 @@ def main() -> int:
     recommendation.add_argument(
         "--save", action="store_true", help="Persist immutable research output"
     )
+    backtest = sub.add_parser("backtest", help="Run a chronological hypothetical simulation")
+    backtest.add_argument("--dataset", required=True)
+    backtest.add_argument("--simulation", default="configs/backtest.demo.json")
+    backtest.add_argument("--config", default="configs/research.json")
+    backtest.add_argument("--save", action="store_true")
     args = parser.parse_args()
     if args.command != "doctor":
         try:
@@ -82,6 +87,21 @@ def main() -> int:
                     )
                     if args.save:
                         save_recommendation(session, payload)
+                print(json.dumps(payload, ensure_ascii=False, indent=2))
+            elif args.command == "backtest":
+                from trading_research.backtest import BacktestConfig, run_backtest
+                from trading_research.data import read_bundle
+                from trading_research.recommendations import save_backtest
+                from trading_research.strategy import ResearchConfig
+
+                with Session(get_engine()) as session:
+                    bundle = read_bundle(session, args.dataset)
+                payload = run_backtest(
+                    bundle, ResearchConfig.load(args.config), BacktestConfig.load(args.simulation)
+                )
+                if args.save:
+                    with Session(get_engine()) as session, session.begin():
+                        save_backtest(session, payload)
                 print(json.dumps(payload, ensure_ascii=False, indent=2))
             return 0
         except (ValueError, OSError, SQLAlchemyError) as exc:
