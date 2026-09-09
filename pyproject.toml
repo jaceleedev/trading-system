@@ -1,0 +1,38 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "trading-research"
+version = "0.1.0"
+description = "Auditable Korean and US equity research and recommendation workspace"
+requires-python = ">=3.14,<3.15"
+dependencies = [
+  "pandas>=3.0,<3.1",
+  "psycopg[binary]>=3.3,<3.4",
+  "sqlalchemy>=2.0,<2.1",
+  "alembic>=1.16,<2",
+  "streamlit>=1.63,<2",
+  "plotly>=6,<7",
+  "python-dateutil>=2.9,<3",
+]
+
+[project.scripts]
+trading = "trading_research.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=9,<10", "ruff>=0.12,<1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/trading_research"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["integration: requires the isolated local PostgreSQL test database"]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
