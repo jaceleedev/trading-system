@@ -256,6 +256,1132 @@
         "title": "CandleRevision",
         "type": "object"
       },
+      "CapitalAlternative": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "legs": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalLeg"
+            },
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Legs",
+            "type": "array"
+          },
+          "rationale": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "rationale",
+          "legs"
+        ],
+        "title": "CapitalAlternative",
+        "type": "object"
+      },
+      "CapitalAlternativeCalculation": {
+        "additionalProperties": false,
+        "properties": {
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blockers",
+            "type": "array"
+          },
+          "cash_requirements": {
+            "items": {
+              "$ref": "#/components/schemas/CashReservation"
+            },
+            "title": "Cash Requirements",
+            "type": "array"
+          },
+          "eligibility": {
+            "enum": [
+              "eligible",
+              "blocked",
+              "unknown"
+            ],
+            "title": "Eligibility",
+            "type": "string"
+          },
+          "estimated_sale_proceeds": {
+            "items": {
+              "$ref": "#/components/schemas/CashReservation"
+            },
+            "title": "Estimated Sale Proceeds",
+            "type": "array"
+          },
+          "holding_requirements": {
+            "items": {
+              "$ref": "#/components/schemas/HoldingReservation"
+            },
+            "title": "Holding Requirements",
+            "type": "array"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalHoldingProjection"
+            },
+            "title": "Holdings",
+            "type": "array"
+          },
+          "key": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "legs": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalLegCalculation"
+            },
+            "title": "Legs",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "unknown_cash_currencies": {
+            "items": {
+              "enum": [
+                "KRW",
+                "USD"
+              ],
+              "type": "string"
+            },
+            "title": "Unknown Cash Currencies",
+            "type": "array"
+          },
+          "unknown_sale_proceeds_currencies": {
+            "items": {
+              "enum": [
+                "KRW",
+                "USD"
+              ],
+              "type": "string"
+            },
+            "title": "Unknown Sale Proceeds Currencies",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "rationale",
+          "eligibility",
+          "blockers",
+          "legs",
+          "holdings",
+          "cash_requirements",
+          "holding_requirements",
+          "estimated_sale_proceeds",
+          "unknown_cash_currencies",
+          "unknown_sale_proceeds_currencies"
+        ],
+        "title": "CapitalAlternativeCalculation",
+        "type": "object"
+      },
+      "CapitalCalculation": {
+        "additionalProperties": false,
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalAlternativeCalculation"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "arithmetic_precision": {
+            "const": 256,
+            "title": "Arithmetic Precision",
+            "type": "integer"
+          },
+          "arithmetic_rounding": {
+            "const": "ROUND_HALF_EVEN",
+            "title": "Arithmetic Rounding",
+            "type": "string"
+          },
+          "assumptions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "cash_capacity": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalCashCapacity"
+            },
+            "title": "Cash Capacity",
+            "type": "array"
+          },
+          "execution_ready": {
+            "const": false,
+            "title": "Execution Ready",
+            "type": "boolean"
+          },
+          "local_reservations_known": {
+            "title": "Local Reservations Known",
+            "type": "boolean"
+          },
+          "orders_enabled": {
+            "const": false,
+            "title": "Orders Enabled",
+            "type": "boolean"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "arithmetic_precision",
+          "arithmetic_rounding",
+          "local_reservations_known",
+          "cash_capacity",
+          "alternatives",
+          "assumptions",
+          "warnings",
+          "execution_ready",
+          "orders_enabled"
+        ],
+        "title": "CapitalCalculation",
+        "type": "object"
+      },
+      "CapitalCashCapacity": {
+        "additionalProperties": false,
+        "properties": {
+          "available_amount": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available Amount"
+          },
+          "capacity_before_reservations": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capacity Before Reservations"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "existing_reserved_amount": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Existing Reserved Amount"
+          },
+          "observed_buying_power": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed Buying Power"
+          },
+          "operator_limit": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operator Limit"
+          },
+          "operator_reserve": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Operator Reserve"
+          }
+        },
+        "required": [
+          "currency",
+          "observed_buying_power",
+          "operator_limit",
+          "operator_reserve",
+          "capacity_before_reservations",
+          "existing_reserved_amount",
+          "available_amount"
+        ],
+        "title": "CapitalCashCapacity",
+        "type": "object"
+      },
+      "CapitalFunding": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "limit_amount": {
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Limit Amount",
+            "type": "string"
+          },
+          "reserve_amount": {
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Reserve Amount",
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency",
+          "limit_amount",
+          "reserve_amount"
+        ],
+        "title": "CapitalFunding",
+        "type": "object"
+      },
+      "CapitalHoldingProjection": {
+        "additionalProperties": false,
+        "properties": {
+          "available_quantity": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available Quantity"
+          },
+          "average_price_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Price Reason"
+          },
+          "average_price_rounded": {
+            "title": "Average Price Rounded",
+            "type": "boolean"
+          },
+          "average_purchase_price_after": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Purchase Price After"
+          },
+          "average_purchase_price_before": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Purchase Price Before"
+          },
+          "buy_quantity": {
+            "maxLength": 600,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Buy Quantity",
+            "type": "string"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "existing_reserved_quantity": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Existing Reserved Quantity"
+          },
+          "market": {
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "title": "Market",
+            "type": "string"
+          },
+          "observed_quantity": {
+            "maxLength": 600,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Observed Quantity",
+            "type": "string"
+          },
+          "projected_quantity": {
+            "maxLength": 600,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Projected Quantity",
+            "type": "string"
+          },
+          "sell_quantity": {
+            "maxLength": 600,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Sell Quantity",
+            "type": "string"
+          },
+          "symbol": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$",
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "market",
+          "symbol",
+          "currency",
+          "observed_quantity",
+          "existing_reserved_quantity",
+          "available_quantity",
+          "buy_quantity",
+          "sell_quantity",
+          "projected_quantity",
+          "average_purchase_price_before",
+          "average_purchase_price_after",
+          "average_price_rounded",
+          "average_price_reason"
+        ],
+        "title": "CapitalHoldingProjection",
+        "type": "object"
+      },
+      "CapitalLeg": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "buy",
+              "add",
+              "hold",
+              "trim",
+              "sell"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "fee_bps": {
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Fee Bps",
+            "type": "string"
+          },
+          "fixed_fee": {
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Fixed Fee",
+            "type": "string"
+          },
+          "market": {
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "title": "Market",
+            "type": "string"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "quantity": {
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Quantity",
+            "type": "string"
+          },
+          "rationale": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Rationale",
+            "type": "string"
+          },
+          "symbol": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$",
+            "title": "Symbol",
+            "type": "string"
+          },
+          "tax_bps": {
+            "maxLength": 64,
+            "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Tax Bps",
+            "type": "string"
+          }
+        },
+        "required": [
+          "action",
+          "symbol",
+          "market",
+          "currency",
+          "quantity",
+          "price",
+          "fee_bps",
+          "fixed_fee",
+          "tax_bps",
+          "rationale"
+        ],
+        "title": "CapitalLeg",
+        "type": "object"
+      },
+      "CapitalLegCalculation": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "buy",
+              "add",
+              "hold",
+              "trim",
+              "sell"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "blockers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blockers",
+            "type": "array"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "estimated_fee": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Fee"
+          },
+          "estimated_sale_proceeds": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Sale Proceeds"
+          },
+          "estimated_tax": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Tax"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "market": {
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "title": "Market",
+            "type": "string"
+          },
+          "notional": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notional"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "quantity": {
+            "maxLength": 600,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Quantity",
+            "type": "string"
+          },
+          "required_cash": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Required Cash"
+          },
+          "symbol": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$",
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "index",
+          "action",
+          "symbol",
+          "market",
+          "currency",
+          "quantity",
+          "price",
+          "notional",
+          "estimated_fee",
+          "estimated_tax",
+          "required_cash",
+          "estimated_sale_proceeds",
+          "blockers"
+        ],
+        "title": "CapitalLegCalculation",
+        "type": "object"
+      },
+      "CapitalPlanCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalAlternative"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "funding": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalFunding"
+            },
+            "maxItems": 2,
+            "title": "Funding",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "request_key": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Key",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CapitalSource"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "source",
+          "mode",
+          "funding",
+          "alternatives",
+          "request_key"
+        ],
+        "title": "CapitalPlanCreate",
+        "type": "object"
+      },
+      "CapitalPlanList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalPlanSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "omitted_count": {
+            "title": "Omitted Count",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total_count",
+          "omitted_count"
+        ],
+        "title": "CapitalPlanList",
+        "type": "object"
+      },
+      "CapitalPlanRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "calculation": {
+            "$ref": "#/components/schemas/CapitalCalculation"
+          },
+          "kind": {
+            "const": "capital_plan",
+            "title": "Kind",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/CapitalPlanRequest"
+          },
+          "reservations": {
+            "$ref": "#/components/schemas/CapitalReservations"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/AccountSnapshot"
+          },
+          "source_context": {
+            "$ref": "#/components/schemas/CapitalSourceContext"
+          }
+        },
+        "required": [
+          "kind",
+          "schema_version",
+          "recorded_at",
+          "request",
+          "snapshot",
+          "source_context",
+          "reservations",
+          "calculation"
+        ],
+        "title": "CapitalPlanRecord",
+        "type": "object"
+      },
+      "CapitalPlanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalAlternative"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "funding": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalFunding"
+            },
+            "maxItems": 2,
+            "title": "Funding",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CapitalSource"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "source",
+          "mode",
+          "funding",
+          "alternatives"
+        ],
+        "title": "CapitalPlanRequest",
+        "type": "object"
+      },
+      "CapitalPlanReserve": {
+        "additionalProperties": false,
+        "properties": {
+          "alternative_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Alternative Id",
+            "type": "string"
+          },
+          "expected_pool_revisions": {
+            "patternProperties": {
+              "^[0-9a-f]{64}$": {
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "title": "Expected Pool Revisions",
+            "type": "object"
+          },
+          "request_key": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alternative_id",
+          "request_key",
+          "expected_pool_revisions"
+        ],
+        "title": "CapitalPlanReserve",
+        "type": "object"
+      },
+      "CapitalPlanResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "record": {
+            "$ref": "#/components/schemas/CapitalPlanRecord"
+          }
+        },
+        "required": [
+          "id",
+          "record"
+        ],
+        "title": "CapitalPlanResponse",
+        "type": "object"
+      },
+      "CapitalPlanSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "alternative_count": {
+            "title": "Alternative Count",
+            "type": "integer"
+          },
+          "eligible_count": {
+            "title": "Eligible Count",
+            "type": "integer"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "source": {
+            "$ref": "#/components/schemas/CapitalSource"
+          }
+        },
+        "required": [
+          "id",
+          "recorded_at",
+          "mode",
+          "snapshot_id",
+          "source",
+          "alternative_count",
+          "eligible_count"
+        ],
+        "title": "CapitalPlanSummary",
+        "type": "object"
+      },
+      "CapitalReservations": {
+        "additionalProperties": false,
+        "properties": {
+          "cash": {
+            "items": {
+              "$ref": "#/components/schemas/CashReservation"
+            },
+            "maxItems": 2,
+            "title": "Cash",
+            "type": "array"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/HoldingReservation"
+            },
+            "maxItems": 1000,
+            "title": "Holdings",
+            "type": "array"
+          },
+          "known": {
+            "title": "Known",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "known",
+          "cash",
+          "holdings"
+        ],
+        "title": "CapitalReservations",
+        "type": "object"
+      },
+      "CapitalSource": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "decision",
+              "investigation_output"
+            ],
+            "title": "Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id"
+        ],
+        "title": "CapitalSource",
+        "type": "object"
+      },
+      "CapitalSourceContext": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Seq"
+          },
+          "account_snapshot_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Snapshot Id"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "decision",
+              "investigation_output"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "id",
+          "mode",
+          "recorded_at",
+          "account_snapshot_id",
+          "account_seq"
+        ],
+        "title": "CapitalSourceContext",
+        "type": "object"
+      },
       "CashBalances": {
         "additionalProperties": false,
         "properties": {
@@ -273,6 +1399,31 @@
           "USD"
         ],
         "title": "CashBalances",
+        "type": "object"
+      },
+      "CashReservation": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "maxLength": 600,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Amount",
+            "type": "string"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency",
+          "amount"
+        ],
+        "title": "CashReservation",
         "type": "object"
       },
       "Commission": {
@@ -732,6 +1883,417 @@
         "title": "EvidenceRecord",
         "type": "object"
       },
+      "FundingMutation": {
+        "additionalProperties": false,
+        "properties": {
+          "funding": {
+            "$ref": "#/components/schemas/FundingState"
+          },
+          "reservation": {
+            "$ref": "#/components/schemas/FundingReservation"
+          }
+        },
+        "required": [
+          "reservation",
+          "funding"
+        ],
+        "title": "FundingMutation",
+        "type": "object"
+      },
+      "FundingPool": {
+        "additionalProperties": false,
+        "properties": {
+          "available": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Available"
+          },
+          "basis": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basis"
+          },
+          "capacity": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capacity"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "cash",
+              "holding"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "market": {
+            "anyOf": [
+              {
+                "enum": [
+                  "KR",
+                  "US"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "overallocated": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overallocated"
+          },
+          "reserved": {
+            "maxLength": 600,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Reserved",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbol"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "currency",
+          "market",
+          "symbol",
+          "mode",
+          "snapshot_id",
+          "observed_at",
+          "capacity",
+          "reserved",
+          "available",
+          "overallocated",
+          "revision"
+        ],
+        "title": "FundingPool",
+        "type": "object"
+      },
+      "FundingRefresh": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_pool_revisions": {
+            "patternProperties": {
+              "^[0-9a-f]{64}$": {
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "title": "Expected Pool Revisions",
+            "type": "object"
+          },
+          "funding": {
+            "items": {
+              "$ref": "#/components/schemas/CapitalFunding"
+            },
+            "maxItems": 2,
+            "title": "Funding",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "mode",
+          "funding",
+          "expected_pool_revisions"
+        ],
+        "title": "FundingRefresh",
+        "type": "object"
+      },
+      "FundingRequirements": {
+        "additionalProperties": false,
+        "properties": {
+          "cash": {
+            "items": {
+              "$ref": "#/components/schemas/CashReservation"
+            },
+            "title": "Cash",
+            "type": "array"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/HoldingReservation"
+            },
+            "title": "Holdings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "cash",
+          "holdings"
+        ],
+        "title": "FundingRequirements",
+        "type": "object"
+      },
+      "FundingReservation": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "alternative_id": {
+            "title": "Alternative Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_ready": {
+            "const": false,
+            "title": "Execution Ready",
+            "type": "boolean"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "plan_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "pool_revisions": {
+            "patternProperties": {
+              "^[0-9a-f]{64}$": {
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "title": "Pool Revisions",
+            "type": "object"
+          },
+          "released_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Released At"
+          },
+          "replaced_by": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replaced By"
+          },
+          "request_key": {
+            "title": "Request Key",
+            "type": "string"
+          },
+          "requirements": {
+            "$ref": "#/components/schemas/FundingRequirements"
+          },
+          "snapshot_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Snapshot Ids",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "released",
+              "replaced"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "account_seq",
+          "plan_id",
+          "alternative_id",
+          "request_key",
+          "mode",
+          "status",
+          "requirements",
+          "pool_revisions",
+          "snapshot_ids",
+          "created_at",
+          "released_at",
+          "replaced_by",
+          "execution_ready"
+        ],
+        "title": "FundingReservation",
+        "type": "object"
+      },
+      "FundingState": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "execution_ready": {
+            "const": false,
+            "title": "Execution Ready",
+            "type": "boolean"
+          },
+          "expected_pool_revisions": {
+            "patternProperties": {
+              "^[0-9a-f]{64}$": {
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "title": "Expected Pool Revisions",
+            "type": "object"
+          },
+          "omitted_reservation_count": {
+            "title": "Omitted Reservation Count",
+            "type": "integer"
+          },
+          "pools": {
+            "items": {
+              "$ref": "#/components/schemas/FundingPool"
+            },
+            "title": "Pools",
+            "type": "array"
+          },
+          "provider": {
+            "const": "toss",
+            "title": "Provider",
+            "type": "string"
+          },
+          "reservations": {
+            "items": {
+              "$ref": "#/components/schemas/FundingReservation"
+            },
+            "title": "Reservations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "account_seq",
+          "provider",
+          "pools",
+          "reservations",
+          "omitted_reservation_count",
+          "expected_pool_revisions",
+          "execution_ready"
+        ],
+        "title": "FundingState",
+        "type": "object"
+      },
       "HealthResponse": {
         "additionalProperties": false,
         "properties": {
@@ -835,6 +2397,46 @@
           "cost"
         ],
         "title": "Holding",
+        "type": "object"
+      },
+      "HoldingReservation": {
+        "additionalProperties": false,
+        "properties": {
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "market": {
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "title": "Market",
+            "type": "string"
+          },
+          "quantity": {
+            "maxLength": 600,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Quantity",
+            "type": "string"
+          },
+          "symbol": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$",
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "market",
+          "symbol",
+          "currency",
+          "quantity"
+        ],
+        "title": "HoldingReservation",
         "type": "object"
       },
       "HoldingsOverview": {
@@ -3732,7 +5334,7 @@
     }
   },
   "info": {
-    "description": "Read-only local records. No model execution or brokerage orders.",
+    "description": "Local research, capital plans and opted-in jobs. Brokerage orders are disabled.",
     "title": "Investment workspace API",
     "version": "1.0.0"
   },
@@ -3814,6 +5416,512 @@
           }
         },
         "summary": "Snapshots"
+      }
+    },
+    "/api/v1/capital-plans": {
+      "get": {
+        "operationId": "list_capital_plans",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapitalPlanList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Capital Plans"
+      },
+      "post": {
+        "operationId": "create_capital_plan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapitalPlanCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapitalPlanResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Capital Plan"
+      }
+    },
+    "/api/v1/capital-plans/preview": {
+      "post": {
+        "operationId": "preview_capital_plan",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapitalPlanRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapitalPlanRecord"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Preview Capital Plan"
+      }
+    },
+    "/api/v1/capital-plans/{id}": {
+      "get": {
+        "operationId": "get_capital_plan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CapitalPlanResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Capital Plan"
+      }
+    },
+    "/api/v1/capital-plans/{id}/reserve": {
+      "post": {
+        "operationId": "reserve_capital_plan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CapitalPlanReserve"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingMutation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Reserve Capital Plan"
       }
     },
     "/api/v1/context": {
@@ -3923,6 +6031,321 @@
           }
         },
         "summary": "Context"
+      }
+    },
+    "/api/v1/funding": {
+      "get": {
+        "operationId": "get_funding",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "account_seq",
+            "required": true,
+            "schema": {
+              "pattern": "^[1-9][0-9]{0,18}$",
+              "title": "Account Seq",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "snapshot_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Funding"
+      }
+    },
+    "/api/v1/funding/refresh": {
+      "post": {
+        "operationId": "refresh_funding",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FundingRefresh"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Refresh Funding"
+      }
+    },
+    "/api/v1/funding/reservations/{id}/release": {
+      "post": {
+        "operationId": "release_funding_reservation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FundingMutation"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Release Funding Reservation"
       }
     },
     "/api/v1/health": {

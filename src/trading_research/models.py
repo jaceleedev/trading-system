@@ -11,6 +11,7 @@ from sqlalchemy import (
     Index,
     Integer,
     Numeric,
+    PrimaryKeyConstraint,
     String,
     UniqueConstraint,
     func,
@@ -205,3 +206,80 @@ class InvestigationRevisionRow(Base):
     result: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class FundingPoolRow(Base):
+    __tablename__ = "funding_pools"
+    __table_args__ = (
+        CheckConstraint("kind IN ('cash','holding')", name="ck_funding_pool_kind"),
+        CheckConstraint("mode IN ('prospective','synthetic')", name="ck_funding_pool_mode"),
+        CheckConstraint("capacity IS NULL OR capacity >= 0", name="ck_funding_pool_capacity"),
+        CheckConstraint("revision >= 1", name="ck_funding_pool_revision"),
+        Index("ix_funding_pools_account", "workspace_key", "account_seq"),
+    )
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    workspace_key: Mapped[str] = mapped_column(String(64))
+    provider: Mapped[str] = mapped_column(String(16))
+    account_seq: Mapped[str] = mapped_column(String(19))
+    kind: Mapped[str] = mapped_column(String(16))
+    currency: Mapped[str] = mapped_column(String(3))
+    market: Mapped[str | None] = mapped_column(String(2))
+    symbol: Mapped[str | None] = mapped_column(String(64))
+    mode: Mapped[str] = mapped_column(String(16))
+    snapshot_id: Mapped[str] = mapped_column(String(64))
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    capacity: Mapped[Decimal | None] = mapped_column(Numeric())
+    revision: Mapped[int] = mapped_column(Integer)
+    basis: Mapped[dict] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class FundingReservationRow(Base):
+    __tablename__ = "funding_reservations"
+    __table_args__ = (
+        UniqueConstraint("workspace_key", "request_key", name="uq_funding_reservation_request"),
+        CheckConstraint(
+            "status IN ('active','released','replaced')", name="ck_funding_reservation_status"
+        ),
+        CheckConstraint("mode IN ('prospective','synthetic')", name="ck_funding_reservation_mode"),
+        Index("ix_funding_reservations_account", "workspace_key", "account_seq", "status"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    workspace_key: Mapped[str] = mapped_column(String(64))
+    account_seq: Mapped[str] = mapped_column(String(19))
+    plan_id: Mapped[str] = mapped_column(String(64))
+    alternative_id: Mapped[str] = mapped_column(String(64))
+    request_key: Mapped[str] = mapped_column(String(128))
+    request_sha256: Mapped[str] = mapped_column(String(64))
+    mode: Mapped[str] = mapped_column(String(16))
+    status: Mapped[str] = mapped_column(String(16))
+    requirements: Mapped[dict] = mapped_column(JSONB)
+    pool_revisions: Mapped[dict] = mapped_column(JSONB)
+    snapshot_ids: Mapped[list] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    released_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    replaced_by: Mapped[str | None] = mapped_column(String(36))
+
+
+class FundingReservationLineRow(Base):
+    __tablename__ = "funding_reservation_lines"
+    __table_args__ = (CheckConstraint("amount > 0", name="ck_funding_reservation_line_amount"),)
+    reservation_id: Mapped[str] = mapped_column(
+        ForeignKey("funding_reservations.id", ondelete="CASCADE"), primary_key=True
+    )
+    pool_id: Mapped[str] = mapped_column(ForeignKey("funding_pools.id"), primary_key=True)
+    amount: Mapped[Decimal] = mapped_column(Numeric())
+
+
+class CapitalPlanRegistrationRow(Base):
+    __tablename__ = "capital_plan_registrations"
+    __table_args__ = (
+        PrimaryKeyConstraint("workspace_key", "request_key", name="uq_capital_plan_request"),
+        Index("ix_capital_plan_registration_plan", "workspace_key", "plan_id"),
+    )
+    workspace_key: Mapped[str] = mapped_column(String(64), primary_key=True)
+    request_key: Mapped[str] = mapped_column(String(128), primary_key=True)
+    request_sha256: Mapped[str] = mapped_column(String(64))
+    plan_id: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

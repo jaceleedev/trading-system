@@ -39,7 +39,9 @@ Python worker for saved context and opt-in read-only captures; see `docs/JOBS.md
 adds schema-pinned candle observations, revisions, cited events, and charts; see
 `docs/MARKET_OBSERVATIONS.md`. Feature 20 adds frozen investigation inputs, existing Codex CLI
 execution, revision fencing, adaptive read requests, and review conditions; see
-`docs/INVESTIGATIONS.md`. Broker order submission remains future work and must stay disabled.
+`docs/INVESTIGATIONS.md`. Feature 21 adds capital alternatives and current local allocations
+with exact amounts and immutable source validation; see `docs/CAPITAL_PLANS.md`. Broker order
+submission remains future work and must stay disabled.
 
 The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate

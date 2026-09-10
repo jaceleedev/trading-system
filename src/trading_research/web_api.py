@@ -181,7 +181,9 @@ def create_app(
     app = FastAPI(
         title="Investment workspace API",
         version="1.0.0",
-        description="Read-only local records. No model execution or brokerage orders.",
+        description=(
+            "Local research, capital plans and opted-in jobs. Brokerage orders are disabled."
+        ),
         docs_url=None,
         redoc_url=None,
         openapi_url="/api/v1/openapi.json",
@@ -280,6 +282,9 @@ def create_app(
     from trading_research.investigation_api import register_investigation_routes
 
     register_investigation_routes(app, workspace, job_store, synthetic=synthetic)
+    from trading_research.capital_api import register_capital_routes
+
+    register_capital_routes(app, workspace, job_store, synthetic=synthetic)
 
     @app.get("/{path:path}", include_in_schema=False)
     def static(path: str):

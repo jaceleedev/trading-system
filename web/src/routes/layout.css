@@ -229,6 +229,135 @@ select {
   margin-top: 20px;
   padding: 22px;
 }
+.capital-panel {
+  margin-top: 20px;
+  padding: 22px;
+}
+.capital-panel > details > summary {
+  font-size: 20px;
+  font-weight: 600;
+  color: #24334e;
+}
+.capital-panel > details > summary + p {
+  margin-top: 13px;
+}
+.capital-form,
+.capital-funding-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+.capital-fields {
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.capital-leg-rationale {
+  grid-column: span 2;
+}
+.capital-reservation {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+}
+.capital-form label,
+.capital-funding-grid label,
+.capital-leg label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: #35445f;
+}
+.capital-panel input:not([type='checkbox']),
+.capital-panel textarea,
+.capital-panel select {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 11px;
+  border: 1px solid #cdd8e7;
+  border-radius: 5px;
+  background: #fff;
+  color: var(--foreground);
+  font: inherit;
+}
+.capital-panel textarea {
+  resize: vertical;
+  min-height: 68px;
+}
+.capital-panel input:focus-visible,
+.capital-panel textarea:focus-visible {
+  outline: 3px solid #93b9ff;
+  outline-offset: 2px;
+}
+.capital-budget,
+.capital-alternative {
+  padding: 15px;
+  margin: 18px 0 0;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  min-width: 0;
+}
+.capital-budget legend,
+.capital-alternative legend {
+  padding: 0 5px;
+  font-weight: 600;
+  color: #35445f;
+}
+.capital-leg {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  border-top: 1px solid var(--border);
+  padding-top: 15px;
+  margin-top: 15px;
+}
+.capital-full {
+  grid-column: 1 / -1;
+}
+.capital-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+.capital-result {
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+  padding-top: 18px;
+}
+.capital-result .table-container {
+  margin-top: 12px;
+  overflow: auto;
+}
+.capital-result table {
+  min-width: 700px;
+}
+.capital-result .identifier {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 650px) {
+  .capital-panel {
+    padding: 18px 15px;
+  }
+  .capital-form,
+  .capital-funding-grid {
+    grid-template-columns: 1fr;
+  }
+  .capital-leg {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .capital-budget,
+  .capital-alternative {
+    padding: 12px;
+  }
+}
 .investigation-heading {
   display: flex;
   justify-content: space-between;

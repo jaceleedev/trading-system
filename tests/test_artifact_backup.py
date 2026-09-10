@@ -152,6 +152,7 @@ def test_create_restore_preserves_private_independent_bytes_and_provenance(sourc
         "captures": 1,
         "research": 2,
         "investigations": 0,
+        "capital-plans": 0,
     }
     assert checked["reference_checks_passed"] is True
     assert files(source) == files(backup) == files(restored) == original
@@ -220,6 +221,7 @@ def test_deep_market_capture_preserves_its_existing_contract_on_backup_and_resto
         "captures": 2,
         "research": 2,
         "investigations": 0,
+        "capital-plans": 0,
     }
     assert files(source) == files(backup) == files(restored) == original
     assert read_capture(restored / "captures" / path.name) == capture
@@ -270,6 +272,7 @@ def test_v1_three_store_manifest_restore_preserves_original_bytes_and_identity(s
     legacy = manifest(backup)
     legacy["schema_version"] = 1
     del legacy["source_stores"]["investigations"]
+    del legacy["source_stores"]["capital-plans"]
     replace_manifest(backup, legacy)
     original = (backup / "manifest.json").read_bytes()
     identity = hashlib.sha256(original).hexdigest()
@@ -280,6 +283,25 @@ def test_v1_three_store_manifest_restore_preserves_original_bytes_and_identity(s
     assert (backup / "manifest.json").read_bytes() == original
     assert (restored / "manifest.json").read_bytes() == original
     assert not (restored / "investigations").exists()
+    assert not (restored / "capital-plans").exists()
+
+
+def test_v2_four_store_manifest_restore_preserves_original_bytes_and_identity(source, tmp_path):
+    backup, restored = tmp_path / "backup", tmp_path / "restored"
+    create_backup(source, backup, now=NOW)
+    legacy = manifest(backup)
+    legacy["schema_version"] = 2
+    del legacy["source_stores"]["capital-plans"]
+    replace_manifest(backup, legacy)
+    original = (backup / "manifest.json").read_bytes()
+    identity = hashlib.sha256(original).hexdigest()
+    checked = verify_backup(backup)
+    assert checked["manifest_sha256"] == identity
+    assert set(checked["store_counts"]) == set(artifact_backup.V2_STORES)
+    assert restore_backup(backup, restored)["manifest_sha256"] == identity
+    assert (backup / "manifest.json").read_bytes() == original
+    assert (restored / "manifest.json").read_bytes() == original
+    assert not (restored / "capital-plans").exists()
 
 
 @pytest.mark.parametrize("operation", ["create", "restore"])
