@@ -75,6 +75,33 @@ def test_no_future_account_snapshot(bundle, config, account):
         recommend(bundle, replace(account, as_of=AS_OF + timedelta(seconds=1)), config, AS_OF)
 
 
+def test_account_must_be_refreshed_across_corporate_action(bundle, config, account):
+    changed = replace(
+        bundle,
+        manifest={
+            **bundle.manifest,
+            "corporate_actions": [
+                {
+                    "event_id": "split-account-boundary",
+                    "instrument_id": "SYN-US-1",
+                    "kind": "split",
+                    "effective_at": "2026-08-31T13:30:00+00:00",
+                    "known_at": "2026-08-01T00:00:00+00:00",
+                    "payment_at": None,
+                    "ratio": "2",
+                    "cash_per_share": "0",
+                    "withholding_bps": "0",
+                }
+            ],
+        },
+    )
+    stale_account = replace(
+        account, as_of=AS_OF - timedelta(hours=12), holdings={"SYN-US-1": Decimal(10)}
+    )
+    with pytest.raises(DataError, match="refresh balances"):
+        recommend(changed, stale_account, config, AS_OF)
+
+
 def test_missing_holding_is_not_valued_at_zero(bundle, config, account):
     with pytest.raises(DataError, match="absent"):
         recommend(bundle, replace(account, holdings={"NOT-IN-DATA": Decimal(1)}), config, AS_OF)

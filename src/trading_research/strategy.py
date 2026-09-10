@@ -11,30 +11,14 @@ from zoneinfo import ZoneInfo
 from dateutil.relativedelta import relativedelta
 
 from trading_research.data import Bar, Bundle, DataError, decimal_value, timestamp
+from trading_research.serialization import encode as encode
+from trading_research.serialization import fingerprint as fingerprint
 
 ZERO, ONE, BPS = Decimal(0), Decimal(1), Decimal(10000)
 
 
-def encode(value) -> str:
-    def canonical(item):
-        if isinstance(item, Decimal):
-            value = format(item, "f")
-            return value.rstrip("0").rstrip(".") if "." in value else value
-        if isinstance(item, datetime):
-            if item.utcoffset() is None:
-                raise DataError("Research timestamps must be timezone-aware")
-            return item.astimezone(UTC).isoformat()
-        if isinstance(item, date):
-            return item.isoformat()
-        raise TypeError(f"Unsupported research serialization type: {type(item).__name__}")
-
-    return json.dumps(
-        value, default=canonical, sort_keys=True, ensure_ascii=False, separators=(",", ":")
-    )
-
-
-def fingerprint(value) -> str:
-    return hashlib.sha256(encode(value).encode()).hexdigest()
+class PostActionPriceError(DataError):
+    """Decision waits for an observed price in the current share/entitlement units."""
 
 
 @dataclass(frozen=True)
@@ -133,6 +117,9 @@ class MarketView:
         self.as_of = as_of.astimezone(UTC)
         self.max_staleness_days = max_staleness_days
         self.instruments = {i.instrument_id: i for i in bundle.instruments}
+        from trading_research.corporate_actions import parse_actions
+
+        self.actions = parse_actions(bundle.manifest.get("corporate_actions", []), self.instruments)
         self.bars: dict[str, list[Bar]] = {}
         for bar in bundle.bars:
             if bar.available_at <= self.as_of and bar.session_close_at <= self.as_of:
@@ -183,6 +170,16 @@ class MarketView:
     def price_krw(self, instrument_id: str) -> Decimal:
         return self.latest(instrument_id).close * self.fx(self.instruments[instrument_id].currency)
 
+    def require_current_units(self, identifier: str) -> None:
+        latest = self.latest(identifier)
+        if any(
+            a.instrument_id == identifier and latest.session_close_at < a.effective_at <= self.as_of
+            for a in self.actions
+        ):
+            raise PostActionPriceError(
+                "A corporate action requires a fresh post-event price before recommendation"
+            )
+
     def nav(self, account: Account) -> Decimal:
         return account.cash_krw + sum(
             (quantity * self.price_krw(i) for i, quantity in account.holdings.items()), ZERO
@@ -213,6 +210,7 @@ def rank_candidates(view: MarketView, config: ResearchConfig) -> tuple[list[dict
             if instrument.sector == "INDEX":
                 continue
             latest = view.latest(identifier)
+            view.require_current_units(identifier)
             view.fx(instrument.currency)
             bars = view.bars[identifier]
             start = anchor(bars, day - relativedelta(months=12), config.anchor_tolerance_days)
@@ -263,6 +261,15 @@ def recommend(bundle: Bundle, account: Account, config: ResearchConfig, as_of: d
     if account.as_of > view.as_of or (view.as_of - account.as_of).total_seconds() > 86400:
         raise DataError("Account snapshot must be no later than, and within 24h of, the decision")
     # Fail closed on unknown/stale holdings rather than treating their value as zero.
+    for identifier, quantity in account.holdings.items():
+        if any(
+            action.instrument_id == identifier and account.as_of < action.effective_at <= view.as_of
+            for action in view.actions
+        ):
+            raise DataError("Account snapshot predates a corporate action; refresh balances")
+        if quantity % 1:
+            raise DataError("Whole-share recommendation profile requires cash-in-lieu handling")
+        view.require_current_units(identifier)
     nav = view.nav(account)
     if nav <= 0:
         raise DataError("Positive account equity is required")
@@ -367,10 +374,22 @@ def recommend(bundle: Bundle, account: Account, config: ResearchConfig, as_of: d
     identity = {
         "dataset_id": bundle.id,
         "dataset_sha256": bundle.sha256,
+        "dataset_content_sha256": bundle.content_sha256,
         "as_of": view.as_of.isoformat(),
         "account": asdict(account),
         "config": asdict(config),
-        "engine_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "engine_sha256": fingerprint(
+            {
+                p: hashlib.sha256(Path(__file__).with_name(p).read_bytes()).hexdigest()
+                for p in (
+                    "strategy.py",
+                    "data.py",
+                    "corporate_actions.py",
+                    "serialization.py",
+                    "errors.py",
+                )
+            }
+        ),
     }
     payload = {
         **identity,

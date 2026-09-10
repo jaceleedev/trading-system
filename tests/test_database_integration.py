@@ -60,3 +60,24 @@ def test_atomic_import_roundtrip_and_immutable_revision(session, tmp_path):
     changed = Bundle(bundle.manifest, "0" * 64, bundle.instruments, bundle.bars, bundle.fx)
     with pytest.raises(DataError, match="different content"):
         import_bundle(session, changed)
+
+    from dataclasses import replace
+    from datetime import date
+
+    from trading_research.backtest import BacktestConfig, run_backtest
+    from trading_research.models import BacktestRow
+    from trading_research.recommendations import save_backtest
+
+    simulation = replace(
+        BacktestConfig.load("configs/backtest.demo.json"),
+        start=date(2025, 3, 1),
+        end=date(2025, 3, 31),
+    )
+    result = run_backtest(restored, config, simulation)
+    assert result == run_backtest(read_bundle(session, bundle.id), config, simulation)
+    assert save_backtest(session, result)
+    assert not save_backtest(session, result)
+    saved = session.get(BacktestRow, result["id"])
+    assert checked_payload(saved) == result
+    with pytest.raises(DataError, match="identity collision"):
+        save_backtest(session, {**result, "orders_enabled": True})
