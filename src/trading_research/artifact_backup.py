@@ -17,8 +17,9 @@ from trading_research.toss_account import validate_observation, validate_snapsho
 
 LEGACY_STORES = ("accounts", "captures", "research")
 V2_STORES = (*LEGACY_STORES, "investigations")
-STORES = (*V2_STORES, "capital-plans")
-_VERSION_STORES = {1: LEGACY_STORES, 2: V2_STORES, 3: STORES}
+V3_STORES = (*V2_STORES, "capital-plans")
+STORES = (*V3_STORES, "broker-observations", "reconciliations")
+_VERSION_STORES = {1: LEGACY_STORES, 2: V2_STORES, 3: V3_STORES, 4: STORES}
 MAX_OBJECTS = 10000
 MAX_TOTAL_BYTES = 2 * 1024 * 1024 * 1024
 MAX_MANIFEST_BYTES = 4 * 1024 * 1024
@@ -121,7 +122,15 @@ def _source_inventory(source):
     statuses, selected = {}, []
     with _directory(source, private=False) as base:
         # Select dependent immutable objects before their already-published sources.
-        for store in ("capital-plans", "investigations", "research", "accounts", "captures"):
+        for store in (
+            "reconciliations",
+            "broker-observations",
+            "capital-plans",
+            "investigations",
+            "research",
+            "accounts",
+            "captures",
+        ):
             try:
                 info = os.stat(store, dir_fd=base, follow_symlinks=False)
             except FileNotFoundError:
@@ -159,7 +168,15 @@ def _validated_bytes(root, store, identity):
     value = parse_json(raw)
     if object_bytes(value) != raw:
         raise DataError("Artifact content is not canonical JSON")
-    if store == "capital-plans":
+    if store == "reconciliations":
+        from trading_research.reconciliation import read_report_from_stores
+
+        checked = read_report_from_stores(root, identity)
+    elif store == "broker-observations":
+        from trading_research.broker_artifacts import read_artifact as read_broker_artifact
+
+        checked = read_broker_artifact(root / store, identity)
+    elif store == "capital-plans":
         checked = read_plan_from_stores(root, identity)
     elif store == "investigations":
         checked = read_artifact(
@@ -340,7 +357,7 @@ def create_backup(source: Path, destination: Path, *, now=None) -> dict:
         objects = _copy_objects(source, destination, statuses, selected)
         manifest = {
             "kind": "private_artifact_backup",
-            "schema_version": 3,
+            "schema_version": 4,
             "created_at": _now(now),
             "consistency": CONSISTENCY,
             "source_stores": statuses,

@@ -169,6 +169,437 @@
         "title": "AccountSnapshotsResponse",
         "type": "object"
       },
+      "BrokerCoverage": {
+        "additionalProperties": false,
+        "properties": {
+          "all_order_types": {
+            "const": false,
+            "title": "All Order Types",
+            "type": "boolean"
+          },
+          "atomic_account_instant": {
+            "const": false,
+            "title": "Atomic Account Instant",
+            "type": "boolean"
+          },
+          "closed_complete": {
+            "title": "Closed Complete",
+            "type": "boolean"
+          },
+          "closed_pages": {
+            "title": "Closed Pages",
+            "type": "integer"
+          },
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "date_basis": {
+            "const": "orderedAt_KST",
+            "title": "Date Basis",
+            "type": "string"
+          },
+          "details_complete": {
+            "title": "Details Complete",
+            "type": "boolean"
+          },
+          "individual_fills": {
+            "const": false,
+            "title": "Individual Fills",
+            "type": "boolean"
+          },
+          "open_complete": {
+            "title": "Open Complete",
+            "type": "boolean"
+          },
+          "order_lineage": {
+            "const": false,
+            "title": "Order Lineage",
+            "type": "boolean"
+          },
+          "ordered_at_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ordered At From"
+          },
+          "ordered_at_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ordered At To"
+          },
+          "source_authenticity": {
+            "const": false,
+            "title": "Source Authenticity",
+            "type": "boolean"
+          },
+          "stop_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "page_limit",
+                  "cursor_cycle",
+                  "request_failed",
+                  "ambiguous_pages"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stop Reason"
+          },
+          "unresolved_detail_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unresolved Detail Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "open_complete",
+          "closed_complete",
+          "details_complete",
+          "complete",
+          "closed_pages",
+          "stop_reason",
+          "unresolved_detail_ids",
+          "ordered_at_from",
+          "ordered_at_to",
+          "date_basis",
+          "atomic_account_instant",
+          "all_order_types",
+          "individual_fills",
+          "order_lineage",
+          "source_authenticity"
+        ],
+        "title": "BrokerCoverage",
+        "type": "object"
+      },
+      "BrokerObservedOrder": {
+        "additionalProperties": false,
+        "properties": {
+          "observation_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Observation Id",
+            "type": "string"
+          },
+          "order": {
+            "$ref": "#/components/schemas/OpenOrder"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "source_group": {
+            "enum": [
+              "OPEN",
+              "CLOSED",
+              "DETAIL"
+            ],
+            "title": "Source Group",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order",
+          "observation_id",
+          "retrieved_at",
+          "recorded_at",
+          "source_group"
+        ],
+        "title": "BrokerObservedOrder",
+        "type": "object"
+      },
+      "BrokerScanList": {
+        "additionalProperties": false,
+        "properties": {
+          "invalid_count": {
+            "title": "Invalid Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BrokerScanSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "omitted_count": {
+            "title": "Omitted Count",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total_count",
+          "omitted_count",
+          "invalid_count"
+        ],
+        "title": "BrokerScanList",
+        "type": "object"
+      },
+      "BrokerScanRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "detail_order_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Detail Order Ids",
+            "type": "array"
+          },
+          "from_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "From Date"
+          },
+          "max_pages": {
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Max Pages",
+            "type": "integer"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "page_size": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbol"
+          },
+          "to_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "To Date"
+          }
+        },
+        "required": [
+          "account_seq",
+          "mode",
+          "from_date",
+          "to_date",
+          "symbol",
+          "max_pages",
+          "page_size",
+          "detail_order_ids"
+        ],
+        "title": "BrokerScanRequest",
+        "type": "object"
+      },
+      "BrokerScanSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "collection_completed_at": {
+            "format": "date-time",
+            "title": "Collection Completed At",
+            "type": "string"
+          },
+          "collection_started_at": {
+            "format": "date-time",
+            "title": "Collection Started At",
+            "type": "string"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/BrokerCoverage"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "observations_count": {
+            "title": "Observations Count",
+            "type": "integer"
+          },
+          "orders_count": {
+            "title": "Orders Count",
+            "type": "integer"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "account_seq",
+          "collection_started_at",
+          "collection_completed_at",
+          "recorded_at",
+          "coverage",
+          "orders_count",
+          "observations_count"
+        ],
+        "title": "BrokerScanSummary",
+        "type": "object"
+      },
+      "BrokerScanView": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "collection_completed_at": {
+            "format": "date-time",
+            "title": "Collection Completed At",
+            "type": "string"
+          },
+          "collection_started_at": {
+            "format": "date-time",
+            "title": "Collection Started At",
+            "type": "string"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/BrokerCoverage"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "broker_scan",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "observation_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Observation Ids",
+            "type": "array"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/BrokerObservedOrder"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "request": {
+            "$ref": "#/components/schemas/BrokerScanRequest"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "schema_version",
+          "mode",
+          "account_seq",
+          "recorded_at",
+          "collection_started_at",
+          "collection_completed_at",
+          "request",
+          "observation_ids",
+          "coverage",
+          "orders",
+          "warnings"
+        ],
+        "title": "BrokerScanView",
+        "type": "object"
+      },
       "BuyingPower": {
         "additionalProperties": false,
         "properties": {
@@ -3598,7 +4029,8 @@
             "enum": [
               "research-context",
               "account-sync",
-              "market-capture"
+              "market-capture",
+              "broker-sync"
             ],
             "title": "Kind",
             "type": "string"
@@ -6067,6 +6499,968 @@
         "title": "ProposedAction",
         "type": "object"
       },
+      "ReconciliationBuyingPower": {
+        "additionalProperties": false,
+        "properties": {
+          "after_amount": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Amount"
+          },
+          "before_amount": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Amount"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "delta": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Delta"
+          },
+          "semantics": {
+            "const": "buying_capacity_not_cash",
+            "title": "Semantics",
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency",
+          "before_amount",
+          "after_amount",
+          "delta",
+          "semantics"
+        ],
+        "title": "ReconciliationBuyingPower",
+        "type": "object"
+      },
+      "ReconciliationCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "absent_orders": {
+            "title": "Absent Orders",
+            "type": "integer"
+          },
+          "baseline_orders": {
+            "title": "Baseline Orders",
+            "type": "integer"
+          },
+          "changed_holdings": {
+            "title": "Changed Holdings",
+            "type": "integer"
+          },
+          "changed_orders": {
+            "title": "Changed Orders",
+            "type": "integer"
+          },
+          "conflicted_orders": {
+            "title": "Conflicted Orders",
+            "type": "integer"
+          },
+          "holdings": {
+            "title": "Holdings",
+            "type": "integer"
+          },
+          "orders": {
+            "title": "Orders",
+            "type": "integer"
+          },
+          "unchanged_orders": {
+            "title": "Unchanged Orders",
+            "type": "integer"
+          },
+          "unknown_holding_deltas": {
+            "title": "Unknown Holding Deltas",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "orders",
+          "unchanged_orders",
+          "changed_orders",
+          "baseline_orders",
+          "absent_orders",
+          "conflicted_orders",
+          "holdings",
+          "changed_holdings",
+          "unknown_holding_deltas"
+        ],
+        "title": "ReconciliationCounts",
+        "type": "object"
+      },
+      "ReconciliationCoverage": {
+        "additionalProperties": false,
+        "properties": {
+          "after_account": {
+            "additionalProperties": true,
+            "title": "After Account",
+            "type": "object"
+          },
+          "after_scan": {
+            "additionalProperties": true,
+            "title": "After Scan",
+            "type": "object"
+          },
+          "all_account_orders": {
+            "const": false,
+            "title": "All Account Orders",
+            "type": "boolean"
+          },
+          "atomic_account_instant": {
+            "const": false,
+            "title": "Atomic Account Instant",
+            "type": "boolean"
+          },
+          "before_account": {
+            "additionalProperties": true,
+            "title": "Before Account",
+            "type": "object"
+          },
+          "before_scan": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Scan"
+          },
+          "comparison_time_alignment": {
+            "const": "non_atomic",
+            "title": "Comparison Time Alignment",
+            "type": "string"
+          },
+          "holdings_absence_implies_zero": {
+            "const": false,
+            "title": "Holdings Absence Implies Zero",
+            "type": "boolean"
+          },
+          "individual_fills_available": {
+            "const": false,
+            "title": "Individual Fills Available",
+            "type": "boolean"
+          },
+          "order_lineage_known": {
+            "const": false,
+            "title": "Order Lineage Known",
+            "type": "boolean"
+          },
+          "source_authenticity_verified": {
+            "const": false,
+            "title": "Source Authenticity Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "before_scan",
+          "after_scan",
+          "before_account",
+          "after_account",
+          "atomic_account_instant",
+          "all_account_orders",
+          "individual_fills_available",
+          "order_lineage_known",
+          "source_authenticity_verified",
+          "comparison_time_alignment",
+          "holdings_absence_implies_zero"
+        ],
+        "title": "ReconciliationCoverage",
+        "type": "object"
+      },
+      "ReconciliationExecutionDelta": {
+        "additionalProperties": false,
+        "properties": {
+          "commission": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commission"
+          },
+          "filled_amount": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filled Amount"
+          },
+          "filled_quantity": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filled Quantity"
+          },
+          "tax": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax"
+          }
+        },
+        "required": [
+          "filled_quantity",
+          "filled_amount",
+          "commission",
+          "tax"
+        ],
+        "title": "ReconciliationExecutionDelta",
+        "type": "object"
+      },
+      "ReconciliationHolding": {
+        "additionalProperties": false,
+        "properties": {
+          "absence_zero_assumed": {
+            "const": false,
+            "title": "Absence Zero Assumed",
+            "type": "boolean"
+          },
+          "after_currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Currency"
+          },
+          "after_present": {
+            "title": "After Present",
+            "type": "boolean"
+          },
+          "after_quantity": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Quantity"
+          },
+          "before_currency": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Currency"
+          },
+          "before_present": {
+            "title": "Before Present",
+            "type": "boolean"
+          },
+          "before_quantity": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Quantity"
+          },
+          "classification": {
+            "enum": [
+              "unchanged",
+              "quantity_changed",
+              "appeared",
+              "disappeared",
+              "currency_conflict"
+            ],
+            "title": "Classification",
+            "type": "string"
+          },
+          "market": {
+            "title": "Market",
+            "type": "string"
+          },
+          "quantity_delta": {
+            "anyOf": [
+              {
+                "maxLength": 600,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity Delta"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "market",
+          "symbol",
+          "before_currency",
+          "after_currency",
+          "before_present",
+          "after_present",
+          "before_quantity",
+          "after_quantity",
+          "quantity_delta",
+          "classification",
+          "absence_zero_assumed"
+        ],
+        "title": "ReconciliationHolding",
+        "type": "object"
+      },
+      "ReconciliationList": {
+        "additionalProperties": false,
+        "properties": {
+          "invalid_count": {
+            "title": "Invalid Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "omitted_count": {
+            "title": "Omitted Count",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total_count",
+          "omitted_count",
+          "invalid_count"
+        ],
+        "title": "ReconciliationList",
+        "type": "object"
+      },
+      "ReconciliationOrder": {
+        "additionalProperties": false,
+        "properties": {
+          "after": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReconciliationOrderVersion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "after_conflict_observation_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "After Conflict Observation Ids",
+            "type": "array"
+          },
+          "before": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReconciliationOrderVersion"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "before_conflict_observation_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Before Conflict Observation Ids",
+            "type": "array"
+          },
+          "classification": {
+            "items": {
+              "enum": [
+                "unchanged",
+                "baseline_only",
+                "absent_from_selected_scope",
+                "identity_conflict",
+                "observation_conflict",
+                "temporal_conflict",
+                "cumulative_increase",
+                "cumulative_regression",
+                "financial_revision",
+                "execution_information_changed",
+                "status_only",
+                "order_terms_changed",
+                "metadata_changed"
+              ],
+              "type": "string"
+            },
+            "title": "Classification",
+            "type": "array"
+          },
+          "deltas": {
+            "$ref": "#/components/schemas/ReconciliationExecutionDelta"
+          },
+          "individual_fills_available": {
+            "const": false,
+            "title": "Individual Fills Available",
+            "type": "boolean"
+          },
+          "lineage_known": {
+            "const": false,
+            "title": "Lineage Known",
+            "type": "boolean"
+          },
+          "order_id": {
+            "title": "Order Id",
+            "type": "string"
+          },
+          "order_key": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Order Key",
+            "type": "string"
+          },
+          "origin": {
+            "const": "unattributed",
+            "title": "Origin",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order_key",
+          "order_id",
+          "before",
+          "after",
+          "before_conflict_observation_ids",
+          "after_conflict_observation_ids",
+          "deltas",
+          "classification",
+          "origin",
+          "lineage_known",
+          "individual_fills_available"
+        ],
+        "title": "ReconciliationOrder",
+        "type": "object"
+      },
+      "ReconciliationOrderVersion": {
+        "additionalProperties": false,
+        "properties": {
+          "groups_seen": {
+            "items": {
+              "enum": [
+                "OPEN",
+                "CLOSED",
+                "DETAIL"
+              ],
+              "type": "string"
+            },
+            "title": "Groups Seen",
+            "type": "array"
+          },
+          "observation_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Observation Ids",
+            "type": "array"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "order": {
+            "$ref": "#/components/schemas/OpenOrder"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "order",
+          "observed_at",
+          "recorded_at",
+          "observation_ids",
+          "groups_seen"
+        ],
+        "title": "ReconciliationOrderVersion",
+        "type": "object"
+      },
+      "ReconciliationRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "buying_power": {
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationBuyingPower"
+            },
+            "title": "Buying Power",
+            "type": "array"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/ReconciliationCounts"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/ReconciliationCoverage"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationHolding"
+            },
+            "title": "Holdings",
+            "type": "array"
+          },
+          "individual_fills_created": {
+            "const": false,
+            "title": "Individual Fills Created",
+            "type": "boolean"
+          },
+          "kind": {
+            "const": "broker_reconciliation",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic",
+              "retrospective"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationOrder"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "orders_enabled": {
+            "const": false,
+            "title": "Orders Enabled",
+            "type": "boolean"
+          },
+          "pnl_computed": {
+            "const": false,
+            "title": "Pnl Computed",
+            "type": "boolean"
+          },
+          "request": {
+            "$ref": "#/components/schemas/ReconciliationRequest"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "sources": {
+            "$ref": "#/components/schemas/ReconciliationSources"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "kind",
+          "schema_version",
+          "mode",
+          "as_of",
+          "account_seq",
+          "request",
+          "sources",
+          "orders",
+          "holdings",
+          "buying_power",
+          "coverage",
+          "counts",
+          "warnings",
+          "individual_fills_created",
+          "pnl_computed",
+          "orders_enabled"
+        ],
+        "title": "ReconciliationRecord",
+        "type": "object"
+      },
+      "ReconciliationRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "after_scan_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "After Scan Id",
+            "type": "string"
+          },
+          "after_snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "After Snapshot Id",
+            "type": "string"
+          },
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "before_scan_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Scan Id"
+          },
+          "before_snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Before Snapshot Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic",
+              "retrospective"
+            ],
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "before_snapshot_id",
+          "after_snapshot_id",
+          "after_scan_id",
+          "mode"
+        ],
+        "title": "ReconciliationRequest",
+        "type": "object"
+      },
+      "ReconciliationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "record": {
+            "$ref": "#/components/schemas/ReconciliationRecord"
+          }
+        },
+        "required": [
+          "id",
+          "record"
+        ],
+        "title": "ReconciliationResponse",
+        "type": "object"
+      },
+      "ReconciliationScanSource": {
+        "additionalProperties": false,
+        "properties": {
+          "collection_completed_at": {
+            "format": "date-time",
+            "title": "Collection Completed At",
+            "type": "string"
+          },
+          "collection_started_at": {
+            "format": "date-time",
+            "title": "Collection Started At",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "observation_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Observation Ids",
+            "type": "array"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "request": {
+            "additionalProperties": true,
+            "title": "Request",
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "collection_started_at",
+          "collection_completed_at",
+          "recorded_at",
+          "request",
+          "observation_ids"
+        ],
+        "title": "ReconciliationScanSource",
+        "type": "object"
+      },
+      "ReconciliationSnapshotSource": {
+        "additionalProperties": false,
+        "properties": {
+          "buying_power_observed_at": {
+            "additionalProperties": {
+              "format": "date-time",
+              "type": "string"
+            },
+            "title": "Buying Power Observed At",
+            "type": "object"
+          },
+          "collection_completed_at": {
+            "format": "date-time",
+            "title": "Collection Completed At",
+            "type": "string"
+          },
+          "collection_started_at": {
+            "format": "date-time",
+            "title": "Collection Started At",
+            "type": "string"
+          },
+          "contract_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Sha256",
+            "type": "string"
+          },
+          "holdings_observed_at": {
+            "format": "date-time",
+            "title": "Holdings Observed At",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "collection_started_at",
+          "collection_completed_at",
+          "holdings_observed_at",
+          "buying_power_observed_at",
+          "contract_sha256"
+        ],
+        "title": "ReconciliationSnapshotSource",
+        "type": "object"
+      },
+      "ReconciliationSources": {
+        "additionalProperties": false,
+        "properties": {
+          "after_scan": {
+            "$ref": "#/components/schemas/ReconciliationScanSource"
+          },
+          "after_snapshot": {
+            "$ref": "#/components/schemas/ReconciliationSnapshotSource"
+          },
+          "before_scan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ReconciliationScanSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "before_snapshot": {
+            "$ref": "#/components/schemas/ReconciliationSnapshotSource"
+          }
+        },
+        "required": [
+          "before_snapshot",
+          "after_snapshot",
+          "before_scan",
+          "after_scan"
+        ],
+        "title": "ReconciliationSources",
+        "type": "object"
+      },
+      "ReconciliationSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "after_scan_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "After Scan Id",
+            "type": "string"
+          },
+          "after_snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "After Snapshot Id",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "before_scan_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Scan Id"
+          },
+          "before_snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Before Snapshot Id",
+            "type": "string"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/ReconciliationCounts"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic",
+              "retrospective"
+            ],
+            "title": "Mode",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "account_seq",
+          "as_of",
+          "before_snapshot_id",
+          "after_snapshot_id",
+          "before_scan_id",
+          "after_scan_id",
+          "counts"
+        ],
+        "title": "ReconciliationSummary",
+        "type": "object"
+      },
       "ResearchAuthor": {
         "additionalProperties": false,
         "properties": {
@@ -6627,6 +8021,225 @@
           }
         },
         "summary": "Snapshots"
+      }
+    },
+    "/api/v1/broker/scans": {
+      "get": {
+        "operationId": "list_broker_scans",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "account_seq",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[1-9][0-9]{0,18}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Account Seq"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrokerScanList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Broker Scans"
+      }
+    },
+    "/api/v1/broker/scans/{id}": {
+      "get": {
+        "operationId": "get_broker_scan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrokerScanView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Broker Scan"
       }
     },
     "/api/v1/capital-plans": {
@@ -9560,6 +11173,402 @@
           }
         },
         "summary": "Cancel Paper Intent"
+      }
+    },
+    "/api/v1/reconciliations": {
+      "get": {
+        "operationId": "list_reconciliations",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Reconciliations"
+      },
+      "post": {
+        "operationId": "save_reconciliation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconciliationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Save Reconciliation"
+      }
+    },
+    "/api/v1/reconciliations/preview": {
+      "post": {
+        "operationId": "preview_reconciliation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReconciliationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Preview Reconciliation"
+      }
+    },
+    "/api/v1/reconciliations/{id}": {
+      "get": {
+        "operationId": "get_reconciliation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReconciliationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Reconciliation"
       }
     },
     "/api/v1/research/{id}": {

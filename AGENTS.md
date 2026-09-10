@@ -45,6 +45,10 @@ submission remains future work and must stay disabled. Feature 22 adds separate 
 paper books, frozen selected alternatives and execution assumptions, local capture receipts,
 partial fills, costs and native-currency valuation; see `docs/PAPER_EXECUTION.md`. Never write
 paper results into broker holdings or claim paper valuation is actual profit or decision attribution.
+Feature 23 adds bounded read-only broker scans and immutable cumulative observation comparisons;
+see `docs/BROKER_RECONCILIATION.md`. First-seen cumulative executions are baselines. No individual
+fill IDs, order lineage, or trading origin are available from the pinned GET contract. Preserve
+unattributed origin, non-atomic timing, incomplete coverage, and unknown values.
 
 The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate

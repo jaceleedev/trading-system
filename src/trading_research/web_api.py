@@ -288,6 +288,9 @@ def create_app(
     from trading_research.paper_api import register_paper_routes
 
     register_paper_routes(app, workspace, job_store, synthetic=synthetic)
+    from trading_research.broker_api import register_broker_routes
+
+    register_broker_routes(app, workspace, job_store, synthetic=synthetic)
 
     @app.get("/{path:path}", include_in_schema=False)
     def static(path: str):

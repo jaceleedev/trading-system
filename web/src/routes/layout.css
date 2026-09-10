@@ -229,6 +229,79 @@ select {
   margin-top: 20px;
   padding: 22px;
 }
+.broker-panel .capital-form > * {
+  min-width: 0;
+}
+.broker-collection,
+.broker-history {
+  margin-top: 18px;
+}
+.broker-collection > summary,
+.broker-history > summary {
+  font-weight: 600;
+  color: #35445f;
+}
+.broker-collection > p,
+.broker-scan-detail > p {
+  margin-top: 10px;
+}
+.broker-result > p {
+  margin-top: 8px;
+}
+.broker-source-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+}
+.broker-source-grid > div {
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.broker-panel td small {
+  display: block;
+  margin-top: 3px;
+  color: #687890;
+}
+.broker-subheading {
+  margin-top: 22px;
+}
+.broker-order-history {
+  margin-top: 15px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.broker-history-version {
+  margin-top: 10px;
+}
+.broker-job-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 16px;
+  font-size: 13px;
+}
+.broker-job-list li {
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.broker-pending {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  margin-top: 16px;
+  overflow-wrap: anywhere;
+}
+.broker-panel .identifier {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 650px) {
+  .broker-source-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .paper-create {
   margin-top: 22px;
   padding: 16px;

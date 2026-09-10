@@ -40,6 +40,9 @@ def main() -> int:
     from trading_research.paper_cli import add_paper_parser
 
     add_paper_parser(sub)
+    from trading_research.broker_cli import add_broker_parser
+
+    add_broker_parser(sub)
     sub.add_parser("doctor", help="Read-only runtime and database connectivity check")
     sub.add_parser("db-upgrade", help="Apply schema migrations to the configured research database")
     demo = sub.add_parser("demo-data", help="Generate clearly marked synthetic fixtures")
@@ -131,6 +134,10 @@ def main() -> int:
                 from trading_research.paper_cli import handle_paper
 
                 print(json.dumps(handle_paper(args), ensure_ascii=False, indent=2))
+            elif args.command == "broker":
+                from trading_research.broker_cli import handle_broker
+
+                print(json.dumps(handle_broker(args), ensure_ascii=False, indent=2))
             elif args.command == "db-upgrade":
                 from alembic import command
                 from alembic.config import Config

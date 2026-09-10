@@ -10,6 +10,7 @@
   import InvestigationsPanel from '$lib/components/InvestigationsPanel.svelte';
   import CapitalPanel from '$lib/components/CapitalPanel.svelte';
   import PaperPanel from '$lib/components/PaperPanel.svelte';
+  import BrokerPanel from '$lib/components/BrokerPanel.svelte';
   import { fetchContext, fetchHealth, fetchRecord, fetchSnapshots } from '$lib/queries';
   import { formatTime } from '$lib/format';
 
@@ -183,6 +184,13 @@
     onselect={selectRecord}
   />
   <PaperPanel
+    ready={health.isSuccess && !health.isFetching}
+    jobsEnabled={health.data?.jobs_enabled ?? false}
+    synthetic={health.data?.synthetic ?? false}
+    {selectedSnapshot}
+    {context}
+  />
+  <BrokerPanel
     ready={health.isSuccess && !health.isFetching}
     jobsEnabled={health.data?.jobs_enabled ?? false}
     synthetic={health.data?.synthetic ?? false}

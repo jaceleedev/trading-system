@@ -45,6 +45,7 @@ URL·출력 경로를 작업 입력으로 받지 않는다. 입력은 `--paramet
 | `research-context` | 선택적 `snapshot_id`, `max_records`(1~100) | 저장 계좌·연구를 검증한 비공개 문맥 결과의 참조 |
 | `account-sync` | 명시적 `account_seq`(양의 십진 문자열) | 기존 토스 클라이언트가 저장한 새 계좌 관측의 ID |
 | `market-capture` | 기존 `endpoint` 별칭·`query`·`pages` | 허용된 시장 GET 원응답의 ID |
+| `broker-sync` | 계좌·관측 모드·주문 생성일 범위·페이지 한도·선택적 상세 주문 IDs | [브로커 스캔](BROKER_RECONCILIATION.md) ID와 수집 완결성·중단 이유 |
 
 기능 20의 내부 `investigation-run`은 [조사 서비스](INVESTIGATIONS.md)만 접수한다.
 일반 작업 API·CLI에 임의로 제출할 수 없다. `--allow-codex` worker에서 Codex를 실행하고

@@ -1,0 +1,425 @@
+{
+  "provider": "toss",
+  "version": "1.2.15",
+  "source": "https://openapi.tossinvest.com/openapi-docs/latest/openapi.json",
+  "retrieved_date": "2026-09-11",
+  "source_sha256": "ebaf20df342270274a5f6f5ad3a3d3d67b0ce02f30977da84606f3654924103e",
+  "base_url": "https://openapi.tossinvest.com",
+  "endpoints": {
+    "/api/v1/orders": {
+      "method": "GET",
+      "description": "주문 목록을 조회합니다.\nstatus 파라미터로 주문 상태를 필터링합니다.\n\n**지원하는 status 값:**\n- 진행 중 주문: `OPEN` -- PENDING, PARTIAL_FILLED, PENDING_CANCEL, PENDING_REPLACE 상태의 주문을 반환\n- 종료된 주문: `CLOSED` -- FILLED, CANCELED, REJECTED, REPLACED 등 종료 상태 주문을 반환합니다.\n\nsymbol을 지정하면 해당 종목의 주문만 필터링하여 반환합니다.\n\n**조회 범위:**\nOpen API 가 지원하는 호가 유형(지정가 · 시장가 · 장마감지정가)으로 접수된 주문만 반환합니다.\n시간외단일가 · 장후시간외 종가 · 장전시간외 종가 등 Open API 로 주문할 수 없는 호가 유형의 주문은\n`OPEN`·`CLOSED` 목록과 주문 상세 조회 모두에서 조회되지 않습니다.\n\n**페이징 동작:**\n- `status=OPEN`: 모든 대기 중 주문을 전량 반환합니다. `limit`, `cursor` 는 무시되며, `from`/`to` 만 주문 생성일(`orderedAt`, KST 기준) 범위 필터로 적용됩니다 (미지정 시 전체 기간).\n- `status=CLOSED`: `limit` (기본 20, 최대 100), `cursor`, `from`/`to` 파라미터 모두 적용됩니다.\n\n**Rate Limits Group**: `ORDER_HISTORY`\n",
+      "parameters": [
+        {
+          "name": "X-Tossinvest-Account",
+          "in": "header",
+          "required": true,
+          "description": "API 요청 시 사용할 계좌의 accountSeq.\n`GET /api/v1/accounts` 응답의 `accountSeq` 값을 사용합니다.\n",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "example": 1
+        },
+        {
+          "name": "status",
+          "in": "query",
+          "required": true,
+          "description": "주문 라이프사이클 그룹 필터. 이 값은 각 주문의 세부 상태(`orders[].status`)를 **그룹화한 라벨**이며, `orders[].status` 와 값 체계가 다릅니다.\n\n- `OPEN`: 진행 중 주문 그룹 — `orders[].status` ∈ `{PENDING, PARTIAL_FILLED, PENDING_CANCEL, PENDING_REPLACE}`\n- `CLOSED`: 종료된 주문 그룹 — `orders[].status` ∈ `{FILLED, CANCELED, REJECTED, REPLACED, CANCEL_REJECTED, REPLACE_REJECTED, PARTIAL_FILLED}`\n\n예: `status=OPEN` 을 요청하면 응답의 `orders[].status` 는 개별 주문에 따라 `PENDING`, `PARTIAL_FILLED`, `PENDING_CANCEL`, `PENDING_REPLACE` 중 하나로 내려옵니다.\n",
+          "schema": {
+            "type": "string",
+            "enum": [
+              "OPEN",
+              "CLOSED"
+            ]
+          },
+          "example": "OPEN"
+        },
+        {
+          "name": "symbol",
+          "in": "query",
+          "required": false,
+          "description": "종목 심볼. 지정 시 해당 종목의 주문만 조회.\nKRX: 6자리 종목코드 (숫자 또는 영문·숫자 조합; 예: `005930`·`0101N0`), US: 영문 티커 (`AAPL`).\n영문 대/소문자, 숫자, '.', '-' 만 허용한다.\n",
+          "schema": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9.\\-]+$"
+          },
+          "examples": {
+            "krStock": {
+              "summary": "국내주식 (삼성전자)",
+              "value": "005930"
+            },
+            "usStock": {
+              "summary": "해외주식 (Apple)",
+              "value": "AAPL"
+            }
+          }
+        },
+        {
+          "name": "from",
+          "in": "query",
+          "required": false,
+          "description": "조회 시작일 (inclusive, KST 기준). 주문 생성 시간(`orderedAt`) 기준. 미지정 시 전체 기간.\n",
+          "schema": {
+            "type": "string",
+            "format": "date"
+          },
+          "example": "2026-03-01"
+        },
+        {
+          "name": "to",
+          "in": "query",
+          "required": false,
+          "description": "조회 종료일 (inclusive, KST 기준). 주문 생성 시간(`orderedAt`) 기준. 미지정 시 전체 기간.\n",
+          "schema": {
+            "type": "string",
+            "format": "date"
+          },
+          "example": "2026-03-31"
+        },
+        {
+          "name": "cursor",
+          "in": "query",
+          "required": false,
+          "description": "페이지네이션 커서. `OPEN` 에서는 무시됩니다. `CLOSED` 에서는 다음 페이지 조회에 사용됩니다.\n",
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "limit",
+          "in": "query",
+          "required": false,
+          "description": "페이지 크기. `OPEN` 에서는 무시됩니다 (전량 반환). `CLOSED` 에서는 적용됩니다 (기본 20, 최대 100).\n",
+          "schema": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20
+          }
+        }
+      ],
+      "response_schema": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "result": {
+                "$ref": "#/components/schemas/PaginatedOrderResponse"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/orders/{orderId}": {
+      "method": "GET",
+      "description": "특정 주문의 상세 정보를 조회합니다.\n모든 주문 상태(체결 완료, 취소, 거부 등)의 주문을 조회할 수 있습니다.\n\n**Rate Limits Group**: `ORDER_HISTORY`\n",
+      "parameters": [
+        {
+          "name": "X-Tossinvest-Account",
+          "in": "header",
+          "required": true,
+          "description": "API 요청 시 사용할 계좌의 accountSeq.\n`GET /api/v1/accounts` 응답의 `accountSeq` 값을 사용합니다.\n",
+          "schema": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "example": 1
+        },
+        {
+          "name": "orderId",
+          "in": "path",
+          "required": true,
+          "description": "주문 식별자.\n서버에서 발급한 opaque token 입니다.\n",
+          "schema": {
+            "type": "string"
+          },
+          "example": "0d5QIHjmtksbsmM-hBRAgP-ExI8iodGm9fAR5txelPfnMM8XQ_swoJdwL5RpGWMo"
+        }
+      ],
+      "response_schema": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "result": {
+                "$ref": "#/components/schemas/Order"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Order": {
+        "type": "object",
+        "required": [
+          "orderId",
+          "symbol",
+          "side",
+          "orderType",
+          "timeInForce",
+          "status",
+          "quantity",
+          "currency",
+          "orderedAt",
+          "execution"
+        ],
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "description": "주문 식별자",
+            "example": "bAGzNvMOOTa5Uy0xVzYNbxDJ3Qpobwau4jDF3hyZZGWbpHm7wha8CFZc7aXVOWAl"
+          },
+          "symbol": {
+            "type": "string",
+            "description": "종목 심볼. KRX: 6자리 종목코드 (숫자 또는 영문·숫자 조합), US: 영문 티커",
+            "example": "005930"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "BUY",
+              "SELL"
+            ],
+            "description": "주문 방향",
+            "example": "BUY"
+          },
+          "orderType": {
+            "type": "string",
+            "enum": [
+              "LIMIT",
+              "MARKET"
+            ],
+            "description": "호가 유형.\n- `LIMIT`: 지정가\n- `MARKET`: 시장가\n\n클라이언트는 unknown code 를 허용하도록 구현해야 합니다.\n",
+            "example": "LIMIT"
+          },
+          "timeInForce": {
+            "type": "string",
+            "enum": [
+              "DAY",
+              "CLS",
+              "OPG"
+            ],
+            "description": "주문 유효 조건 (Time In Force). `orderType` 과 결합되어 주문 방식이 결정됩니다 (예: `LIMIT` + `CLS` = LOC).\n- `DAY`: 당일 유효 (Day)\n- `CLS`: 장 마감 주문 (At the Close)\n- `OPG`: 장 개시 주문 (At the Opening, 국내 시가단일가)\n\n클라이언트는 unknown code 를 허용하도록 구현해야 합니다.\n",
+            "example": "DAY"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "price": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "주문 가격 (native currency). MARKET 주문 시 null",
+            "example": "70000"
+          },
+          "quantity": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "주문 수량",
+            "example": "10"
+          },
+          "orderAmount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "주문 금액 (USD). 금액 기반 US 시장가 매수 주문에만 해당. 그 외 null",
+            "example": null
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency",
+            "example": "KRW"
+          },
+          "orderedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "주문 시간 (ISO 8601, KST)",
+            "example": "2026-03-29T09:30:00.000+09:00"
+          },
+          "canceledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "취소 시간 (ISO 8601, KST). 해당 없으면 null",
+            "example": null
+          },
+          "execution": {
+            "type": "object",
+            "description": "체결 결과. 체결 내역이 없으면 filledQuantity=0",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderExecution"
+              }
+            ]
+          }
+        }
+      },
+      "OrderExecution": {
+        "type": "object",
+        "required": [
+          "filledQuantity",
+          "averageFilledPrice",
+          "filledAmount",
+          "commission",
+          "tax",
+          "filledAt",
+          "settlementDate"
+        ],
+        "properties": {
+          "filledQuantity": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "체결 수량",
+            "example": "10"
+          },
+          "averageFilledPrice": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "평균 체결 가격 (native currency). 부분 체결 시 체결된 건의 평균, 미체결 시 null",
+            "example": "70000"
+          },
+          "filledAmount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "총 체결 금액 (native currency)",
+            "example": "700000"
+          },
+          "commission": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "총 체결 수수료 (native currency)",
+            "example": "1400"
+          },
+          "tax": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "총 체결 세금 (native currency)",
+            "example": "0"
+          },
+          "filledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "최종 체결 시간 (ISO 8601, KST)",
+            "example": "2026-03-28T09:31:15.000+09:00"
+          },
+          "settlementDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "결제 예정일 (YYYY-MM-DD, KST 기준). 미결제 시 null",
+            "example": "2026-03-30"
+          }
+        }
+      },
+      "Currency": {
+        "type": "string",
+        "enum": [
+          "KRW",
+          "USD"
+        ],
+        "description": "통화 코드.\n- KRW: 한국 원화\n- USD: 미국 달러\n\n클라이언트는 unknown enum 값을 허용하도록 구현해야 합니다.\n"
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "PENDING_CANCEL",
+          "PENDING_REPLACE",
+          "PARTIAL_FILLED",
+          "FILLED",
+          "CANCELED",
+          "REJECTED",
+          "CANCEL_REJECTED",
+          "REPLACE_REJECTED",
+          "REPLACED"
+        ],
+        "description": "주문 상태.\n- `PENDING`: 체결 대기. 주문이 접수되어 체결을 대기 중인 상태\n- `PENDING_CANCEL`: 취소 대기. 취소 요청이 접수되어 브로커 응답을 대기 중인 상태\n- `PENDING_REPLACE`: 정정 대기. 정정 요청이 접수되어 브로커 응답을 대기 중인 상태\n- `PARTIAL_FILLED`: 부분 체결. 주문 수량 중 일부만 체결된 상태\n- `FILLED`: 체결 완료. 주문 수량이 전량 체결된 상태\n- `CANCELED`: 취소 완료. execution.filledQuantity를 통해 부분 체결 여부를 확인할 수 있음\n- `REJECTED`: 거부됨. 브로커가 주문을 거부한 상태. execution.filledQuantity를 통해 부분 체결 여부를 확인할 수 있음\n- `CANCEL_REJECTED`: 취소 거부. 브로커가 취소 요청을 거부한 경우 별도 주문 레코드로 생성됨. 원주문은 이전 상태로 복귀함\n- `REPLACE_REJECTED`: 정정 거부. 브로커가 정정 요청을 거부한 경우 별도 주문 레코드로 생성됨. 원주문은 이전 상태로 복귀함\n- `REPLACED`: 정정됨. 정정 요청이 수락되어 원주문이 대체된 상태. execution.filledQuantity를 통해 부분 체결 여부를 확인할 수 있음\n\n클라이언트는 unknown code 를 허용하도록 구현해야 합니다.\n",
+        "example": "FILLED"
+      },
+      "ApiResponse": {
+        "type": "object",
+        "description": "성공 응답 envelope. 200 응답에 사용됩니다.\n각 엔드포인트의 성공 응답 스키마는 `allOf` 로 본 스키마를 상속하며 `result` 를 구체 타입으로 specialize 합니다.\n실패 응답은 별도의 `ErrorResponse` 스키마를 사용합니다 (4xx/5xx). `result` 와 `error` 는 동시에 나타나지 않습니다.\n",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "description": "성공 응답의 페이로드. 엔드포인트별 타입이 다르며, 각 엔드포인트 스펙에서 `allOf` 로 구체 타입을 명시합니다.\n"
+          }
+        }
+      },
+      "PaginatedOrderResponse": {
+        "type": "object",
+        "required": [
+          "orders",
+          "nextCursor",
+          "hasNext"
+        ],
+        "description": "주문 목록 페이징 응답.\n- `status=OPEN`: 모든 대기 중 주문을 반환합니다. `nextCursor`는 항상 `null`, `hasNext`는 항상 `false`.\n- `status=CLOSED`: `limit` 단위로 페이징합니다. 다음 페이지가 있으면 `nextCursor`에 커서가, `hasNext`에 `true`가 내려옵니다.\n",
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            },
+            "description": "주문 목록"
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "다음 페이지 커서. 다음 페이지가 없으면 null",
+            "example": null
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "다음 페이지 존재 여부",
+            "example": false
+          }
+        }
+      }
+    }
+  }
+}
