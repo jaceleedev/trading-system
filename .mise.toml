@@ -1,0 +1,16 @@
+[tools]
+python = "3.14.7"
+
+[tasks.setup]
+description = "Install the locked development environment"
+run = "uv sync --frozen"
+
+[tasks.check]
+description = "Lint and run the test suite"
+run = ["uv run ruff check .", "uv run ruff format --check .", "uv run pytest"]
+
+[tasks.doctor]
+run = "uv run trading doctor"
+
+[tasks.db-up]
+run = "docker compose up -d --wait postgres"

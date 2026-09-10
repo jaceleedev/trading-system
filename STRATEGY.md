@@ -154,4 +154,4 @@ MCP의 존재만으로 증권사를 옮기지 않는다. 월 납입 규모에서
 - [키움 모의투자 안내](https://openapi.kiwoom.com/intro/mockInvestInfo?dummyVal=0)
 - [키움 공식 실행 MCP](https://github.com/Kiwoom-Securities/Kiwoom-REST-API/blob/main/mcp_exec/README.md)
 
-프로젝트는 문서 전용이다. 위 미정 사항이 존재한다는 이유로 코드를 다시 만들거나 실거래를 시작하지 않는다.
+2026-09-09 후속 사용자 지시로 프로젝트는 로컬 추천·연구 구현 단계로 전환했다. 미정 사항은 검증 전에 연구 설정으로 명시한다. 구현 완료가 수익성 입증이나 실거래 권한을 의미하지 않는다.
