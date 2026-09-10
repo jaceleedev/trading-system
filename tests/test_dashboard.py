@@ -11,6 +11,12 @@ from trading_research.demo import generate_demo
 APP = Path(__file__).parents[1] / "app.py"
 
 
+def legacy_app():
+    app = AppTest.from_file(APP, default_timeout=20)
+    app.session_state["workspace-page"] = "추천 만들기"
+    return app.run()
+
+
 @pytest.fixture(scope="module")
 def bundle(tmp_path_factory):
     return load_bundle(generate_demo(tmp_path_factory.mktemp("dashboard")))
@@ -40,7 +46,7 @@ def screen(monkeypatch, bundle):
         "load_result",
         lambda identifier, kind: next(p for p in saved if p["id"] == identifier),
     )
-    app = AppTest.from_file(APP, default_timeout=20).run()
+    app = legacy_app()
     yield app, saved
     cached_bundle.clear()
 
@@ -106,7 +112,7 @@ def test_data_inspection_and_empty_history(screen):
 
 def test_empty_database_has_setup_instructions(monkeypatch):
     monkeypatch.setattr(service, "list_datasets", lambda: [])
-    app = AppTest.from_file(APP, default_timeout=20).run()
+    app = legacy_app()
     assert not app.exception
     assert any("자료부터" in item.value for item in app.title)
 
@@ -116,6 +122,23 @@ def test_database_error_is_actionable_without_exception_trace(monkeypatch):
         raise DataError("Research database is unavailable")
 
     monkeypatch.setattr(service, "list_datasets", unavailable)
-    app = AppTest.from_file(APP, default_timeout=20).run()
+    app = legacy_app()
     assert not app.exception
     assert app.error[0].value == "Research database is unavailable"
+
+
+def test_default_investment_page_does_not_require_database(monkeypatch, tmp_path):
+    from trading_research import dashboard_investment_service as investment
+
+    def forbidden():
+        raise AssertionError("Investment workspace must not access the database")
+
+    monkeypatch.setattr(service, "list_datasets", forbidden)
+    monkeypatch.setattr(investment, "DEFAULT_ACCOUNT_ROOT", tmp_path / "accounts")
+    monkeypatch.setattr(investment, "DEFAULT_RESEARCH_ROOT", tmp_path / "research")
+    app = AppTest.from_file(APP, default_timeout=20).run()
+    assert not app.exception
+    assert not app.error
+    assert app.sidebar.radio[0].value == "AI 투자 작업실"
+    assert not (tmp_path / "accounts").exists()
+    assert not (tmp_path / "research").exists()
