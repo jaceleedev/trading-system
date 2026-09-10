@@ -61,7 +61,7 @@ def successful(result):
     return result[1]
 
 
-def sample_snapshot():
+def sample_snapshot(*, replacements=None):
     class Response(io.BytesIO):
         status = 200
         headers = Message()
@@ -74,7 +74,10 @@ def sample_snapshot():
             )
 
         def open(self, request, timeout):
-            return Response((FIXTURES / f"{next(self.names)}.json").read_bytes())
+            name = next(self.names)
+            if replacements and name in replacements:
+                return Response(json.dumps(replacements[name]).encode())
+            return Response((FIXTURES / f"{name}.json").read_bytes())
 
     return TossAccountClient(
         TOKEN, opener=Opener(), sleep=lambda _: None, now=lambda: NOW
@@ -409,3 +412,105 @@ def test_auth_status_only_calls_metadata_helper(server, monkeypatch):
         lambda: pytest.fail("Status must not issue token"),
     )
     assert successful(call(server, "auth_status")) == {"configured": True, "source": "keychain"}
+
+
+def test_large_valid_record_returns_confirmed_saved_id_instead_of_retryable_error(
+    server, workspace
+):
+    document = successful(call(server, "research_templates", {"kind": "hypothesis"}))["template"]
+    document["payload"]["uncertainties"] = ["x" * 20000] * 30
+    result = call(server, "record_research", {"document": document})
+    saved = successful(result)
+    assert saved["status"] == "stored" and saved["persisted"] is True
+    assert saved["output_omitted"] is True
+    assert saved["reason"] == "tool_output_limit"
+    assert "do not retry" in saved["next_step"]
+    assert saved["kind"] == "hypothesis" and saved["mode"] == "synthetic"
+    artifact = get_object(workspace / "var/research", saved["id"])
+    assert artifact["payload"] == document["payload"]
+    assert artifact["recorded_at"] == saved["recorded_at"]
+    assert len(list((workspace / "var/research").glob("*.json"))) == 1
+    assert mcp_server._result_size(result) < mcp_server.MAX_OUTPUT_BYTES
+    # The general output guard remains in place for side-effect-free reads.
+    assert call(server, "read_research", {"id": saved["id"]}).isError
+
+
+def test_saved_record_acknowledgment_survives_response_preview_failure(
+    server, workspace, monkeypatch
+):
+    def cannot_render(*args, **kwargs):
+        raise ValueError(TOKEN)
+
+    monkeypatch.setattr(mcp_server, "to_json", cannot_render)
+    result = successful(call(server, "record_research", {"document": evidence_document()}))
+    assert result["persisted"] is True
+    assert result["reason"] == "tool_output_unavailable"
+    assert get_object(workspace / "var/research", result["id"])["kind"] == "evidence"
+    assert TOKEN not in json.dumps(result)
+
+
+def test_large_snapshot_returns_success_and_every_persisted_object_id(
+    server, workspace, monkeypatch
+):
+    holdings = json.loads((FIXTURES / "holdings.json").read_text())
+    holdings["result"]["items"][0]["name"] = "x" * 600000
+    snapshot = sample_snapshot(replacements={"holdings": holdings})
+    calls = []
+
+    class Client:
+        def __init__(self, token):
+            assert token == TOKEN
+
+        def snapshot(self, account_seq, on_observation):
+            calls.append(account_seq)
+            for observation in snapshot["observations"]:
+                on_observation(observation)
+            return snapshot
+
+    monkeypatch.setattr(mcp_server.toss_auth, "resolve_access_token", lambda: TOKEN)
+    monkeypatch.setattr(mcp_server.toss_account, "TossAccountClient", Client)
+    result = call(server, "refresh_account_snapshot", {"account_seq": 1})
+    saved = successful(result)
+    assert calls == [1]
+    assert saved["status"] == "stored" and saved["persisted"] is True
+    assert saved["output_omitted"] is True and "snapshot" not in saved
+    assert len(saved["observation_ids"]) == 6
+    ids = {saved["id"], *saved["observation_ids"]}
+    root = workspace / "var/accounts"
+    assert ids == {path.stem for path in root.glob("*.json")}
+    assert get_object(root, saved["id"]) == snapshot
+    assert saved["holding_count"] == len(snapshot["summary"]["holdings"]["items"])
+    assert saved["account_seq"] == 1
+    assert saved["collection_completed_at"] == snapshot["collection_completed_at"]
+    assert mcp_server._result_size(result) < mcp_server.MAX_OUTPUT_BYTES
+    assert TOKEN not in json.dumps(saved)
+
+
+def test_large_account_choices_return_saved_observation_without_hiding_success(
+    server, workspace, monkeypatch
+):
+    observation = sample_snapshot()["observations"][0]
+    observation["response"]["result"] = [
+        {"accountSeq": index, "accountNo": "synthetic-private-account", "accountType": "BROKERAGE"}
+        for index in range(10000)
+    ]
+
+    class Client:
+        def __init__(self, token):
+            assert token == TOKEN
+
+        def accounts(self):
+            return observation
+
+    monkeypatch.setattr(mcp_server.toss_auth, "resolve_access_token", lambda: TOKEN)
+    monkeypatch.setattr(mcp_server.toss_account, "TossAccountClient", Client)
+    result = call(server, "list_broker_accounts")
+    saved = successful(result)
+    assert saved["status"] == "stored" and saved["persisted"] is True
+    assert saved["account_count"] == 10000
+    assert saved["account_choices_omitted"] is True
+    assert saved["output_omitted"] is True
+    assert "accounts" not in saved
+    assert get_object(workspace / "var/accounts", saved["observation_id"]) == observation
+    assert mcp_server._result_size(result) < mcp_server.MAX_OUTPUT_BYTES
+    assert "synthetic-private-account" not in json.dumps(saved)

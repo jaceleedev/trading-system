@@ -15,6 +15,7 @@ from typing import Annotated, Any, Literal
 from mcp.server.fastmcp import FastMCP
 from mcp.types import CallToolResult, TextContent, ToolAnnotations
 from pydantic import Field
+from pydantic_core import to_json
 
 from trading_research import (
     capture_store,
@@ -47,18 +48,49 @@ class _SafeToolError(Exception):
     """An intentionally sanitized domain message, never an underlying exception dump."""
 
 
+def _result_size(result):
+    return len(
+        json.dumps(result, default=lambda value: value.model_dump(), ensure_ascii=False).encode(
+            "utf-8"
+        )
+    )
+
+
+def _bounded_write_result(result, acknowledgment):
+    """Never turn a confirmed write into an error because its returned payload is large.
+
+    FastMCP returns both pretty JSON text and structured content. Measure that
+    actual representation before SDK conversion, using its JSON serializer.
+    The acknowledgment contains only bounded IDs, counts, and system metadata.
+    """
+    reason = "tool_output_limit"
+    try:
+        preview = ([TextContent(type="text", text=to_json(result, indent=2).decode())], result)
+        if _result_size(preview) <= MAX_OUTPUT_BYTES - 4096:
+            return result
+    except TypeError, ValueError, OverflowError, RecursionError:
+        reason = "tool_output_unavailable"
+    return {
+        **acknowledgment,
+        "status": "stored",
+        "persisted": True,
+        "output_omitted": True,
+        "reason": reason,
+        "orders_enabled": False,
+        "next_step": (
+            "The write succeeded. Inspect the saved IDs locally; "
+            "do not retry this write to retrieve the omitted payload."
+        ),
+    }
+
+
 class InvestmentMCP(FastMCP):
     async def call_tool(self, name, arguments):
         # SDK/Pydantic argument errors occur before the function wrapper and may
         # include raw input values. Contain them at the protocol boundary too.
         try:
             result = await super().call_tool(name, arguments)
-            size = len(
-                json.dumps(
-                    result, default=lambda value: value.model_dump(), ensure_ascii=False
-                ).encode("utf-8")
-            )
-            if size > MAX_OUTPUT_BYTES - 4096:
+            if _result_size(result) > MAX_OUTPUT_BYTES - 4096:
                 raise _SafeToolError("Tool result exceeds 1 MiB; request a smaller context")
             return result
         except Exception as exc:
@@ -261,7 +293,17 @@ def create_server(workspace: Path) -> FastMCP:
     @register(read_only=False)
     def record_research(document: dict) -> dict[str, Any]:
         """Append validated evidence, hypothesis, decision proposal, or review; never an order."""
-        return decision_workspace.record(research, document, account_root=accounts)
+        result = decision_workspace.record(research, document, account_root=accounts)
+        saved = result["record"]
+        return _bounded_write_result(
+            result,
+            {
+                "id": result["id"],
+                "kind": saved["kind"],
+                "mode": saved["mode"],
+                "recorded_at": saved["recorded_at"],
+            },
+        )
 
     @register()
     def research_templates(kind: RecordKind) -> dict[str, Any]:
@@ -322,12 +364,23 @@ def create_server(workspace: Path) -> FastMCP:
             value = client.snapshot(account_seq, on_observation=preserve)
             projection = toss_account.public_snapshot(value)
             identity = private_store.put_object(accounts, value)
-        return {
-            "id": identity,
-            "observation_ids": observations,
-            "snapshot": projection,
-            "orders_enabled": False,
-        }
+        return _bounded_write_result(
+            {
+                "id": identity,
+                "observation_ids": observations,
+                "snapshot": projection,
+                "orders_enabled": False,
+            },
+            {
+                "id": identity,
+                "observation_ids": observations,
+                "account_seq": account_seq,
+                "collection_started_at": projection["collection_started_at"],
+                "collection_completed_at": projection["collection_completed_at"],
+                "holding_count": len(projection["holdings"]["items"]),
+                "open_order_count": len(projection["open_orders"]),
+            },
+        )
 
     @register(read_only=False, external=True)
     def list_broker_accounts() -> dict[str, Any]:
@@ -336,7 +389,14 @@ def create_server(workspace: Path) -> FastMCP:
             value = toss_account.TossAccountClient(toss_auth.resolve_access_token()).accounts()
             choices = toss_account.public_accounts(value)
             identity = private_store.put_object(accounts, value)
-        return {"accounts": choices, "observation_id": identity, "orders_enabled": False}
+        return _bounded_write_result(
+            {"accounts": choices, "observation_id": identity, "orders_enabled": False},
+            {
+                "observation_id": identity,
+                "account_count": len(choices),
+                "account_choices_omitted": True,
+            },
+        )
 
     @register(read_only=False, external=True)
     def capture_market(
@@ -362,12 +422,19 @@ def create_server(workspace: Path) -> FastMCP:
                         "retrieved_at": value["retrieved_at"],
                     }
                 )
-        return {
-            "captures": metadata,
-            "pages_captured": len(metadata),
-            "historical_dataset_validated": False,
-            "orders_enabled": False,
-        }
+        return _bounded_write_result(
+            {
+                "captures": metadata,
+                "pages_captured": len(metadata),
+                "historical_dataset_validated": False,
+                "orders_enabled": False,
+            },
+            {
+                "capture_ids": [item["id"] for item in metadata],
+                "pages_captured": len(metadata),
+                "historical_dataset_validated": False,
+            },
+        )
 
     @register()
     def read_market_capture(id: ObjectId) -> dict[str, Any]:
