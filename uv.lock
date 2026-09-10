@@ -914,6 +914,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "alembic" },
+    { name = "jsonschema" },
     { name = "keyring" },
     { name = "pandas" },
     { name = "plotly" },
@@ -932,6 +933,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "alembic", specifier = ">=1.16,<2" },
+    { name = "jsonschema", specifier = ">=4.25,<5" },
     { name = "keyring", specifier = ">=25.6,<26" },
     { name = "pandas", specifier = ">=3.0,<3.1" },
     { name = "plotly", specifier = ">=6,<7" },

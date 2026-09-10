@@ -48,6 +48,8 @@ TRADING_TEST_DB=1 uv run pytest
 토스증권의 읽기 전용 시장 자료 수집기는 [수집 안내](docs/TOSS_CAPTURE.md)를 따른다.
 발급받은 Client ID·Secret은 [토스 인증 안내](docs/TOSS_AUTH.md)에 따라 Mac 키체인에
 설정한다. API 원응답 보존과 추천용 데이터 검증을 구분한다. 주문 기능은 없다.
+[계좌 조회 안내](docs/TOSS_ACCOUNT.md)의 `trading toss-account`로 계좌를 명시적으로 선택해
+보유 주식·매수 가능 금액·수수료·진행 중 주문을 조회하고 비공개 로컬 스냅샷을 저장한다.
 
 ## 추천 생성
 

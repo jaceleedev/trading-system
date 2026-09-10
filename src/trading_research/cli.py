@@ -15,9 +15,10 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Trading research; recommendations only")
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command", required=True)
-    from trading_research.toss_cli import add_auth_parser
+    from trading_research.toss_cli import add_account_parser, add_auth_parser
 
     add_auth_parser(sub)
+    add_account_parser(sub)
     sub.add_parser("doctor", help="Read-only runtime and database connectivity check")
     sub.add_parser("db-upgrade", help="Apply schema migrations to the configured research database")
     demo = sub.add_parser("demo-data", help="Generate clearly marked synthetic fixtures")
@@ -77,6 +78,10 @@ def main() -> int:
                 from trading_research.toss_cli import print_auth
 
                 print_auth(args.action)
+            elif args.command == "toss-account":
+                from trading_research.toss_cli import handle_account
+
+                print(json.dumps(handle_account(args), ensure_ascii=False, indent=2))
             elif args.command == "db-upgrade":
                 from alembic import command
                 from alembic.config import Config
