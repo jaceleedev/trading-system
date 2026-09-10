@@ -14,3 +14,7 @@ run = "uv run trading doctor"
 
 [tasks.db-up]
 run = "docker compose up -d --wait postgres"
+
+[tasks.ui]
+description = "Open the local personal research dashboard"
+run = "uv run streamlit run app.py"

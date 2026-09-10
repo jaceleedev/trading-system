@@ -24,6 +24,9 @@ DB를 중지하려면 `docker compose stop`을 사용한다. `down -v`는 자료
 
 ## 데이터 가져오기
 
+개인 화면은 `mise run ui`로 시작하고 <http://127.0.0.1:8501>에서 연다.
+[화면 사용법](docs/USER_GUIDE.md)에서 추천·성과·출처·기록 조회 흐름을 확인할 수 있다.
+
 ```bash
 uv run trading demo-data var/demo
 uv run trading validate-data var/demo
