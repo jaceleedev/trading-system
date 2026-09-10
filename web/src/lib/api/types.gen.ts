@@ -2485,6 +2485,688 @@ export type OverviewProfitLoss = {
 };
 
 /**
+ * PaperAdvance
+ */
+export type PaperAdvance = {
+    /**
+     * Capture Ids
+     */
+    capture_ids: Array<string>;
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * PaperBook
+ */
+export type PaperBook = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Execution Ready
+     */
+    execution_ready: false;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Revision
+     */
+    revision: number;
+    seed: PaperSeed;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+    state: PaperBookState;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * PaperBookCreate
+ */
+export type PaperBookCreate = {
+    /**
+     * Initial Cash
+     */
+    initial_cash: Array<PaperCashInput>;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+};
+
+/**
+ * PaperBookDetail
+ */
+export type PaperBookDetail = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Event Count
+     */
+    event_count: number;
+    /**
+     * Events
+     */
+    events: Array<PaperEvent>;
+    /**
+     * Execution Ready
+     */
+    execution_ready: false;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Intent Count
+     */
+    intent_count: number;
+    /**
+     * Intents
+     */
+    intents: Array<PaperIntent>;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Omitted Event Count
+     */
+    omitted_event_count: number;
+    /**
+     * Omitted Intent Count
+     */
+    omitted_intent_count: number;
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Revision
+     */
+    revision: number;
+    seed: PaperSeed;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+    state: PaperBookState;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * PaperBookList
+ */
+export type PaperBookList = {
+    /**
+     * Items
+     */
+    items: Array<PaperBook>;
+    /**
+     * Omitted Count
+     */
+    omitted_count: number;
+    /**
+     * Total Count
+     */
+    total_count: number;
+};
+
+/**
+ * PaperBookState
+ */
+export type PaperBookState = {
+    /**
+     * Arithmetic Precision
+     */
+    arithmetic_precision: 256;
+    /**
+     * Arithmetic Rounded
+     */
+    arithmetic_rounded: boolean;
+    /**
+     * Cash
+     */
+    cash: Array<PaperCash>;
+    /**
+     * Costs
+     */
+    costs: Array<PaperCash>;
+    /**
+     * Marks
+     */
+    marks: Array<PaperMark>;
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Positions
+     */
+    positions: Array<PaperPosition>;
+    /**
+     * Realized
+     */
+    realized: Array<PaperRealized>;
+    /**
+     * Schema Version
+     */
+    schema_version: 1;
+    /**
+     * Valuation
+     */
+    valuation: Array<PaperValuation>;
+};
+
+/**
+ * PaperCancel
+ */
+export type PaperCancel = {
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * PaperCash
+ */
+export type PaperCash = {
+    /**
+     * Amount
+     */
+    amount: string;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+};
+
+/**
+ * PaperCashInput
+ */
+export type PaperCashInput = {
+    /**
+     * Amount
+     */
+    amount: string;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+};
+
+/**
+ * PaperEvent
+ */
+export type PaperEvent = {
+    /**
+     * Book Id
+     */
+    book_id: string;
+    /**
+     * Capture Id
+     */
+    capture_id: string | null;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Intent Id
+     */
+    intent_id: string | null;
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Payload
+     */
+    payload: {
+        [key: string]: unknown;
+    };
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Sequence
+     */
+    sequence: number;
+};
+
+/**
+ * PaperEventList
+ */
+export type PaperEventList = {
+    /**
+     * Items
+     */
+    items: Array<PaperEvent>;
+    /**
+     * Omitted Count
+     */
+    omitted_count: number;
+    /**
+     * Total Count
+     */
+    total_count: number;
+};
+
+/**
+ * PaperExecutionProfile
+ */
+export type PaperExecutionProfile = {
+    /**
+     * Kind
+     */
+    kind: 'next_observed_minute_close_v1';
+    /**
+     * Participation Bps
+     */
+    participation_bps: string;
+    /**
+     * Quantity Step
+     */
+    quantity_step: string;
+    /**
+     * Slippage Bps
+     */
+    slippage_bps: string;
+};
+
+/**
+ * PaperHoldingInput
+ */
+export type PaperHoldingInput = {
+    /**
+     * Average Purchase Price
+     */
+    average_purchase_price: string | null;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Quantity
+     */
+    quantity: string;
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
+ * PaperIntent
+ */
+export type PaperIntent = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Alternative Id
+     */
+    alternative_id: string;
+    /**
+     * Book Id
+     */
+    book_id: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Plan Id
+     */
+    plan_id: string;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    state: PaperIntentState;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * PaperIntentLeg
+ */
+export type PaperIntentLeg = {
+    /**
+     * Cash Budget Remaining
+     */
+    cash_budget_remaining: string;
+    /**
+     * Filled Quantity
+     */
+    filled_quantity: string;
+    /**
+     * Fixed Fee Charged
+     */
+    fixed_fee_charged: boolean;
+    /**
+     * Index
+     */
+    index: number;
+    /**
+     * Remaining Quantity
+     */
+    remaining_quantity: string;
+    request: CapitalLeg;
+    /**
+     * Status
+     */
+    status: 'pending' | 'partially_filled' | 'filled' | 'held' | 'cancelled';
+};
+
+/**
+ * PaperIntentState
+ */
+export type PaperIntentState = {
+    /**
+     * Alternative Key
+     */
+    alternative_key: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Legs
+     */
+    legs: Array<PaperIntentLeg>;
+    profile: PaperExecutionProfile;
+    /**
+     * Status
+     */
+    status: 'pending' | 'partially_filled' | 'filled' | 'cancelled';
+    /**
+     * Submission Sequence
+     */
+    submission_sequence: number;
+};
+
+/**
+ * PaperMark
+ */
+export type PaperMark = {
+    /**
+     * Capture Id
+     */
+    capture_id: string;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Observed At
+     */
+    observed_at: string;
+    /**
+     * Period End
+     */
+    period_end: string;
+    /**
+     * Point Id
+     */
+    point_id: string;
+    /**
+     * Price
+     */
+    price: string;
+    /**
+     * Revision Id
+     */
+    revision_id: string;
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
+ * PaperMutation
+ */
+export type PaperMutation = {
+    book: PaperBook;
+    /**
+     * Events
+     */
+    events: Array<PaperEvent>;
+    intent: PaperIntent | null;
+};
+
+/**
+ * PaperPosition
+ */
+export type PaperPosition = {
+    /**
+     * Cost Basis
+     */
+    cost_basis: string | null;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Quantity
+     */
+    quantity: string;
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
+ * PaperRealized
+ */
+export type PaperRealized = {
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Known Amount
+     */
+    known_amount: string;
+    /**
+     * Unknown Sales
+     */
+    unknown_sales: number;
+};
+
+/**
+ * PaperSeed
+ */
+export type PaperSeed = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Holdings
+     */
+    holdings: Array<PaperHoldingInput>;
+    /**
+     * Initial Cash
+     */
+    initial_cash: Array<PaperCashInput>;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+};
+
+/**
+ * PaperSubmit
+ */
+export type PaperSubmit = {
+    /**
+     * Alternative Id
+     */
+    alternative_id: string;
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Plan Id
+     */
+    plan_id: string;
+    profile: PaperExecutionProfile;
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * PaperValuation
+ */
+export type PaperValuation = {
+    /**
+     * Cash
+     */
+    cash: string | null;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Equity
+     */
+    equity: string | null;
+    /**
+     * Known Realized Pnl
+     */
+    known_realized_pnl: string;
+    /**
+     * Missing Price Symbols
+     */
+    missing_price_symbols: Array<string>;
+    /**
+     * Modeled Cost
+     */
+    modeled_cost: string;
+    /**
+     * Position Value
+     */
+    position_value: string | null;
+    /**
+     * Realized Pnl
+     */
+    realized_pnl: string | null;
+    /**
+     * Unknown Cost Symbols
+     */
+    unknown_cost_symbols: Array<string>;
+    /**
+     * Unknown Realized Sales
+     */
+    unknown_realized_sales: number;
+    /**
+     * Unrealized Pnl
+     */
+    unrealized_pnl: string | null;
+};
+
+/**
  * ProfitLoss
  */
 export type ProfitLoss = {
@@ -3991,6 +4673,392 @@ export type GetMarketViewResponses = {
 };
 
 export type GetMarketViewResponse = GetMarketViewResponses[keyof GetMarketViewResponses];
+
+export type ListPaperBooksData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/paper/books';
+};
+
+export type ListPaperBooksErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListPaperBooksError = ListPaperBooksErrors[keyof ListPaperBooksErrors];
+
+export type ListPaperBooksResponses = {
+    /**
+     * Successful Response
+     */
+    200: PaperBookList;
+};
+
+export type ListPaperBooksResponse = ListPaperBooksResponses[keyof ListPaperBooksResponses];
+
+export type CreatePaperBookData = {
+    body: PaperBookCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/paper/books';
+};
+
+export type CreatePaperBookErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CreatePaperBookError = CreatePaperBookErrors[keyof CreatePaperBookErrors];
+
+export type CreatePaperBookResponses = {
+    /**
+     * Successful Response
+     */
+    200: PaperMutation;
+};
+
+export type CreatePaperBookResponse = CreatePaperBookResponses[keyof CreatePaperBookResponses];
+
+export type GetPaperBookData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/paper/books/{id}';
+};
+
+export type GetPaperBookErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetPaperBookError = GetPaperBookErrors[keyof GetPaperBookErrors];
+
+export type GetPaperBookResponses = {
+    /**
+     * Successful Response
+     */
+    200: PaperBookDetail;
+};
+
+export type GetPaperBookResponse = GetPaperBookResponses[keyof GetPaperBookResponses];
+
+export type AdvancePaperBookData = {
+    body: PaperAdvance;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/paper/books/{id}/advance';
+};
+
+export type AdvancePaperBookErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type AdvancePaperBookError = AdvancePaperBookErrors[keyof AdvancePaperBookErrors];
+
+export type AdvancePaperBookResponses = {
+    /**
+     * Successful Response
+     */
+    200: PaperMutation;
+};
+
+export type AdvancePaperBookResponse = AdvancePaperBookResponses[keyof AdvancePaperBookResponses];
+
+export type ListPaperEventsData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+        /**
+         * After Sequence
+         */
+        after_sequence?: number;
+    };
+    url: '/api/v1/paper/books/{id}/events';
+};
+
+export type ListPaperEventsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListPaperEventsError = ListPaperEventsErrors[keyof ListPaperEventsErrors];
+
+export type ListPaperEventsResponses = {
+    /**
+     * Successful Response
+     */
+    200: PaperEventList;
+};
+
+export type ListPaperEventsResponse = ListPaperEventsResponses[keyof ListPaperEventsResponses];
+
+export type SubmitPaperIntentData = {
+    body: PaperSubmit;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/paper/books/{id}/intents';
+};
+
+export type SubmitPaperIntentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type SubmitPaperIntentError = SubmitPaperIntentErrors[keyof SubmitPaperIntentErrors];
+
+export type SubmitPaperIntentResponses = {
+    /**
+     * Successful Response
+     */
+    200: PaperMutation;
+};
+
+export type SubmitPaperIntentResponse = SubmitPaperIntentResponses[keyof SubmitPaperIntentResponses];
+
+export type CancelPaperIntentData = {
+    body: PaperCancel;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+        /**
+         * Intent Id
+         */
+        intent_id: string;
+    };
+    query?: never;
+    url: '/api/v1/paper/books/{id}/intents/{intent_id}/cancel';
+};
+
+export type CancelPaperIntentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CancelPaperIntentError = CancelPaperIntentErrors[keyof CancelPaperIntentErrors];
+
+export type CancelPaperIntentResponses = {
+    /**
+     * Successful Response
+     */
+    200: PaperMutation;
+};
+
+export type CancelPaperIntentResponse = CancelPaperIntentResponses[keyof CancelPaperIntentResponses];
 
 export type GetResearchData = {
     body?: never;

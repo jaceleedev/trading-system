@@ -283,3 +283,74 @@ class CapitalPlanRegistrationRow(Base):
     request_sha256: Mapped[str] = mapped_column(String(64))
     plan_id: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class PaperBookRow(Base):
+    __tablename__ = "paper_books"
+    __table_args__ = (
+        UniqueConstraint("workspace_key", "request_key", name="uq_paper_book_request"),
+        CheckConstraint("mode IN ('prospective','synthetic')", name="ck_paper_book_mode"),
+        CheckConstraint("revision >= 1", name="ck_paper_book_revision"),
+        CheckConstraint("event_sequence >= 0", name="ck_paper_book_sequence"),
+        Index("ix_paper_books_workspace", "workspace_key", "created_at"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    workspace_key: Mapped[str] = mapped_column(String(64))
+    request_key: Mapped[str] = mapped_column(String(128))
+    request_sha256: Mapped[str] = mapped_column(String(64))
+    account_seq: Mapped[str] = mapped_column(String(19))
+    mode: Mapped[str] = mapped_column(String(16))
+    snapshot_id: Mapped[str] = mapped_column(String(64))
+    seed: Mapped[dict] = mapped_column(JSONB)
+    state: Mapped[dict] = mapped_column(JSONB)
+    revision: Mapped[int] = mapped_column(Integer)
+    event_sequence: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class PaperIntentRow(Base):
+    __tablename__ = "paper_intents"
+    __table_args__ = (
+        UniqueConstraint("workspace_key", "request_key", name="uq_paper_intent_request"),
+        CheckConstraint("mode IN ('prospective','synthetic')", name="ck_paper_intent_mode"),
+        Index("ix_paper_intents_book", "workspace_key", "book_id", "created_at"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    workspace_key: Mapped[str] = mapped_column(String(64))
+    book_id: Mapped[str] = mapped_column(ForeignKey("paper_books.id", ondelete="CASCADE"))
+    request_key: Mapped[str] = mapped_column(String(128))
+    plan_id: Mapped[str] = mapped_column(String(64))
+    alternative_id: Mapped[str] = mapped_column(String(64))
+    account_seq: Mapped[str] = mapped_column(String(19))
+    mode: Mapped[str] = mapped_column(String(16))
+    alternative: Mapped[dict] = mapped_column(JSONB)
+    profile: Mapped[dict] = mapped_column(JSONB)
+    state: Mapped[dict] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class PaperEventRow(Base):
+    __tablename__ = "paper_events"
+    __table_args__ = (
+        UniqueConstraint("workspace_key", "request_key", name="uq_paper_event_request"),
+        UniqueConstraint("book_id", "sequence", name="uq_paper_event_sequence"),
+        UniqueConstraint("book_id", "capture_id", name="uq_paper_capture_receipt"),
+        CheckConstraint("sequence >= 1", name="ck_paper_event_sequence"),
+        Index("ix_paper_events_book", "workspace_key", "book_id", "sequence"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    workspace_key: Mapped[str] = mapped_column(String(64))
+    book_id: Mapped[str] = mapped_column(ForeignKey("paper_books.id", ondelete="CASCADE"))
+    sequence: Mapped[int] = mapped_column(Integer)
+    request_key: Mapped[str | None] = mapped_column(String(128))
+    request_sha256: Mapped[str | None] = mapped_column(String(64))
+    kind: Mapped[str] = mapped_column(String(32))
+    intent_id: Mapped[str | None] = mapped_column(
+        ForeignKey("paper_intents.id", ondelete="CASCADE")
+    )
+    capture_id: Mapped[str | None] = mapped_column(String(64))
+    payload: Mapped[dict] = mapped_column(JSONB)
+    result: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
