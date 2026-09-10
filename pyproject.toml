@@ -17,10 +17,12 @@ dependencies = [
   "python-dateutil>=2.9,<3",
   "keyring>=25.6,<26",
   "jsonschema>=4.25,<5",
+  "mcp>=1.26,<2",
 ]
 
 [project.scripts]
 trading = "trading_research.cli:main"
+trading-mcp = "trading_research.mcp_server:main"
 
 [dependency-groups]
 dev = ["pytest>=9,<10", "ruff>=0.12,<1"]
