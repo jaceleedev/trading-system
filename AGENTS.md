@@ -30,6 +30,12 @@ execution by changing local holdings or label a saved decision as an executed in
 
 ## Development
 
+The agreed target stack and initial scope are in [docs/TECH_STACK.md](docs/TECH_STACK.md):
+Svelte 5 + SvelteKit + TypeScript, FastAPI, PostgreSQL, and a Python worker with durable job records.
+TimescaleDB, pgvector, and Redis are excluded from the initial configuration. The current runtime
+is still Streamlit; do not describe the target stack as implemented. The current documentation
+task does not resume frontend/backend implementation.
+
 The user requested successive feature branches with local verification and commits. Start each new
 feature branch from the preceding completed feature. Preserve branch tips so PRs can be prepared
 one at a time later. Do not create PRs now. Do not push without explicit approval for the exact

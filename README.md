@@ -11,6 +11,9 @@
 Codex에서 직접 사용할 수 있다.
 
 2026-09-10까지의 브랜치별 작업과 재시작 순서는 [인수인계](docs/HANDOFF.md)에 정리했다.
+합의한 목표 구성은 **Svelte 5 + SvelteKit + TypeScript / FastAPI / PostgreSQL**이며,
+역할·도입 범위·후속 구현 순서는 [기술 스택 결정](docs/TECH_STACK.md)에 정리했다.
+현재 실행 화면은 Streamlit이고 신규 웹앱·API·worker는 아직 구현하지 않았다.
 
 ## 로컬 실행
 
@@ -36,7 +39,7 @@ DB를 중지하려면 `docker compose stop`을 사용한다. `down -v`는 자료
 
 ## 데이터 가져오기
 
-개인 화면은 `mise run ui`로 시작하고 <http://127.0.0.1:8501>에서 연다.
+현재 Streamlit 개인 화면은 `mise run ui`로 시작하고 <http://127.0.0.1:8501>에서 연다.
 첫 화면 ‘AI 투자 작업실’은 저장한 실제 계좌 관측과 조사·판단·재검토 이력을 읽는다.
 이 화면만 사용할 때는 DB나 합성 데모를 먼저 준비할 필요가 없다.
 [화면 사용법](docs/USER_GUIDE.md)에서 추천·성과·출처·기록 조회 흐름을 확인할 수 있다.
@@ -108,6 +111,7 @@ uv run trading recommend --dataset synthetic-demo-v1 \
 
 ## 문서
 
+- [기술 스택 결정과 초기 도입 범위](docs/TECH_STACK.md)
 - [전략 결정과 검증 계획](STRATEGY.md)
 - [구현 진행 및 인수인계](docs/IMPLEMENTATION.md)
 - [프로젝트 정리와 복구 기록](docs/project-cleanup.md)
