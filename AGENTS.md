@@ -32,9 +32,16 @@ execution by changing local holdings or label a saved decision as an executed in
 
 The agreed target stack and initial scope are in [docs/TECH_STACK.md](docs/TECH_STACK.md):
 Svelte 5 + SvelteKit + TypeScript, FastAPI, PostgreSQL, and a Python worker with durable job records.
-TimescaleDB, pgvector, and Redis are excluded from the initial configuration. The current runtime
-is still Streamlit; do not describe the target stack as implemented. The current documentation
-task does not resume frontend/backend implementation.
+TimescaleDB, pgvector, and Redis are excluded from the initial configuration. Feature 17 adds the
+SvelteKit workbench and read-only FastAPI layer for saved account/research records. The existing
+Streamlit research screens remain available. Durable jobs, the worker, ongoing AI execution,
+market-data normalization, and broker order submission are still future work.
+
+For web changes, follow `docs/WEB_WORKBENCH.md`. Preserve the OpenAPI-generated client, exact
+decimal strings, unknown balances, observation times, and explicit account selection. Validate
+the built app in a browser using isolated synthetic workspaces, never fixtures written into the
+user's private stores. Use `mise run web-check`, `pnpm --dir web format:check`,
+`mise run web-build`, and `pnpm --dir web test:e2e` in addition to Python checks.
 
 The user requested successive feature branches with local verification and commits. Start each new
 feature branch from the preceding completed feature. Preserve branch tips so PRs can be prepared

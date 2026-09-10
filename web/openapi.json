@@ -1,0 +1,2337 @@
+{
+  "components": {
+    "schemas": {
+      "AccountCoverage": {
+        "additionalProperties": false,
+        "properties": {
+          "all_pending_account_commitments": {
+            "const": false,
+            "title": "All Pending Account Commitments",
+            "type": "boolean"
+          },
+          "atomic_account_instant": {
+            "const": false,
+            "title": "Atomic Account Instant",
+            "type": "boolean"
+          },
+          "buying_power_semantics": {
+            "title": "Buying Power Semantics",
+            "type": "string"
+          },
+          "execution_ready": {
+            "const": false,
+            "title": "Execution Ready",
+            "type": "boolean"
+          },
+          "historical_dataset": {
+            "const": false,
+            "title": "Historical Dataset",
+            "type": "boolean"
+          },
+          "holdings_scope": {
+            "title": "Holdings Scope",
+            "type": "string"
+          },
+          "observation_kind": {
+            "const": "current_account_observation",
+            "title": "Observation Kind",
+            "type": "string"
+          },
+          "open_order_scope": {
+            "title": "Open Order Scope",
+            "type": "string"
+          },
+          "total_account_equity_known": {
+            "const": false,
+            "title": "Total Account Equity Known",
+            "type": "boolean"
+          },
+          "verified_cash_balances": {
+            "const": false,
+            "title": "Verified Cash Balances",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "observation_kind",
+          "historical_dataset",
+          "atomic_account_instant",
+          "verified_cash_balances",
+          "total_account_equity_known",
+          "all_pending_account_commitments",
+          "execution_ready",
+          "holdings_scope",
+          "open_order_scope",
+          "buying_power_semantics"
+        ],
+        "title": "AccountCoverage",
+        "type": "object"
+      },
+      "AccountSnapshot": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "account_type": {
+            "title": "Account Type",
+            "type": "string"
+          },
+          "cash_balances": {
+            "$ref": "#/components/schemas/CashBalances"
+          },
+          "cash_buying_power": {
+            "$ref": "#/components/schemas/BuyingPower"
+          },
+          "collection_completed_at": {
+            "format": "date-time",
+            "title": "Collection Completed At",
+            "type": "string"
+          },
+          "collection_started_at": {
+            "format": "date-time",
+            "title": "Collection Started At",
+            "type": "string"
+          },
+          "commissions": {
+            "items": {
+              "$ref": "#/components/schemas/Commission"
+            },
+            "title": "Commissions",
+            "type": "array"
+          },
+          "contract_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Contract Sha256",
+            "type": "string"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/AccountCoverage"
+          },
+          "holdings": {
+            "$ref": "#/components/schemas/HoldingsOverview"
+          },
+          "open_orders": {
+            "items": {
+              "$ref": "#/components/schemas/OpenOrder"
+            },
+            "title": "Open Orders",
+            "type": "array"
+          },
+          "source_observations": {
+            "items": {
+              "$ref": "#/components/schemas/SourceObservation"
+            },
+            "title": "Source Observations",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "account_seq",
+          "account_type",
+          "cash_balances",
+          "cash_buying_power",
+          "holdings",
+          "commissions",
+          "open_orders",
+          "source_observations",
+          "coverage",
+          "warnings",
+          "collection_started_at",
+          "collection_completed_at",
+          "contract_sha256"
+        ],
+        "title": "AccountSnapshot",
+        "type": "object"
+      },
+      "AccountSnapshotsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SnapshotSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "AccountSnapshotsResponse",
+        "type": "object"
+      },
+      "BuyingPower": {
+        "additionalProperties": false,
+        "properties": {
+          "KRW": {
+            "format": "decimal",
+            "title": "Krw",
+            "type": "string"
+          },
+          "USD": {
+            "format": "decimal",
+            "title": "Usd",
+            "type": "string"
+          }
+        },
+        "required": [
+          "KRW",
+          "USD"
+        ],
+        "title": "BuyingPower",
+        "type": "object"
+      },
+      "CashBalances": {
+        "additionalProperties": false,
+        "properties": {
+          "KRW": {
+            "title": "Krw",
+            "type": "null"
+          },
+          "USD": {
+            "title": "Usd",
+            "type": "null"
+          }
+        },
+        "required": [
+          "KRW",
+          "USD"
+        ],
+        "title": "CashBalances",
+        "type": "object"
+      },
+      "Commission": {
+        "additionalProperties": false,
+        "properties": {
+          "commissionRate": {
+            "format": "decimal",
+            "title": "Commissionrate",
+            "type": "string"
+          },
+          "endDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enddate"
+          },
+          "marketCountry": {
+            "title": "Marketcountry",
+            "type": "string"
+          },
+          "startDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Startdate"
+          }
+        },
+        "required": [
+          "marketCountry",
+          "commissionRate"
+        ],
+        "title": "Commission",
+        "type": "object"
+      },
+      "Cost": {
+        "additionalProperties": false,
+        "properties": {
+          "commission": {
+            "format": "decimal",
+            "title": "Commission",
+            "type": "string"
+          },
+          "tax": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax"
+          }
+        },
+        "required": [
+          "commission"
+        ],
+        "title": "Cost",
+        "type": "object"
+      },
+      "CurrencyAmounts": {
+        "additionalProperties": false,
+        "properties": {
+          "krw": {
+            "format": "decimal",
+            "title": "Krw",
+            "type": "string"
+          },
+          "usd": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Usd"
+          }
+        },
+        "required": [
+          "krw"
+        ],
+        "title": "CurrencyAmounts",
+        "type": "object"
+      },
+      "DailyProfitLoss": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "format": "decimal",
+            "title": "Amount",
+            "type": "string"
+          },
+          "rate": {
+            "format": "decimal",
+            "title": "Rate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "rate"
+        ],
+        "title": "DailyProfitLoss",
+        "type": "object"
+      },
+      "DecisionPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "account_snapshot_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Snapshot Id"
+          },
+          "alternatives": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "evidence_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "hypothesis_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Hypothesis Ids",
+            "type": "array"
+          },
+          "objective": {
+            "title": "Objective",
+            "type": "string"
+          },
+          "prior_decision_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prior Decision Id"
+          },
+          "proposed_actions": {
+            "items": {
+              "$ref": "#/components/schemas/ProposedAction"
+            },
+            "title": "Proposed Actions",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "review_after": {
+            "format": "date-time",
+            "title": "Review After",
+            "type": "string"
+          },
+          "sizing_validated": {
+            "const": false,
+            "title": "Sizing Validated",
+            "type": "boolean"
+          },
+          "status": {
+            "const": "proposed",
+            "title": "Status",
+            "type": "string"
+          },
+          "unresolved_questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unresolved Questions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "objective",
+          "hypothesis_ids",
+          "evidence_ids",
+          "account_snapshot_id",
+          "alternatives",
+          "proposed_actions",
+          "rationale",
+          "unresolved_questions",
+          "review_after",
+          "status",
+          "sizing_validated"
+        ],
+        "title": "DecisionPayload",
+        "type": "object"
+      },
+      "DecisionRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/ResearchAuthor"
+          },
+          "kind": {
+            "const": "decision",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/DecisionPayload"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "mode",
+          "author",
+          "recorded_at",
+          "kind",
+          "payload"
+        ],
+        "title": "DecisionRecord",
+        "type": "object"
+      },
+      "ErrorDetail": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ErrorDetail",
+        "type": "object"
+      },
+      "ErrorResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "title": "ErrorResponse",
+        "type": "object"
+      },
+      "EvidenceArtifact": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "store": {
+            "const": "account",
+            "title": "Store",
+            "type": "string"
+          }
+        },
+        "required": [
+          "store",
+          "id"
+        ],
+        "title": "EvidenceArtifact",
+        "type": "object"
+      },
+      "EvidencePayload": {
+        "additionalProperties": false,
+        "properties": {
+          "artifact": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceArtifact"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Excerpt"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "source_kind": {
+            "enum": [
+              "web",
+              "document",
+              "provider",
+              "user"
+            ],
+            "title": "Source Kind",
+            "type": "string"
+          },
+          "source_locator": {
+            "title": "Source Locator",
+            "type": "string"
+          },
+          "source_published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Published At"
+          },
+          "verification": {
+            "enum": [
+              "user_supplied",
+              "provider_capture",
+              "unverified"
+            ],
+            "title": "Verification",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_kind",
+          "source_locator",
+          "retrieved_at",
+          "source_published_at",
+          "claim",
+          "verification"
+        ],
+        "title": "EvidencePayload",
+        "type": "object"
+      },
+      "EvidenceRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/ResearchAuthor"
+          },
+          "kind": {
+            "const": "evidence",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/EvidencePayload"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "mode",
+          "author",
+          "recorded_at",
+          "kind",
+          "payload"
+        ],
+        "title": "EvidenceRecord",
+        "type": "object"
+      },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "orders_enabled": {
+            "const": false,
+            "title": "Orders Enabled",
+            "type": "boolean"
+          },
+          "read_only": {
+            "const": true,
+            "title": "Read Only",
+            "type": "boolean"
+          },
+          "service": {
+            "const": "trading-investment-web",
+            "title": "Service",
+            "type": "string"
+          },
+          "status": {
+            "const": "ok",
+            "title": "Status",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "status",
+          "service",
+          "read_only",
+          "orders_enabled",
+          "synthetic"
+        ],
+        "title": "HealthResponse",
+        "type": "object"
+      },
+      "Holding": {
+        "additionalProperties": false,
+        "properties": {
+          "averagePurchasePrice": {
+            "format": "decimal",
+            "title": "Averagepurchaseprice",
+            "type": "string"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/Cost"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "dailyProfitLoss": {
+            "$ref": "#/components/schemas/DailyProfitLoss"
+          },
+          "lastPrice": {
+            "format": "decimal",
+            "title": "Lastprice",
+            "type": "string"
+          },
+          "marketCountry": {
+            "title": "Marketcountry",
+            "type": "string"
+          },
+          "marketValue": {
+            "$ref": "#/components/schemas/MarketValue"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "profitLoss": {
+            "$ref": "#/components/schemas/ProfitLoss"
+          },
+          "quantity": {
+            "format": "decimal",
+            "title": "Quantity",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "name",
+          "marketCountry",
+          "currency",
+          "quantity",
+          "lastPrice",
+          "averagePurchasePrice",
+          "marketValue",
+          "profitLoss",
+          "dailyProfitLoss",
+          "cost"
+        ],
+        "title": "Holding",
+        "type": "object"
+      },
+      "HoldingsOverview": {
+        "additionalProperties": false,
+        "properties": {
+          "dailyProfitLoss": {
+            "$ref": "#/components/schemas/OverviewDailyProfitLoss"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Holding"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "marketValue": {
+            "$ref": "#/components/schemas/OverviewMarketValue"
+          },
+          "profitLoss": {
+            "$ref": "#/components/schemas/OverviewProfitLoss"
+          },
+          "totalPurchaseAmount": {
+            "$ref": "#/components/schemas/CurrencyAmounts"
+          }
+        },
+        "required": [
+          "totalPurchaseAmount",
+          "marketValue",
+          "profitLoss",
+          "dailyProfitLoss",
+          "items"
+        ],
+        "title": "HoldingsOverview",
+        "type": "object"
+      },
+      "HypothesisPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "invalidation_conditions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Invalidation Conditions",
+            "type": "array"
+          },
+          "opposing_evidence_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Opposing Evidence Ids",
+            "type": "array"
+          },
+          "review_triggers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Triggers",
+            "type": "array"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          },
+          "supersedes_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Id"
+          },
+          "supporting_evidence_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Supporting Evidence Ids",
+            "type": "array"
+          },
+          "thesis": {
+            "title": "Thesis",
+            "type": "string"
+          },
+          "uncertainties": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Uncertainties",
+            "type": "array"
+          }
+        },
+        "required": [
+          "subject",
+          "thesis",
+          "supporting_evidence_ids",
+          "opposing_evidence_ids",
+          "uncertainties",
+          "invalidation_conditions",
+          "review_triggers"
+        ],
+        "title": "HypothesisPayload",
+        "type": "object"
+      },
+      "HypothesisRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/ResearchAuthor"
+          },
+          "kind": {
+            "const": "hypothesis",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/HypothesisPayload"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "mode",
+          "author",
+          "recorded_at",
+          "kind",
+          "payload"
+        ],
+        "title": "HypothesisRecord",
+        "type": "object"
+      },
+      "InvestmentContext": {
+        "additionalProperties": false,
+        "properties": {
+          "account": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SelectedAccount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "active_decision_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Active Decision Ids",
+            "type": "array"
+          },
+          "context_kind": {
+            "const": "current_research_context",
+            "title": "Context Kind",
+            "type": "string"
+          },
+          "eligible_record_count": {
+            "title": "Eligible Record Count",
+            "type": "integer"
+          },
+          "exported_record_count": {
+            "title": "Exported Record Count",
+            "type": "integer"
+          },
+          "future_record_count": {
+            "title": "Future Record Count",
+            "type": "integer"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "historical_reproducibility": {
+            "const": false,
+            "title": "Historical Reproducibility",
+            "type": "boolean"
+          },
+          "omitted_record_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Omitted Record Ids",
+            "type": "array"
+          },
+          "omitted_references": {
+            "items": {
+              "$ref": "#/components/schemas/OmittedReference"
+            },
+            "title": "Omitted References",
+            "type": "array"
+          },
+          "orders_enabled": {
+            "const": false,
+            "title": "Orders Enabled",
+            "type": "boolean"
+          },
+          "records": {
+            "items": {
+              "$ref": "#/components/schemas/ResearchResponse"
+            },
+            "title": "Records",
+            "type": "array"
+          },
+          "retired_decision_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Retired Decision Ids",
+            "type": "array"
+          },
+          "review_queue": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewQueueItem"
+            },
+            "title": "Review Queue",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "sizing_validated": {
+            "const": false,
+            "title": "Sizing Validated",
+            "type": "boolean"
+          },
+          "snapshot_freshness": {
+            "discriminator": {
+              "mapping": {
+                "fresh": "#/components/schemas/SelectedFreshness",
+                "future": "#/components/schemas/SelectedFreshness",
+                "not_selected": "#/components/schemas/UnselectedFreshness",
+                "stale": "#/components/schemas/SelectedFreshness"
+              },
+              "propertyName": "status"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UnselectedFreshness"
+              },
+              {
+                "$ref": "#/components/schemas/SelectedFreshness"
+              }
+            ],
+            "title": "Snapshot Freshness"
+          },
+          "truncated_count": {
+            "title": "Truncated Count",
+            "type": "integer"
+          },
+          "trust_instructions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Trust Instructions",
+            "type": "array"
+          },
+          "unresolved_questions": {
+            "items": {
+              "$ref": "#/components/schemas/UnresolvedQuestions"
+            },
+            "title": "Unresolved Questions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "context_kind",
+          "generated_at",
+          "historical_reproducibility",
+          "orders_enabled",
+          "sizing_validated",
+          "trust_instructions",
+          "records",
+          "eligible_record_count",
+          "exported_record_count",
+          "truncated_count",
+          "omitted_record_ids",
+          "future_record_count",
+          "omitted_references",
+          "account",
+          "snapshot_freshness",
+          "active_decision_ids",
+          "retired_decision_ids",
+          "review_queue",
+          "unresolved_questions"
+        ],
+        "title": "InvestmentContext",
+        "type": "object"
+      },
+      "MarketValue": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "format": "decimal",
+            "title": "Amount",
+            "type": "string"
+          },
+          "amountAfterCost": {
+            "format": "decimal",
+            "title": "Amountaftercost",
+            "type": "string"
+          },
+          "purchaseAmount": {
+            "format": "decimal",
+            "title": "Purchaseamount",
+            "type": "string"
+          }
+        },
+        "required": [
+          "purchaseAmount",
+          "amount",
+          "amountAfterCost"
+        ],
+        "title": "MarketValue",
+        "type": "object"
+      },
+      "OmittedReference": {
+        "additionalProperties": false,
+        "properties": {
+          "reason": {
+            "enum": [
+              "future_record",
+              "record_limit"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "record_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Record Id",
+            "type": "string"
+          },
+          "reference_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reference Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "record_id",
+          "reference_id",
+          "reason"
+        ],
+        "title": "OmittedReference",
+        "type": "object"
+      },
+      "OpenOrder": {
+        "additionalProperties": false,
+        "properties": {
+          "canceledAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Canceledat"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "execution": {
+            "$ref": "#/components/schemas/OrderExecution"
+          },
+          "orderAmount": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Orderamount"
+          },
+          "orderId": {
+            "title": "Orderid",
+            "type": "string"
+          },
+          "orderType": {
+            "title": "Ordertype",
+            "type": "string"
+          },
+          "orderedAt": {
+            "format": "date-time",
+            "title": "Orderedat",
+            "type": "string"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "quantity": {
+            "format": "decimal",
+            "title": "Quantity",
+            "type": "string"
+          },
+          "side": {
+            "title": "Side",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "timeInForce": {
+            "title": "Timeinforce",
+            "type": "string"
+          }
+        },
+        "required": [
+          "orderId",
+          "symbol",
+          "side",
+          "orderType",
+          "timeInForce",
+          "status",
+          "quantity",
+          "currency",
+          "orderedAt",
+          "execution"
+        ],
+        "title": "OpenOrder",
+        "type": "object"
+      },
+      "OrderExecution": {
+        "additionalProperties": false,
+        "properties": {
+          "averageFilledPrice": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Averagefilledprice"
+          },
+          "commission": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Commission"
+          },
+          "filledAmount": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filledamount"
+          },
+          "filledAt": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filledat"
+          },
+          "filledQuantity": {
+            "format": "decimal",
+            "title": "Filledquantity",
+            "type": "string"
+          },
+          "settlementDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Settlementdate"
+          },
+          "tax": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax"
+          }
+        },
+        "required": [
+          "filledQuantity",
+          "averageFilledPrice",
+          "filledAmount",
+          "commission",
+          "tax",
+          "filledAt",
+          "settlementDate"
+        ],
+        "title": "OrderExecution",
+        "type": "object"
+      },
+      "OverviewDailyProfitLoss": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "$ref": "#/components/schemas/CurrencyAmounts"
+          },
+          "rate": {
+            "format": "decimal",
+            "title": "Rate",
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "rate"
+        ],
+        "title": "OverviewDailyProfitLoss",
+        "type": "object"
+      },
+      "OverviewMarketValue": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "$ref": "#/components/schemas/CurrencyAmounts"
+          },
+          "amountAfterCost": {
+            "$ref": "#/components/schemas/CurrencyAmounts"
+          }
+        },
+        "required": [
+          "amount",
+          "amountAfterCost"
+        ],
+        "title": "OverviewMarketValue",
+        "type": "object"
+      },
+      "OverviewProfitLoss": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "$ref": "#/components/schemas/CurrencyAmounts"
+          },
+          "amountAfterCost": {
+            "$ref": "#/components/schemas/CurrencyAmounts"
+          },
+          "rate": {
+            "format": "decimal",
+            "title": "Rate",
+            "type": "string"
+          },
+          "rateAfterCost": {
+            "format": "decimal",
+            "title": "Rateaftercost",
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "amountAfterCost",
+          "rate",
+          "rateAfterCost"
+        ],
+        "title": "OverviewProfitLoss",
+        "type": "object"
+      },
+      "ProfitLoss": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "format": "decimal",
+            "title": "Amount",
+            "type": "string"
+          },
+          "amountAfterCost": {
+            "format": "decimal",
+            "title": "Amountaftercost",
+            "type": "string"
+          },
+          "rate": {
+            "format": "decimal",
+            "title": "Rate",
+            "type": "string"
+          },
+          "rateAfterCost": {
+            "format": "decimal",
+            "title": "Rateaftercost",
+            "type": "string"
+          }
+        },
+        "required": [
+          "amount",
+          "amountAfterCost",
+          "rate",
+          "rateAfterCost"
+        ],
+        "title": "ProfitLoss",
+        "type": "object"
+      },
+      "ProposedAction": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "buy",
+              "add",
+              "trim",
+              "sell",
+              "hold",
+              "avoid",
+              "research",
+              "watch",
+              "wait"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "market": {
+            "anyOf": [
+              {
+                "enum": [
+                  "KR",
+                  "US"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Market"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbol"
+          },
+          "target_weight": {
+            "anyOf": [
+              {
+                "format": "decimal",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Weight"
+          }
+        },
+        "required": [
+          "action",
+          "market",
+          "symbol",
+          "rationale"
+        ],
+        "title": "ProposedAction",
+        "type": "object"
+      },
+      "ResearchAuthor": {
+        "additionalProperties": false,
+        "properties": {
+          "identity_source": {
+            "enum": [
+              "declared",
+              "unknown"
+            ],
+            "title": "Identity Source",
+            "type": "string"
+          },
+          "interface": {
+            "enum": [
+              "codex",
+              "human"
+            ],
+            "title": "Interface",
+            "type": "string"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "reasoning_effort": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reasoning Effort"
+          }
+        },
+        "required": [
+          "interface",
+          "model",
+          "reasoning_effort",
+          "identity_source"
+        ],
+        "title": "ResearchAuthor",
+        "type": "object"
+      },
+      "ResearchResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "record": {
+            "discriminator": {
+              "mapping": {
+                "decision": "#/components/schemas/DecisionRecord",
+                "evidence": "#/components/schemas/EvidenceRecord",
+                "hypothesis": "#/components/schemas/HypothesisRecord",
+                "review": "#/components/schemas/ReviewRecord"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/EvidenceRecord"
+              },
+              {
+                "$ref": "#/components/schemas/HypothesisRecord"
+              },
+              {
+                "$ref": "#/components/schemas/DecisionRecord"
+              },
+              {
+                "$ref": "#/components/schemas/ReviewRecord"
+              }
+            ],
+            "title": "Record"
+          }
+        },
+        "required": [
+          "id",
+          "record"
+        ],
+        "title": "ResearchResponse",
+        "type": "object"
+      },
+      "ReviewPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "judgment": {
+            "enum": [
+              "maintain",
+              "revise",
+              "retire",
+              "unresolved"
+            ],
+            "title": "Judgment",
+            "type": "string"
+          },
+          "new_evidence_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "New Evidence Ids",
+            "type": "array"
+          },
+          "observations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Observations",
+            "type": "array"
+          },
+          "replacement_decision_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replacement Decision Id"
+          },
+          "what_changed": {
+            "title": "What Changed",
+            "type": "string"
+          }
+        },
+        "required": [
+          "decision_id",
+          "new_evidence_ids",
+          "observations",
+          "what_changed",
+          "judgment"
+        ],
+        "title": "ReviewPayload",
+        "type": "object"
+      },
+      "ReviewQueueItem": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "review_after": {
+            "format": "date-time",
+            "title": "Review After",
+            "type": "string"
+          },
+          "review_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Review Ids",
+            "type": "array"
+          },
+          "sizing_validated": {
+            "const": false,
+            "title": "Sizing Validated",
+            "type": "boolean"
+          },
+          "status": {
+            "const": "proposed",
+            "title": "Status",
+            "type": "string"
+          },
+          "unresolved_questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unresolved Questions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "decision_id",
+          "review_after",
+          "reasons",
+          "unresolved_questions",
+          "review_ids",
+          "status",
+          "sizing_validated"
+        ],
+        "title": "ReviewQueueItem",
+        "type": "object"
+      },
+      "ReviewRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "author": {
+            "$ref": "#/components/schemas/ResearchAuthor"
+          },
+          "kind": {
+            "const": "review",
+            "title": "Kind",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "payload": {
+            "$ref": "#/components/schemas/ReviewPayload"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "schema_version",
+          "mode",
+          "author",
+          "recorded_at",
+          "kind",
+          "payload"
+        ],
+        "title": "ReviewRecord",
+        "type": "object"
+      },
+      "SelectedAccount": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "snapshot": {
+            "$ref": "#/components/schemas/AccountSnapshot"
+          }
+        },
+        "required": [
+          "id",
+          "snapshot"
+        ],
+        "title": "SelectedAccount",
+        "type": "object"
+      },
+      "SelectedFreshness": {
+        "additionalProperties": false,
+        "properties": {
+          "atomic_account_instant": {
+            "const": false,
+            "title": "Atomic Account Instant",
+            "type": "boolean"
+          },
+          "collection_span_seconds": {
+            "title": "Collection Span Seconds",
+            "type": "number"
+          },
+          "completed_age_seconds": {
+            "title": "Completed Age Seconds",
+            "type": "number"
+          },
+          "max_age_seconds": {
+            "title": "Max Age Seconds",
+            "type": "integer"
+          },
+          "oldest_observation_age_seconds": {
+            "title": "Oldest Observation Age Seconds",
+            "type": "number"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "sizing_validated": {
+            "const": false,
+            "title": "Sizing Validated",
+            "type": "boolean"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "fresh",
+              "stale",
+              "future"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "snapshot_id",
+          "completed_age_seconds",
+          "oldest_observation_age_seconds",
+          "collection_span_seconds",
+          "max_age_seconds",
+          "atomic_account_instant",
+          "sizing_validated",
+          "reasons"
+        ],
+        "title": "SelectedFreshness",
+        "type": "object"
+      },
+      "SnapshotSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "account_type": {
+            "title": "Account Type",
+            "type": "string"
+          },
+          "collection_completed_at": {
+            "format": "date-time",
+            "title": "Collection Completed At",
+            "type": "string"
+          },
+          "collection_started_at": {
+            "format": "date-time",
+            "title": "Collection Started At",
+            "type": "string"
+          },
+          "holding_count": {
+            "title": "Holding Count",
+            "type": "integer"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "open_order_count": {
+            "title": "Open Order Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "account_seq",
+          "account_type",
+          "collection_started_at",
+          "collection_completed_at",
+          "holding_count",
+          "open_order_count"
+        ],
+        "title": "SnapshotSummary",
+        "type": "object"
+      },
+      "SourceObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Capture Id",
+            "type": "string"
+          },
+          "endpoint": {
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "query": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Query",
+            "type": "object"
+          }
+        },
+        "required": [
+          "capture_id",
+          "endpoint",
+          "query",
+          "observed_at"
+        ],
+        "title": "SourceObservation",
+        "type": "object"
+      },
+      "UnresolvedQuestions": {
+        "additionalProperties": false,
+        "properties": {
+          "decision_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Decision Id",
+            "type": "string"
+          },
+          "questions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Questions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "decision_id",
+          "questions"
+        ],
+        "title": "UnresolvedQuestions",
+        "type": "object"
+      },
+      "UnselectedFreshness": {
+        "additionalProperties": false,
+        "properties": {
+          "max_age_seconds": {
+            "title": "Max Age Seconds",
+            "type": "integer"
+          },
+          "sizing_validated": {
+            "const": false,
+            "title": "Sizing Validated",
+            "type": "boolean"
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "null"
+          },
+          "status": {
+            "const": "not_selected",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "snapshot_id",
+          "max_age_seconds",
+          "sizing_validated"
+        ],
+        "title": "UnselectedFreshness",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Read-only local records. No model execution or brokerage orders.",
+    "title": "Investment workspace API",
+    "version": "1.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/account-snapshots": {
+      "get": {
+        "operationId": "list_account_snapshots",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSnapshotsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Snapshots"
+      }
+    },
+    "/api/v1/context": {
+      "get": {
+        "operationId": "get_context",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "snapshot_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "max_records",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Max Records",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestmentContext"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Context"
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/v1/research/{id}": {
+      "get": {
+        "operationId": "get_research",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Research Record"
+      }
+    }
+  }
+}

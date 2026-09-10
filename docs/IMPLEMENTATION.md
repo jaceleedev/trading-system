@@ -1,13 +1,16 @@
 # 구현 및 인수인계
 
 2026-09-10 최초 후속 개발은 `main`의 기능 1~9 병합 완료 커밋 `e10394c`부터 시작했다.
-기능별 새 브랜치에 로컬 커밋한 뒤 개별 PR을 순서대로 준비했다. 현재는 PR15까지
-병합됐으며 최신 방향·브랜치 상태·검증 결과는 [HANDOFF.md](HANDOFF.md) 상단을 우선한다.
+기능별 새 브랜치에 로컬 커밋한 뒤 개별 PR을 순서대로 준비했다. PR16 기술 결정까지
+병합한 `main`에서 기능 17 웹·API를 구현했다. 최신 방향·브랜치 상태·검증 결과는
+[HANDOFF.md](HANDOFF.md) 상단을 우선한다.
 
-현재 `docs/16-technology-stack`에서는 [기술 스택 결정](TECH_STACK.md)을 문서화한다.
-후속 목표는 Svelte 5·SvelteKit·TypeScript, FastAPI, PostgreSQL과 Python worker다.
-초기 TimescaleDB·pgvector·Redis는 제외한다. 신규 구현은 아직 시작하지 않았고,
-이번 문서 작업에서 기존 Streamlit 실행 환경을 변경하지 않는다.
+`feat/17-investment-web-api`는 [기술 스택 결정](TECH_STACK.md)에 따라
+Svelte 5·SvelteKit·TypeScript 화면과 읽기 전용 FastAPI를 도입한다.
+기존 공통 Python 조회 서비스로 계좌 관측·판단·근거를 연결하며, OpenAPI에서
+TypeScript 클라이언트를 생성한다. PostgreSQL 작업 기록과 Python worker는 후속 작업이다.
+초기 TimescaleDB·pgvector·Redis는 제외하며 기존 Streamlit 실행도 유지한다.
+실행·검증 방법은 [웹 작업실](WEB_WORKBENCH.md)을 따른다.
 
 사용자는 2026-09-09 로컬 구현, main 초기 커밋, 기능별 순차 브랜치 작업을 요청했다.
 기존 문서 전용 상태에서 추천·연구 시스템 구현으로 범위가 확대됐다.
@@ -33,8 +36,9 @@
 ## 현재 구현의 기술 구성
 
 - Mac mise의 프로젝트 Python은 일반 CPython 3.14.7로 고정한다. 전역 설정은 바꾸지 않는다.
-- 현재 Python 의존성은 `uv.lock`으로 고정한다. 기존 Streamlit 화면은 Node 없이 실행된다.
-  후속 SvelteKit 화면에는 Node 기반 개발·빌드 도구와 별도 프론트 잠금 파일이 필요하다.
+- Python 의존성은 `uv.lock`, 프론트 의존성은 `web/pnpm-lock.yaml`로 고정한다.
+  Node 24.18.0·pnpm 11.13.0은 웹 개발·빌드에 사용한다. 빌드된 웹 화면은 FastAPI가
+  같은 출처에서 제공하므로 운영에 별도 Node 서버가 필요하지 않다.
 - 저장소는 PostgreSQL. 로컬 개발은 별도 Compose 프로젝트/볼륨과 localhost 55432를 사용한다.
 - prod-01은 2026-09-01 문서상 16코어/32스레드, RAM 122GiB, NVMe 2TB다.
   실제 부하와 신규 배치는 아직 검증하지 않았다. 회사 DB·계정·배포 설정은 재사용하지 않는다.

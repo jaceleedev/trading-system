@@ -13,3 +13,7 @@ var/
 .coverage
 htmlcov/
 /.codex/config.toml
+node_modules/
+.svelte-kit/
+/web/playwright-report/
+/web/test-results/

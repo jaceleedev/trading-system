@@ -13,9 +13,28 @@ Codex에서 직접 사용할 수 있다.
 2026-09-10까지의 브랜치별 작업과 재시작 순서는 [인수인계](docs/HANDOFF.md)에 정리했다.
 합의한 목표 구성은 **Svelte 5 + SvelteKit + TypeScript / FastAPI / PostgreSQL**이며,
 역할·도입 범위·후속 구현 순서는 [기술 스택 결정](docs/TECH_STACK.md)에 정리했다.
-현재 실행 화면은 Streamlit이고 신규 웹앱·API·worker는 아직 구현하지 않았다.
+SvelteKit 웹 작업실과 FastAPI는 저장된 계좌·판단·근거를 연결해 읽는다.
+기존 Streamlit 추천·백테스트 화면도 사용할 수 있다. 영속 worker와 지속적인 AI 실행은
+아직 구현하지 않았다. [새 웹 작업실 안내](docs/WEB_WORKBENCH.md)를 따른다.
 
-## 로컬 실행
+## 웹 투자 작업실
+
+프로젝트의 Node 24.18.0·pnpm 11.13.0·Python 3.14.7을 사용한다.
+저장된 계좌·연구 기록을 읽는 웹 작업실에는 PostgreSQL이나 토스 인증 요청이 필요하지 않다.
+
+```bash
+mise trust
+mise install
+mise run web-setup
+mise run web-build
+mise run web
+```
+
+<http://127.0.0.1:8765>에서 계좌 관측을 선택하고 판단에서 연결된 가설·근거를 연다.
+‘저장 자료 다시 읽기’는 로컬 파일을 다시 조회한다. 새 계좌 관측 수집이나 매매를 실행하지 않는다.
+개인 자료는 서버에서 읽으며 프론트 정적 빌드에 포함하지 않는다.
+
+## 기존 연구 환경 실행
 
 Python 3.14.7, uv, Docker Compose가 필요하다. Python 버전은 프로젝트의 mise 설정으로 고정하며 전역 설정을 변경하지 않는다.
 
