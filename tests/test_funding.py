@@ -18,6 +18,7 @@ from trading_research.models import (
     FundingPoolRow,
     FundingReservationRow,
 )
+from trading_research.order_db_models import OrderIntentRow
 
 
 def amounts(krw="1000", usd="10.5", quantity="0.125"):
@@ -53,6 +54,9 @@ def stores(tmp_path):
             with jobs.engine.begin() as connection:
                 keys = [item.workspace_key for item in allocated]
                 connection.execute(
+                    delete(OrderIntentRow).where(OrderIntentRow.workspace_key.in_(keys))
+                )
+                connection.execute(
                     delete(FundingReservationRow).where(
                         FundingReservationRow.workspace_key.in_(keys)
                     )
@@ -71,6 +75,37 @@ def stores(tmp_path):
 
 def versions(state):
     return {pool["id"]: pool["revision"] for pool in state["pools"]}
+
+
+def test_attached_order_blocks_release_and_replace_until_undispatched_abort(stores):
+    from test_order_store import create
+
+    store, _ = stores
+    orders, intent, seed = create(store)
+    with pytest.raises(DataError, match="attached"):
+        store.release(seed["reservation_id"])
+    with pytest.raises(DataError, match="attached"):
+        store.replace(
+            seed["reservation_id"],
+            seed["plan_id"],
+            seed["alternative_id"],
+            seed["requirements"],
+            "replace-attached",
+            versions(store.state("101")),
+            "synthetic",
+        )
+    orders.abort(intent["id"], "abort", 1)
+    replaced = store.replace(
+        seed["reservation_id"],
+        seed["plan_id"],
+        seed["alternative_id"],
+        seed["requirements"],
+        "replace-detached",
+        versions(store.state("101")),
+        "synthetic",
+    )
+    assert replaced["status"] == "active"
+    assert store.get(seed["reservation_id"])["status"] == "replaced"
 
 
 def refresh(

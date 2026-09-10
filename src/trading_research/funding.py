@@ -500,6 +500,22 @@ class FundingStore:
             )
         )
 
+    def _ensure_detached(self, session, identity):
+        # The caller holds the same account lock used by order attachment.
+        from trading_research.order_db_models import OrderIntentRow
+
+        attached = session.scalar(
+            select(OrderIntentRow.id)
+            .where(
+                OrderIntentRow.workspace_key == self.workspace_key,
+                OrderIntentRow.reservation_id == identity,
+                OrderIntentRow.reservation_held.is_(True),
+            )
+            .limit(1)
+        )
+        if attached is not None:
+            raise DataError("Reservation is attached to an unresolved order intent")
+
     @_safe
     def get(self, reservation_id):
         identity = _id(reservation_id)
@@ -615,6 +631,7 @@ class FundingStore:
                 raise DataError("Replacement requires an active reservation in this account")
             touched = set(resources)
             if previous:
+                self._ensure_detached(session, previous.id)
                 touched.update(
                     session.scalars(
                         select(FundingReservationLineRow.pool_id).where(
@@ -687,6 +704,7 @@ class FundingStore:
             session.refresh(row)
             if row.status != "active":
                 return _reservation(row)
+            self._ensure_detached(session, row.id)
             pools = self._pools(session, row.account_seq, lock=True)
             now = _now(session)
             for key in session.scalars(

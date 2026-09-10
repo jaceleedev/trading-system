@@ -19,6 +19,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
+from trading_research import order_db_models as _order_db_models  # noqa: F401
 from trading_research.database import Base
 
 

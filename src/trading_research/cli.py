@@ -43,6 +43,9 @@ def main() -> int:
     from trading_research.broker_cli import add_broker_parser
 
     add_broker_parser(sub)
+    from trading_research.order_cli import add_order_parser
+
+    add_order_parser(sub)
     sub.add_parser("doctor", help="Read-only runtime and database connectivity check")
     sub.add_parser("db-upgrade", help="Apply schema migrations to the configured research database")
     demo = sub.add_parser("demo-data", help="Generate clearly marked synthetic fixtures")
@@ -138,6 +141,10 @@ def main() -> int:
                 from trading_research.broker_cli import handle_broker
 
                 print(json.dumps(handle_broker(args), ensure_ascii=False, indent=2))
+            elif args.command == "orders":
+                from trading_research.order_cli import handle_orders
+
+                print(json.dumps(handle_orders(args), ensure_ascii=False, indent=2))
             elif args.command == "db-upgrade":
                 from alembic import command
                 from alembic.config import Config
