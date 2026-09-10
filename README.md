@@ -2,6 +2,8 @@
 
 현재 상태는 **추천·연구 시스템 구현 및 검증 단계**다. 사용자의 2026-09-09 개발 지시에 따라 이전 프로토타입과 별도로 새 구현을 시작했다. 자동 주문 기능은 없다. 연구 전략의 수익성은 아직 검증되지 않았다.
 
+2026-09-10까지의 브랜치별 작업과 재시작 순서는 [인수인계](docs/HANDOFF.md)에 정리했다.
+
 ## 로컬 실행
 
 Python 3.14.7, uv, Docker Compose가 필요하다. Python 버전은 프로젝트의 mise 설정으로 고정하며 전역 설정을 변경하지 않는다.
@@ -18,6 +20,8 @@ mise run check
 
 로컬 DB는 별도 `trading-research` Compose 프로젝트의 `127.0.0.1:55432`에서 실행된다.
 회사 서비스의 `DATABASE_URL`은 읽지 않는다. 명시적 변경은 `TRADING_DATABASE_URL`로 지정한다.
+또는 `TRADING_DATABASE_HOST`, `PORT`, `NAME`, `USER`, `PASSWORD` 다섯 구성 요소를
+모두 설정한다(각 변수에 `TRADING_DATABASE_` 접두사). URL을 명시하면 URL이 우선한다.
 Compose의 기본 비밀번호는 로컬 개발 전용이다. 실제 서버 배포 설정은 별도로 작성·검토해야 한다.
 Compose의 포트·비밀번호를 변경하면 앱의 `TRADING_DATABASE_URL`도 같은 값으로 명시해야 한다.
 DB를 중지하려면 `docker compose stop`을 사용한다. `down -v`는 자료를 삭제하므로 일반 종료에 사용하지 않는다.
@@ -26,6 +30,8 @@ DB를 중지하려면 `docker compose stop`을 사용한다. `down -v`는 자료
 
 개인 화면은 `mise run ui`로 시작하고 <http://127.0.0.1:8501>에서 연다.
 [화면 사용법](docs/USER_GUIDE.md)에서 추천·성과·출처·기록 조회 흐름을 확인할 수 있다.
+Docker 화면은 <http://127.0.0.1:8502>를 사용한다. 처음 실행과 이미지 갱신,
+상태 확인·백업·복구 명령은 [운영 안내](docs/OPERATIONS.md)에 정리했다.
 
 ```bash
 uv run trading demo-data var/demo
@@ -93,4 +99,4 @@ uv run trading recommend --dataset synthetic-demo-v1 \
 
 기존 문서의 가상자산 예제와 프로그램 테스트 기록은 현재 주식 전략의 성과 근거가 아니다. 현재 구현은 로컬 연구·추천 범위이며, 실거래와 회사 서버 배포는 수행하지 않았다.
 
-작성일: 2026-09-09
+갱신일: 2026-09-10
