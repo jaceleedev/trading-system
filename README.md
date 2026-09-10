@@ -12,6 +12,7 @@ mise install
 uv sync --frozen
 docker compose up -d --wait postgres
 uv run trading doctor
+uv run trading db-upgrade
 mise run check
 ```
 
@@ -20,6 +21,20 @@ mise run check
 Compose의 기본 비밀번호는 로컬 개발 전용이다. 실제 서버 배포 설정은 별도로 작성·검토해야 한다.
 Compose의 포트·비밀번호를 변경하면 앱의 `TRADING_DATABASE_URL`도 같은 값으로 명시해야 한다.
 DB를 중지하려면 `docker compose stop`을 사용한다. `down -v`는 자료를 삭제하므로 일반 종료에 사용하지 않는다.
+
+## 데이터 가져오기
+
+```bash
+uv run trading demo-data var/demo
+uv run trading validate-data var/demo
+uv run trading import-data var/demo
+TRADING_TEST_DB=1 uv run pytest
+```
+
+데모는 실제 종목이나 성과가 아닌 합성 자료다. 새 폴더에서만 생성되며 기존 파일을 덮어쓰지 않는다.
+실제 자료는 [입력 계약](docs/DATA_CONTRACT.md)에 맞는 공급자 CSV와 manifest를 준비한다.
+검증은 시각·가격·OHLC·중복·출처 선언을 검사하며, 공급자 자료의 진실성까지 인증하지 않는다.
+동일 자료 재수입은 변경 없이 종료하고, 같은 ID에 다른 내용을 덮어쓰는 요청은 거부한다.
 
 ## 투자 범위
 
