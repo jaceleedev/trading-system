@@ -14,6 +14,7 @@ from pathlib import Path
 from trading_research.corporate_actions import parse_actions, validate_adjustments
 from trading_research.data import Bundle, DataError, calendar_date, decimal_value
 from trading_research.ledger import Portfolio
+from trading_research.numeric import research_arithmetic
 from trading_research.strategy import (
     BPS,
     ONE,
@@ -62,6 +63,7 @@ class BacktestConfig:
         )
 
 
+@research_arithmetic
 def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfig) -> dict:
     instruments = {i.instrument_id: i for i in bundle.instruments}
     for market, identifier in config.benchmarks.items():
@@ -374,7 +376,7 @@ def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfi
             peak = max(peak, point["unit_value"])
             drawdown = min(drawdown, point["unit_value"] / peak - ONE)
         days = (config.end - config.start).days
-        annualized = float(last["unit_value"]) ** (365 / days) - 1 if days >= 365 else None
+        annualized = last["unit_value"] ** (Decimal(365) / days) - ONE if days >= 365 else None
         results[name] = {
             "ending_nav_krw": last["nav_krw"],
             "external_net_krw": last["external_net_krw"],
@@ -405,6 +407,7 @@ def run_backtest(bundle: Bundle, strategy: ResearchConfig, config: BacktestConfi
                     "corporate_actions.py",
                     "serialization.py",
                     "errors.py",
+                    "numeric.py",
                 )
             }
         ),

@@ -70,3 +70,12 @@ class BacktestRow(Base):
     payload: Mapped[dict] = mapped_column(JSONB)
     payload_sha256: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class EvaluationRow(Base):
+    __tablename__ = "evaluations"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"), index=True)
+    payload: Mapped[dict] = mapped_column(JSONB)
+    payload_sha256: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

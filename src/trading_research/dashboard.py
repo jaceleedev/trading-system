@@ -14,7 +14,7 @@ from trading_research.data import DataError, timestamp
 from trading_research.serialization import encode
 from trading_research.strategy import Account, ResearchConfig, recommend
 
-PAGES = ["추천 만들기", "과거 성과", "데이터 살펴보기", "저장한 기록"]
+PAGES = ["추천 만들기", "과거 성과", "데이터 살펴보기", "저장한 기록", "반복 검증"]
 NAMES = {
     "strategy": "연구 전략",
     "KR_reference": "한국 비교 계좌",
@@ -389,6 +389,8 @@ def history_page(bundle):
 
 
 def main():
+    from trading_research.dashboard_evaluation import render_evaluation_page
+
     st.set_page_config(page_title="투자 연구실", page_icon="◈", layout="wide")
     st.markdown(
         """<style>
@@ -436,6 +438,7 @@ def main():
             PAGES[1]: backtest_page,
             PAGES[2]: data_page,
             PAGES[3]: history_page,
+            PAGES[4]: render_evaluation_page,
         }[page](bundle)
     except DataError as exc:
         st.error(str(exc))

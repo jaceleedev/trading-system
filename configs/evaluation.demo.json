@@ -1,0 +1,13 @@
+{
+  "label": "합성 자료 고정 규칙·기간·비용 검증",
+  "windows": [
+    {"name": "development", "start": "2024-03-01", "end": "2024-12-31"},
+    {"name": "validation", "start": "2025-01-01", "end": "2025-12-31"},
+    {"name": "reserved", "start": "2026-01-01", "end": "2026-08-31"}
+  ],
+  "initial_cash_krw": "1250000",
+  "monthly_contribution_krw": "500000",
+  "contribution_day": 10,
+  "benchmarks": {"KR": "SYN-KR-BENCH", "US": "SYN-US-BENCH"},
+  "cost_multiples": [1, 2, 3]
+}

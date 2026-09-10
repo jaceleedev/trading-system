@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 from trading_research.data import Bundle, read_bundle
 from trading_research.database import get_engine
 from trading_research.errors import DataError
-from trading_research.models import BacktestRow, Dataset, RecommendationRow
+from trading_research.models import BacktestRow, Dataset, EvaluationRow, RecommendationRow
 from trading_research.recommendations import checked_payload, save_backtest, save_recommendation
 
 DATABASE_ERROR = (
@@ -23,6 +23,7 @@ DATABASE_ERROR = (
 RESULT_TYPES = {
     "recommendation": (RecommendationRow, "research_recommendation"),
     "backtest": (BacktestRow, "hypothetical_backtest"),
+    "evaluation": (EvaluationRow, "research_evaluation"),
 }
 
 
@@ -73,7 +74,7 @@ def _identifier(value: str) -> str:
 
 def _result_type(kind: str):
     if not isinstance(kind, str) or kind not in RESULT_TYPES:
-        raise DataError("Result kind must be recommendation or backtest")
+        raise DataError("Result kind must be recommendation, backtest or evaluation")
     return RESULT_TYPES[kind]
 
 
@@ -147,7 +148,12 @@ def load_result(result_id: str, kind: str) -> dict:
         row = session.get(model, result_id)
         if row is None:
             raise DataError("Unknown stored result")
-        payload = checked_payload(row)
+        if kind == "evaluation":
+            from trading_research.evaluations import checked_evaluation
+
+            payload = checked_evaluation(session, row)
+        else:
+            payload = checked_payload(row)
         if (
             payload.get("kind") != payload_kind
             or payload.get("id") != row.id
@@ -173,3 +179,11 @@ def persist_result(payload: dict) -> bool:
     _identifier(payload.get("dataset_id"))
     with session_scope() as session:
         return save(session, payload)
+
+
+@_safe_database_errors
+def persist_evaluation(summary: dict, backtests: list[dict]) -> bool:
+    from trading_research.evaluations import save_evaluation
+
+    with session_scope() as session:
+        return save_evaluation(session, summary, backtests)
