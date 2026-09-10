@@ -14,6 +14,7 @@ def add_research_parser(subparsers):
     parser.add_argument("action", choices=["record", "list", "show", "context", "demo"])
     parser.add_argument("--root", default="var/research")
     parser.add_argument("--account-root", default="var/accounts")
+    parser.add_argument("--capture-root", help="Market capture directory; defaults beside accounts")
     parser.add_argument("--file", help="JSON document to record")
     parser.add_argument("--id", help="Immutable research record ID")
     parser.add_argument("--kind", choices=["evidence", "hypothesis", "decision", "review"])
@@ -26,19 +27,35 @@ def handle_research(args):
     from trading_research.decision_workspace import list_records, read_record, record
 
     root, account_root = Path(args.root), Path(args.account_root)
+    capture_root = Path(args.capture_root) if getattr(args, "capture_root", None) else None
     if args.action == "record":
         if not args.file:
             raise DataError("research record requires --file")
-        return record(root, load_input(Path(args.file)), account_root=account_root)
+        return record(
+            root, load_input(Path(args.file)), account_root=account_root, capture_root=capture_root
+        )
     if args.action == "list":
-        return {"records": list_records(root, args.kind, account_root=account_root)}
+        return {
+            "records": list_records(
+                root, args.kind, account_root=account_root, capture_root=capture_root
+            )
+        }
     if args.action == "show":
         if not args.id:
             raise DataError("research show requires --id")
-        return {"id": args.id, "record": read_record(root, args.id, account_root=account_root)}
+        return {
+            "id": args.id,
+            "record": read_record(
+                root, args.id, account_root=account_root, capture_root=capture_root
+            ),
+        }
     if args.action == "context":
         return build_context(
-            root, account_root=account_root, snapshot_id=args.snapshot, max_records=args.max_records
+            root,
+            account_root=account_root,
+            capture_root=capture_root,
+            snapshot_id=args.snapshot,
+            max_records=args.max_records,
         )
     return create_demo(root)
 

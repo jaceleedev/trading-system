@@ -121,6 +121,48 @@ export type BuyingPower = {
 };
 
 /**
+ * CandleRevision
+ */
+export type CandleRevision = {
+    /**
+     * Capture Ids
+     */
+    capture_ids: Array<string>;
+    /**
+     * Close
+     */
+    close: string;
+    /**
+     * High
+     */
+    high: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Last Observed At
+     */
+    last_observed_at: string;
+    /**
+     * Low
+     */
+    low: string;
+    /**
+     * Observed At
+     */
+    observed_at: string;
+    /**
+     * Open
+     */
+    open: string;
+    /**
+     * Volume
+     */
+    volume: string;
+};
+
+/**
  * CashBalances
  */
 export type CashBalances = {
@@ -308,7 +350,7 @@ export type EvidenceArtifact = {
     /**
      * Store
      */
-    store: 'account';
+    store: 'account' | 'market_capture';
 };
 
 /**
@@ -324,6 +366,7 @@ export type EvidencePayload = {
      * Excerpt
      */
     excerpt?: string | null;
+    market_event?: MarketEvent | null;
     /**
      * Retrieved At
      */
@@ -769,6 +812,196 @@ export type JobView = {
 };
 
 /**
+ * MarketCaptureSummary
+ */
+export type MarketCaptureSummary = {
+    /**
+     * Adjusted
+     */
+    adjusted: boolean | null;
+    /**
+     * Candle Count
+     */
+    candle_count: number | null;
+    /**
+     * Capture Id
+     */
+    capture_id: string;
+    /**
+     * Currencies
+     */
+    currencies: Array<string>;
+    /**
+     * Endpoint
+     */
+    endpoint: string;
+    /**
+     * Interval
+     */
+    interval: string | null;
+    /**
+     * Reason
+     */
+    reason: string | null;
+    /**
+     * Response Contract Sha256
+     */
+    response_contract_sha256: string | null;
+    /**
+     * Retrieved At
+     */
+    retrieved_at: string;
+    /**
+     * Status
+     */
+    status: 'supported' | 'unsupported';
+    /**
+     * Symbol
+     */
+    symbol: string | null;
+};
+
+/**
+ * MarketCatalog
+ */
+export type MarketCatalog = {
+    /**
+     * Invalid Count
+     */
+    invalid_count: number;
+    /**
+     * Items
+     */
+    items: Array<MarketCaptureSummary>;
+    /**
+     * Supported Count
+     */
+    supported_count: number;
+    /**
+     * Total Count
+     */
+    total_count: number;
+    /**
+     * Truncated Count
+     */
+    truncated_count: number;
+    /**
+     * Unsupported Count
+     */
+    unsupported_count: number;
+};
+
+/**
+ * MarketEvent
+ */
+export type MarketEvent = {
+    /**
+     * Event Kind
+     */
+    event_kind: 'price' | 'earnings' | 'filing' | 'news' | 'macro' | 'other';
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Occurred At
+     */
+    occurred_at: string | null;
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
+ * MarketEvidenceEvent
+ */
+export type MarketEvidenceEvent = {
+    /**
+     * Claim
+     */
+    claim: string;
+    /**
+     * Event Kind
+     */
+    event_kind: 'price' | 'earnings' | 'filing' | 'news' | 'macro' | 'other';
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Occurred At
+     */
+    occurred_at: string | null;
+    /**
+     * Record Id
+     */
+    record_id: string;
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Retrieved At
+     */
+    retrieved_at: string;
+    /**
+     * Source Locator
+     */
+    source_locator: string;
+    /**
+     * Source Published At
+     */
+    source_published_at: string | null;
+    /**
+     * Symbol
+     */
+    symbol: string;
+    /**
+     * Verification
+     */
+    verification: 'user_supplied' | 'provider_capture' | 'unverified';
+};
+
+/**
+ * MarketSeries
+ */
+export type MarketSeries = {
+    /**
+     * Adjusted
+     */
+    adjusted: boolean;
+    /**
+     * Currency
+     */
+    currency: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Interval
+     */
+    interval: '1m' | '1d';
+    /**
+     * Points
+     */
+    points: Array<ObservedCandle>;
+    /**
+     * Provider
+     */
+    provider: 'toss';
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
  * MarketValue
  */
 export type MarketValue = {
@@ -784,6 +1017,172 @@ export type MarketValue = {
      * Purchaseamount
      */
     purchaseAmount: string;
+};
+
+/**
+ * MarketView
+ */
+export type MarketView = {
+    /**
+     * As Of
+     */
+    as_of: string;
+    /**
+     * Event Count
+     */
+    event_count: number;
+    /**
+     * Events
+     */
+    events: Array<MarketEvidenceEvent>;
+    /**
+     * Excluded Future Capture Ids
+     */
+    excluded_future_capture_ids: Array<string>;
+    /**
+     * Generated At
+     */
+    generated_at: string;
+    /**
+     * Historical Reproducibility
+     */
+    historical_reproducibility: false;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: 'market_observation_view';
+    /**
+     * Omitted Event Count
+     */
+    omitted_event_count: number;
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Response Contract Sha256
+     */
+    response_contract_sha256: string;
+    /**
+     * Schema Version
+     */
+    schema_version: 1;
+    /**
+     * Series
+     */
+    series: Array<MarketSeries>;
+    /**
+     * Source Capture Ids
+     */
+    source_capture_ids: Array<string>;
+    /**
+     * Total Point Count
+     */
+    total_point_count: number;
+    /**
+     * Truncated Point Count
+     */
+    truncated_point_count: number;
+    /**
+     * Warnings
+     */
+    warnings: Array<string>;
+};
+
+/**
+ * MarketViewRequest
+ */
+export type MarketViewRequest = {
+    /**
+     * As Of
+     */
+    as_of?: string | null;
+    /**
+     * Capture Ids
+     */
+    capture_ids: Array<string>;
+    /**
+     * Max Events
+     */
+    max_events?: number;
+    /**
+     * Max Points
+     */
+    max_points?: number;
+};
+
+/**
+ * ObservedCandle
+ */
+export type ObservedCandle = {
+    /**
+     * Capture Ids
+     */
+    capture_ids: Array<string>;
+    /**
+     * Close
+     */
+    close: string;
+    /**
+     * Finality
+     */
+    finality: 'unknown';
+    /**
+     * High
+     */
+    high: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Last Observed At
+     */
+    last_observed_at: string;
+    /**
+     * Low
+     */
+    low: string;
+    /**
+     * Observed At
+     */
+    observed_at: string;
+    /**
+     * Open
+     */
+    open: string;
+    /**
+     * Period End
+     */
+    period_end: string | null;
+    /**
+     * Period Start
+     */
+    period_start: string | null;
+    /**
+     * Revision Count
+     */
+    revision_count: number;
+    /**
+     * Revisions
+     */
+    revisions: Array<CandleRevision>;
+    /**
+     * Session Date
+     */
+    session_date: string | null;
+    /**
+     * Source Timestamp
+     */
+    source_timestamp: string;
+    /**
+     * Volume
+     */
+    volume: string;
 };
 
 /**
@@ -1662,6 +2061,93 @@ export type CancelJobResponses = {
 };
 
 export type CancelJobResponse = CancelJobResponses[keyof CancelJobResponses];
+
+export type ListMarketCapturesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/market/catalog';
+};
+
+export type ListMarketCapturesErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+};
+
+export type ListMarketCapturesError = ListMarketCapturesErrors[keyof ListMarketCapturesErrors];
+
+export type ListMarketCapturesResponses = {
+    /**
+     * Successful Response
+     */
+    200: MarketCatalog;
+};
+
+export type ListMarketCapturesResponse = ListMarketCapturesResponses[keyof ListMarketCapturesResponses];
+
+export type GetMarketViewData = {
+    body: MarketViewRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/market/view';
+};
+
+export type GetMarketViewErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+};
+
+export type GetMarketViewError = GetMarketViewErrors[keyof GetMarketViewErrors];
+
+export type GetMarketViewResponses = {
+    /**
+     * Successful Response
+     */
+    200: MarketView;
+};
+
+export type GetMarketViewResponse = GetMarketViewResponses[keyof GetMarketViewResponses];
 
 export type GetResearchData = {
     body?: never;

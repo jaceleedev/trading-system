@@ -35,8 +35,9 @@ Svelte 5 + SvelteKit + TypeScript, FastAPI, PostgreSQL, and a Python worker with
 TimescaleDB, pgvector, and Redis are excluded from the initial configuration. Feature 17 adds the
 SvelteKit workbench and read-only FastAPI layer for saved account/research records. The existing
 Streamlit research screens remain available. Feature 18 adds durable PostgreSQL jobs and the
-Python worker for saved context and opt-in read-only captures; see `docs/JOBS.md`. Ongoing AI
-execution, market-data normalization, and broker order submission are still future work.
+Python worker for saved context and opt-in read-only captures; see `docs/JOBS.md`. Feature 19
+adds schema-pinned candle observations, revisions, cited events, and charts; see
+`docs/MARKET_OBSERVATIONS.md`. Ongoing AI execution and broker order submission are future work.
 
 The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate

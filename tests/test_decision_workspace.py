@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from trading_research.capture_store import ALLOWED_ENDPOINTS, write_capture
 from trading_research.decision_workspace import list_records, read_record, record
 from trading_research.errors import DataError
 from trading_research.private_store import get_object, put_object
@@ -109,6 +110,31 @@ def account_snapshot():
         "summary": _summary(observations, 1),
         "contract_sha256": CONTRACT_SHA256,
     }
+
+
+def market_capture(root, *, endpoint="/api/v1/candles", retrieved=None):
+    return write_capture(
+        root,
+        {
+            "provider": "toss",
+            "endpoint": endpoint,
+            "query": {"symbol": "ALPHA", "interval": "1d"},
+            "retrieved_at": (retrieved or NOW - timedelta(minutes=2)).isoformat(),
+            "response": {"result": {"candles": []}},
+            "contract_sha256": "a" * 64,
+        },
+    )
+
+
+def market_evidence(identity, *, endpoint="/api/v1/candles", **changes):
+    return document(
+        mode="synthetic",
+        source_kind="provider",
+        source_locator="toss:" + endpoint,
+        verification="provider_capture",
+        artifact={"store": "market_capture", "id": identity},
+        **changes,
+    )
 
 
 def test_record_is_system_stamped_immutable_and_does_not_mutate_input(tmp_path):
@@ -311,6 +337,95 @@ def test_provider_artifact_cannot_attest_an_unrelated_source_or_earlier_retrieva
         save(root, doc, account_root=accounts)["record"]["payload"]["verification"]
         == "provider_capture"
     )
+
+
+@pytest.mark.parametrize("endpoint", sorted(ALLOWED_ENDPOINTS))
+def test_market_provider_evidence_revalidates_allowed_capture_and_sibling_default(
+    tmp_path, endpoint
+):
+    root, accounts = tmp_path / "research", tmp_path / "accounts"
+    capture = market_capture(tmp_path / "captures", endpoint=endpoint)
+    saved = save(root, market_evidence(capture.stem, endpoint=endpoint), account_root=accounts)
+    assert read_record(root, saved["id"], account_root=accounts) == saved["record"]
+    assert list_records(root, "evidence", account_root=accounts)[0]["id"] == saved["id"]
+    assert saved["record"]["mode"] == "synthetic"
+    assert saved["record"]["author"]["identity_source"] == "declared"
+
+
+def test_market_capture_root_is_explicit_and_full_lineage_is_rechecked(tmp_path):
+    root, captures = tmp_path / "research", tmp_path / "custom-captures"
+    path = market_capture(captures)
+    evidence = save(root, market_evidence(path.stem), capture_root=captures)
+    hypothesis = save(
+        root,
+        document("hypothesis", mode="synthetic", supporting_evidence_ids=[evidence["id"]]),
+        capture_root=captures,
+    )
+    assert read_record(root, hypothesis["id"], capture_root=captures) == hypothesis["record"]
+    path.write_bytes(path.read_bytes() + b" ")
+    with pytest.raises(DataError, match="filename hash"):
+        read_record(root, hypothesis["id"], capture_root=captures)
+    with pytest.raises(DataError, match="filename hash"):
+        list_records(root, "hypothesis", capture_root=captures)
+
+
+@pytest.mark.parametrize("change", ["missing", "locator", "retrieval", "web", "identity"])
+def test_market_capture_reference_cannot_attest_missing_mismatched_or_future_source(
+    tmp_path, change
+):
+    path = market_capture(tmp_path / "captures")
+    doc = market_evidence(path.stem)
+    if change == "missing":
+        path.unlink()
+    elif change == "locator":
+        doc["payload"]["source_locator"] = "toss:/api/v1/stocks"
+    elif change == "retrieval":
+        doc["payload"]["retrieved_at"] = (NOW - timedelta(minutes=3)).isoformat()
+    elif change == "web":
+        doc["payload"].update(source_kind="web", source_locator="https://example.org/claim")
+    else:
+        doc["payload"]["artifact"]["id"] = "../outside"
+    with pytest.raises(DataError):
+        save(tmp_path / "research", doc, capture_root=path.parent)
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"symbol": "../outside"},
+        {"symbol": None},
+        {"market": "EU"},
+        {"event_kind": "scheduled"},
+        {"occurred_at": NOW.isoformat()},
+        {"occurred_at": "2026-09-10T10:00:00"},
+        {"occurred_at": "2026-09-10T10:00:00+09:00"},
+        {"occurred_at": False},
+        {"verified": True},
+    ],
+)
+def test_market_event_rejects_invalid_structure_future_and_attestation(tmp_path, changes):
+    event = {"symbol": "ALPHA", "market": "US", "event_kind": "news", "occurred_at": None}
+    event.update(changes)
+    with pytest.raises(DataError):
+        save(tmp_path, document(market_event=event))
+
+
+@pytest.mark.parametrize("occurred", [None, "2026-09-10T09:58:00+00:00"])
+def test_market_event_preserves_declared_time_separately_from_other_evidence_times(
+    tmp_path, occurred
+):
+    from trading_research.api_models import EvidencePayload
+
+    event = {"symbol": "005930", "market": "KR", "event_kind": "earnings", "occurred_at": occurred}
+    doc = document(source_published_at="2026-09-10T09:57:00+00:00", market_event=event)
+    saved = save(tmp_path, doc)
+    payload = saved["record"]["payload"]
+    assert payload["market_event"] == event
+    assert payload["verification"] == "unverified"
+    assert payload["source_published_at"] == "2026-09-10T09:57:00+00:00"
+    assert payload["retrieved_at"] == "2026-09-10T09:59:00+00:00"
+    assert saved["record"]["recorded_at"] == NOW.isoformat()
+    assert EvidencePayload.model_validate(payload).model_dump(exclude_unset=True) == payload
 
 
 @pytest.mark.parametrize(

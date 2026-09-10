@@ -130,6 +130,7 @@ def _check_roots(workspace):
         workspace / "var",
         workspace / "var/accounts",
         workspace / "var/research",
+        workspace / "var/captures",
     ):
         if path.is_symlink() or (path.exists() and not path.is_dir()):
             raise DataError("Workspace stores are unavailable or unsafe")
@@ -252,6 +253,7 @@ def create_app(
         return decision_context.build_context(
             research,
             account_root=accounts,
+            capture_root=workspace / "var/captures",
             snapshot_id=snapshot_id,
             max_records=max_records,
             now=service.utc_now(),
@@ -272,6 +274,9 @@ def create_app(
     from trading_research.job_api import register_job_routes
 
     register_job_routes(app, job_store)
+    from trading_research.market_api import register_market_routes
+
+    register_market_routes(app, workspace)
 
     @app.get("/{path:path}", include_in_schema=False)
     def static(path: str):

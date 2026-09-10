@@ -16,7 +16,7 @@ uv run python scripts/configure_codex_mcp.py
 생성 파일은 Git에서 제외하며, 키나 토큰은 기록하지 않는다. 전역 Codex 설정은 변경하지 않는다.
 가상환경이나 프로젝트 위치를 바꾸면 기존 항목을 검토한 뒤 설정기를 다시 실행한다.
 
-Codex가 프로젝트 MCP 설정을 다시 읽으면 12개 도구가 나타난다. 실행 중인 작업에서
+Codex가 프로젝트 MCP 설정을 다시 읽으면 14개 도구가 나타난다. 실행 중인 작업에서
 목록이 즉시 갱신되지 않으면 앱의 MCP 연결을 다시 시작하거나 프로젝트를 다시 연다.
 설정 파일 생성 성공만으로 현재 대화의 도구 목록 갱신을 보장하지 않는다.
 
@@ -37,6 +37,7 @@ Codex가 프로젝트 MCP 설정을 다시 읽으면 12개 도구가 나타난�
 | `list_broker_accounts` | 토스 계좌 목록을 조회하고 계좌번호를 제외한 선택 정보 반환 |
 | `refresh_account_snapshot` | 명시한 계좌 순번의 6개 관측을 새로 수집 |
 | `capture_market`, `read_market_capture` | 허용한 시장 API 수집·저장된 원응답 읽기 |
+| `market_observation_catalog`, `market_observation_view` | 고정한 응답 계약의 분봉·일봉과 시점별 수정 이력·연결 근거 읽기 |
 | `auth_status` | 키 값을 포함하지 않는 로컬 인증 설정 상태 확인 |
 
 1. `investment_context`와 계좌 스냅샷 목록으로 이전 판단과 자료 시각을 확인한다.

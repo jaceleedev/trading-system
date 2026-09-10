@@ -24,6 +24,7 @@
     "@lucide/svelte": "1.43.0",
     "@tanstack/svelte-query": "6.1.48",
     "clsx": "2.1.1",
+    "lightweight-charts": "5.2.1",
     "svelte": "5.57.0",
     "tailwind-merge": "3.6.0",
     "tailwind-variants": "3.3.1"

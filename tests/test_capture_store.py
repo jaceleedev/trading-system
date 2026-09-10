@@ -44,6 +44,29 @@ def test_canonical_roundtrip_and_private_modes(tmp_path, envelope):
     assert path.stat().st_mode & 0o777 == 0o600
 
 
+def test_response_pin_is_optional_and_part_of_immutable_capture_identity(tmp_path, envelope):
+    old_path = write_capture(tmp_path, envelope)
+    pinned = {**envelope, "response_contract_sha256": "b" * 64}
+    new_path = write_capture(tmp_path, pinned)
+    assert old_path != new_path
+    assert read_capture(old_path) == envelope
+    assert read_capture(new_path) == pinned
+
+
+@pytest.mark.parametrize("pin", [None, 123, "B" * 64, "b" * 63])
+def test_response_pin_requires_a_sha256_when_present(tmp_path, envelope, pin):
+    with pytest.raises(DataError):
+        write_capture(tmp_path, {**envelope, "response_contract_sha256": pin})
+
+
+def test_response_pin_is_only_supported_for_candles(tmp_path, envelope):
+    with pytest.raises(DataError):
+        write_capture(
+            tmp_path,
+            {**envelope, "endpoint": "/api/v1/stocks", "response_contract_sha256": "b" * 64},
+        )
+
+
 def test_identical_capture_reuses_file_without_changing_existing_modes(tmp_path, envelope):
     tmp_path.chmod(0o750)
     path = write_capture(tmp_path, envelope)

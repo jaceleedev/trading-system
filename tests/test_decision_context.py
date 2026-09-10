@@ -134,6 +134,56 @@ def test_empty_context_is_offline_and_has_no_model_or_execution_claim(tmp_path, 
     assert "untrusted data" in " ".join(result["trust_instructions"])
 
 
+@pytest.mark.parametrize("explicit", [False, True])
+def test_context_keeps_market_evidence_references_and_distinct_times(tmp_path, explicit):
+    from trading_research.capture_store import write_capture
+
+    captures = tmp_path / ("other-captures" if explicit else "captures")
+    path = write_capture(
+        captures,
+        {
+            "provider": "toss",
+            "endpoint": "/api/v1/candles",
+            "query": {"symbol": "ALPHA", "interval": "1d"},
+            "retrieved_at": (NOW - timedelta(minutes=1)).isoformat(),
+            "response": {"result": {"candles": []}},
+            "contract_sha256": "a" * 64,
+        },
+    )
+    roots = {"account_root": tmp_path / "accounts"}
+    if explicit:
+        roots["capture_root"] = captures
+    document = {
+        "kind": "evidence",
+        "mode": "synthetic",
+        "author": AUTHOR,
+        "payload": {
+            "source_kind": "provider",
+            "source_locator": "toss:/api/v1/candles",
+            "retrieved_at": NOW.isoformat(),
+            "source_published_at": None,
+            "claim": "Synthetic stored market observation, no live provider request",
+            "verification": "provider_capture",
+            "artifact": {"store": "market_capture", "id": path.stem},
+            "market_event": {
+                "symbol": "ALPHA",
+                "market": "US",
+                "event_kind": "price",
+                "occurred_at": None,
+            },
+        },
+    }
+    saved = record(tmp_path / "research", document, now=NOW, **roots)
+    context = build_context(tmp_path / "research", now=NOW, **roots)
+    assert context["records"] == [saved]
+    assert context["account"] is None
+    assert context["historical_reproducibility"] is False
+    assert "not source truth" in " ".join(context["trust_instructions"])
+    path.unlink()
+    with pytest.raises(DataError):
+        build_context(tmp_path / "research", now=NOW, **roots)
+
+
 def test_system_record_time_excludes_future_even_with_old_claimed_publication(tmp_path):
     current = evidence(tmp_path, instant=NOW)
     evidence(tmp_path, instant=NOW + timedelta(seconds=1), claim="Recorded later")

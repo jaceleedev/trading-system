@@ -7,6 +7,7 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 
 from trading_research.errors import DataError
+from trading_research.market_observations import RESPONSE_CONTRACT_SHA256
 from trading_research.toss_market import (
     CONTRACT,
     CONTRACT_SHA256,
@@ -67,8 +68,10 @@ def test_capture_uses_get_exact_host_and_never_serializes_credentials():
         "retrieved_at",
         "response",
         "contract_sha256",
+        "response_contract_sha256",
     }
     assert capture["contract_sha256"] == CONTRACT_SHA256
+    assert capture["response_contract_sha256"] == RESPONSE_CONTRACT_SHA256
     assert capture["query"]["count"] == 100
     assert query.get("count") is None
 

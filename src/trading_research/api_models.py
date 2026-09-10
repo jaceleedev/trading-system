@@ -203,8 +203,15 @@ class ResearchAuthor(APIModel):
 
 
 class EvidenceArtifact(APIModel):
-    store: Literal["account"]
+    store: Literal["account", "market_capture"]
     id: ObjectId
+
+
+class MarketEvent(APIModel):
+    symbol: str
+    market: Literal["KR", "US"]
+    event_kind: Literal["price", "earnings", "filing", "news", "macro", "other"]
+    occurred_at: TimestampText | None
 
 
 class EvidencePayload(APIModel):
@@ -216,6 +223,7 @@ class EvidencePayload(APIModel):
     verification: Literal["user_supplied", "provider_capture", "unverified"]
     excerpt: str | None = None
     artifact: EvidenceArtifact | None = None
+    market_event: MarketEvent | None = None
 
 
 class HypothesisPayload(APIModel):

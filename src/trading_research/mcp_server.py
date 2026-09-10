@@ -91,7 +91,10 @@ class InvestmentMCP(FastMCP):
         try:
             result = await super().call_tool(name, arguments)
             if _result_size(result) > MAX_OUTPUT_BYTES - 4096:
-                raise _SafeToolError("Tool result exceeds 1 MiB; request a smaller context")
+                raise _SafeToolError(
+                    "Tool result exceeds 1 MiB; reduce max_records, max_points, "
+                    "or max_events for this tool"
+                )
             return result
         except Exception as exc:
             detail = "Tool arguments or operation are invalid; sensitive details omitted"
@@ -202,9 +205,11 @@ def _templates(kind):
             "Optional supersedes_id and prior_decision_id preserve branches rather than overwrite.",
             "Decision status and sizing_validated are system-supplied; do not include them. "
             "Exposure changes require an account snapshot and evidence or a hypothesis.",
-            "A provider_capture evidence record currently requires a validated account artifact "
-            "{store: account, id: SHA256}. Market captures can be cited as provider sources with "
-            "verification unverified; they are not accepted as account artifacts.",
+            "A provider_capture evidence record requires a validated artifact "
+            "{store: account or market_capture, id: SHA256} and a matching Toss source locator. "
+            "This checks the local source link, not the truth of the claim. Optional "
+            "market_event supplies symbol, market, event_kind, and occurred_at (or null); "
+            "occurrence, publication, retrieval, and recording times remain distinct.",
         ],
         "orders_enabled": False,
     }
@@ -274,26 +279,38 @@ def create_server(workspace: Path) -> FastMCP:
     ) -> dict[str, Any]:
         """Read current research, review queues, and an explicitly selected account snapshot."""
         return decision_context.build_context(
-            research, account_root=accounts, snapshot_id=snapshot_id, max_records=max_records
+            research,
+            account_root=accounts,
+            capture_root=captures,
+            snapshot_id=snapshot_id,
+            max_records=max_records,
         )
 
     @register()
     def list_research(kind: RecordKind | None = None) -> dict[str, Any]:
         """List metadata after validating every research record and its dependencies."""
-        return {"records": decision_workspace.list_records(research, kind, account_root=accounts)}
+        return {
+            "records": decision_workspace.list_records(
+                research, kind, account_root=accounts, capture_root=captures
+            )
+        }
 
     @register()
     def read_research(id: ObjectId) -> dict[str, Any]:
         """Read one immutable research record and validate its full evidence lineage."""
         return {
             "id": id,
-            "record": decision_workspace.read_record(research, id, account_root=accounts),
+            "record": decision_workspace.read_record(
+                research, id, account_root=accounts, capture_root=captures
+            ),
         }
 
     @register(read_only=False)
     def record_research(document: dict) -> dict[str, Any]:
         """Append validated evidence, hypothesis, decision proposal, or review; never an order."""
-        result = decision_workspace.record(research, document, account_root=accounts)
+        result = decision_workspace.record(
+            research, document, account_root=accounts, capture_root=captures
+        )
         saved = result["record"]
         return _bounded_write_result(
             result,
@@ -309,6 +326,29 @@ def create_server(workspace: Path) -> FastMCP:
     def research_templates(kind: RecordKind) -> dict[str, Any]:
         """Get an explicit input template, author identity rules, and source-link guidance."""
         return _templates(kind)
+
+    @register()
+    def market_observation_catalog(
+        limit: Annotated[int, Field(strict=True, ge=1, le=100)] = 100,
+    ) -> dict[str, Any]:
+        """List saved market captures and interpretation support; never fetch provider data."""
+        from trading_research.market_api import market_catalog
+
+        return market_catalog(project, limit=limit)
+
+    @register()
+    def market_observation_view(
+        capture_ids: Annotated[list[ObjectId], Field(min_length=1, max_length=100)],
+        as_of: str | None = None,
+        max_points: Annotated[int, Field(strict=True, ge=1, le=2000)] = 1000,
+        max_events: Annotated[int, Field(strict=True, ge=0, le=200)] = 20,
+    ) -> dict[str, Any]:
+        """Read pinned candle observations and cited events as of a time; finality is unknown."""
+        from trading_research.market_api import market_view
+
+        return market_view(
+            project, capture_ids, as_of=as_of, max_points=max_points, max_events=max_events
+        )
 
     @register()
     def list_account_snapshots() -> dict[str, Any]:

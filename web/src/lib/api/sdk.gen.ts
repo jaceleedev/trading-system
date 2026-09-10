@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CancelJobData, CancelJobErrors, CancelJobResponses, GetContextData, GetContextErrors, GetContextResponses, GetJobData, GetJobErrors, GetJobResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses } from './types.gen';
+import type { CancelJobData, CancelJobErrors, CancelJobResponses, GetContextData, GetContextErrors, GetContextResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -64,6 +64,23 @@ export const getJob = <ThrowOnError extends boolean = false>(options: Options<Ge
  * Cancel Job
  */
 export const cancelJob = <ThrowOnError extends boolean = false>(options: Options<CancelJobData, ThrowOnError>): RequestResult<CancelJobResponses, CancelJobErrors, ThrowOnError> => (options.client ?? client).post<CancelJobResponses, CancelJobErrors, ThrowOnError>({ url: '/api/v1/jobs/{id}/cancel', ...options });
+
+/**
+ * List Market Captures
+ */
+export const listMarketCaptures = <ThrowOnError extends boolean = false>(options?: Options<ListMarketCapturesData, ThrowOnError>): RequestResult<ListMarketCapturesResponses, ListMarketCapturesErrors, ThrowOnError> => (options?.client ?? client).get<ListMarketCapturesResponses, ListMarketCapturesErrors, ThrowOnError>({ url: '/api/v1/market/catalog', ...options });
+
+/**
+ * Get Market View
+ */
+export const getMarketView = <ThrowOnError extends boolean = false>(options: Options<GetMarketViewData, ThrowOnError>): RequestResult<GetMarketViewResponses, GetMarketViewErrors, ThrowOnError> => (options.client ?? client).post<GetMarketViewResponses, GetMarketViewErrors, ThrowOnError>({
+    url: '/api/v1/market/view',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * Research Record
