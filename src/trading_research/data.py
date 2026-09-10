@@ -8,6 +8,7 @@ import re
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
+from functools import cached_property
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -145,6 +146,14 @@ class Bundle:
     @property
     def id(self) -> str:
         return self.manifest["dataset_id"]
+
+    @cached_property
+    def market_index(self):
+        # Derived references are local to this exact immutable bundle and excluded
+        # from semantic identity. dataclasses.replace constructs its own fresh cache.
+        from trading_research.market_index import MarketIndex
+
+        return MarketIndex.from_bundle(self)
 
     def evidence_warnings(self) -> list[str]:
         warnings = []
