@@ -27,6 +27,7 @@ dependencies = [
 trading = "trading_research.cli:main"
 trading-mcp = "trading_research.mcp_server:main"
 trading-web = "trading_research.web_api:main"
+trading-worker = "trading_research.job_worker:main"
 
 [dependency-groups]
 dev = [

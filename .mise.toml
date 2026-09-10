@@ -53,6 +53,14 @@ run = "uv run trading-web --port 8765"
 description = "Start the Svelte dev server; run mise run web separately for the API"
 run = "pnpm --dir web dev"
 
+[tasks.web-jobs]
+description = "Serve the workbench with local PostgreSQL jobs enabled"
+run = "uv run trading-web --port 8765 --jobs"
+
+[tasks.worker]
+description = "Run saved-data jobs; network collection remains opt-in"
+run = "uv run trading-worker"
+
 [tasks.web-check]
 description = "Check API generation, Svelte types, and frontend unit tests"
 run = ["uv run python scripts/export_openapi.py --check", "pnpm --dir web api:check", "pnpm --dir web check", "pnpm --dir web test"]

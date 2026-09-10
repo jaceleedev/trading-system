@@ -5,6 +5,7 @@
   import AccountPanel from '$lib/components/AccountPanel.svelte';
   import ResearchList from '$lib/components/ResearchList.svelte';
   import RecordDetail from '$lib/components/RecordDetail.svelte';
+  import JobsPanel from '$lib/components/JobsPanel.svelte';
   import { fetchContext, fetchHealth, fetchRecord, fetchSnapshots } from '$lib/queries';
   import { formatTime } from '$lib/format';
 
@@ -168,6 +169,7 @@
     onselect={selectRecord}
     onSnapshot={selectSnapshot}
   />
+  <JobsPanel {selectedSnapshot} ready={health.isSuccess && !health.isFetching} />
   <footer class="page-footer">
     <p>저장된 관측과 연구 기록을 읽는 작업실입니다.</p>
     {#if context}<p class="context-time" title={context.generated_at}>

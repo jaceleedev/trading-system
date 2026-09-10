@@ -34,8 +34,15 @@ The agreed target stack and initial scope are in [docs/TECH_STACK.md](docs/TECH_
 Svelte 5 + SvelteKit + TypeScript, FastAPI, PostgreSQL, and a Python worker with durable job records.
 TimescaleDB, pgvector, and Redis are excluded from the initial configuration. Feature 17 adds the
 SvelteKit workbench and read-only FastAPI layer for saved account/research records. The existing
-Streamlit research screens remain available. Durable jobs, the worker, ongoing AI execution,
-market-data normalization, and broker order submission are still future work.
+Streamlit research screens remain available. Feature 18 adds durable PostgreSQL jobs and the
+Python worker for saved context and opt-in read-only captures; see `docs/JOBS.md`. Ongoing AI
+execution, market-data normalization, and broker order submission are still future work.
+
+The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
+integration implemented with actual brokerage transmission disabled. Design the Toss mandate
+to cover existing holdings and new investment funds. Do not insert user-described balances or
+assets at another broker into the observed account. Continue validating on this Mac; no new paid
+model/data services, remote operation, or actual orders are authorized by this development scope.
 
 For web changes, follow `docs/WEB_WORKBENCH.md`. Preserve the OpenAPI-generated client, exact
 decimal strings, unknown balances, observation times, and explicit account selection. Validate

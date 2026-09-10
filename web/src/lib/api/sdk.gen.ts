@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetContextData, GetContextErrors, GetContextResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses } from './types.gen';
+import type { CancelJobData, CancelJobErrors, CancelJobResponses, GetContextData, GetContextErrors, GetContextResponses, GetJobData, GetJobErrors, GetJobResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -32,6 +32,38 @@ export const getContext = <ThrowOnError extends boolean = false>(options?: Optio
  * Health
  */
 export const health = <ThrowOnError extends boolean = false>(options?: Options<HealthData, ThrowOnError>): RequestResult<HealthResponses, HealthErrors, ThrowOnError> => (options?.client ?? client).get<HealthResponses, HealthErrors, ThrowOnError>({ url: '/api/v1/health', ...options });
+
+/**
+ * List Jobs
+ */
+export const listJobs = <ThrowOnError extends boolean = false>(options?: Options<ListJobsData, ThrowOnError>): RequestResult<ListJobsResponses, ListJobsErrors, ThrowOnError> => (options?.client ?? client).get<ListJobsResponses, ListJobsErrors, ThrowOnError>({ url: '/api/v1/jobs', ...options });
+
+/**
+ * Submit
+ */
+export const submitJob = <ThrowOnError extends boolean = false>(options: Options<SubmitJobData, ThrowOnError>): RequestResult<SubmitJobResponses, SubmitJobErrors, ThrowOnError> => (options.client ?? client).post<SubmitJobResponses, SubmitJobErrors, ThrowOnError>({
+    url: '/api/v1/jobs',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Status
+ */
+export const jobServiceStatus = <ThrowOnError extends boolean = false>(options?: Options<JobServiceStatusData, ThrowOnError>): RequestResult<JobServiceStatusResponses, JobServiceStatusErrors, ThrowOnError> => (options?.client ?? client).get<JobServiceStatusResponses, JobServiceStatusErrors, ThrowOnError>({ url: '/api/v1/jobs/status', ...options });
+
+/**
+ * Get Job
+ */
+export const getJob = <ThrowOnError extends boolean = false>(options: Options<GetJobData, ThrowOnError>): RequestResult<GetJobResponses, GetJobErrors, ThrowOnError> => (options.client ?? client).get<GetJobResponses, GetJobErrors, ThrowOnError>({ url: '/api/v1/jobs/{id}', ...options });
+
+/**
+ * Cancel Job
+ */
+export const cancelJob = <ThrowOnError extends boolean = false>(options: Options<CancelJobData, ThrowOnError>): RequestResult<CancelJobResponses, CancelJobErrors, ThrowOnError> => (options.client ?? client).post<CancelJobResponses, CancelJobErrors, ThrowOnError>({ url: '/api/v1/jobs/{id}/cancel', ...options });
 
 /**
  * Research Record

@@ -151,6 +151,7 @@ def test_empty_workspace_is_offline_and_not_created(client, tmp_path, monkeypatc
         "read_only": True,
         "orders_enabled": False,
         "synthetic": False,
+        "jobs_enabled": False,
     }
     assert client.get("/api/v1/account-snapshots").json() == {"items": []}
     response = client.get("/api/v1/context")
@@ -399,6 +400,10 @@ def test_openapi_is_offline_typed_and_matches_export(client):
         "/api/v1/account-snapshots",
         "/api/v1/context",
         "/api/v1/research/{id}",
+        "/api/v1/jobs/status",
+        "/api/v1/jobs",
+        "/api/v1/jobs/{id}",
+        "/api/v1/jobs/{id}/cancel",
     }
 
 

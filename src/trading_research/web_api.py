@@ -162,7 +162,13 @@ def _static_file(root, relative):
     return candidate
 
 
-def create_app(workspace: Path | None = None, static_dir: Path | None = None, *, synthetic=False):
+def create_app(
+    workspace: Path | None = None,
+    static_dir: Path | None = None,
+    *,
+    synthetic=False,
+    job_store=None,
+):
     """Bind file roots once; initialization performs no account, auth, network or DB reads."""
     workspace = Path.cwd() if workspace is None else Path(workspace).absolute()
     static_dir = workspace / "web/build" if static_dir is None else Path(static_dir).absolute()
@@ -212,9 +218,10 @@ def create_app(workspace: Path | None = None, static_dir: Path | None = None, *,
         return {
             "status": "ok",
             "service": "trading-investment-web",
-            "read_only": True,
+            "read_only": job_store is None,
             "orders_enabled": False,
             "synthetic": synthetic,
+            "jobs_enabled": job_store is not None,
         }
 
     @app.get(
@@ -262,6 +269,10 @@ def create_app(workspace: Path | None = None, static_dir: Path | None = None, *,
         _require_object(research, id)
         return service.load_record(id, research_root=research, account_root=accounts)
 
+    from trading_research.job_api import register_job_routes
+
+    register_job_routes(app, job_store)
+
     @app.get("/{path:path}", include_in_schema=False)
     def static(path: str):
         relative = PurePosixPath(path)
@@ -291,6 +302,9 @@ def main():
     parser.add_argument("--workspace", type=Path, default=Path.cwd())
     parser.add_argument("--static-dir", type=Path)
     parser.add_argument(
+        "--jobs", action="store_true", help="Enable local PostgreSQL job submission and monitoring"
+    )
+    parser.add_argument(
         "--synthetic",
         action="store_true",
         help="Label this operator-selected workspace as a synthetic demonstration",
@@ -300,13 +314,24 @@ def main():
         parser.error("port must be from 1 through 65535")
     import uvicorn
 
-    uvicorn.run(
-        create_app(args.workspace, args.static_dir, synthetic=args.synthetic),
-        host=args.host,
-        port=args.port,
-        proxy_headers=False,
-        access_log=False,
-    )
+    job_store = None
+    if args.jobs:
+        from trading_research.jobs import local_job_store
+
+        job_store = local_job_store(args.workspace)
+    try:
+        uvicorn.run(
+            create_app(
+                args.workspace, args.static_dir, synthetic=args.synthetic, job_store=job_store
+            ),
+            host=args.host,
+            port=args.port,
+            proxy_headers=False,
+            access_log=False,
+        )
+    finally:
+        if job_store is not None:
+            job_store.engine.dispose()
     return 0
 
 

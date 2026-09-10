@@ -17,9 +17,10 @@ class APIModel(BaseModel):
 class HealthResponse(APIModel):
     status: Literal["ok"]
     service: Literal["trading-investment-web"]
-    read_only: Literal[True]
+    read_only: bool
     orders_enabled: Literal[False]
     synthetic: bool
+    jobs_enabled: bool
 
 
 class ErrorDetail(APIModel):

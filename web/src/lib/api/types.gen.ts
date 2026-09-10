@@ -375,13 +375,17 @@ export type EvidenceRecord = {
  */
 export type HealthResponse = {
     /**
+     * Jobs Enabled
+     */
+    jobs_enabled: boolean;
+    /**
      * Orders Enabled
      */
     orders_enabled: false;
     /**
      * Read Only
      */
-    read_only: true;
+    read_only: boolean;
     /**
      * Service
      */
@@ -595,6 +599,173 @@ export type InvestmentContext = {
      * Unresolved Questions
      */
     unresolved_questions: Array<UnresolvedQuestions>;
+};
+
+/**
+ * JobAttempt
+ */
+export type JobAttempt = {
+    /**
+     * Error Code
+     */
+    error_code: string | null;
+    /**
+     * Finished At
+     */
+    finished_at: string | null;
+    /**
+     * Heartbeat At
+     */
+    heartbeat_at: string;
+    /**
+     * Number
+     */
+    number: number;
+    /**
+     * Owner
+     */
+    owner: string;
+    /**
+     * Started At
+     */
+    started_at: string;
+    /**
+     * Status
+     */
+    status: string;
+};
+
+/**
+ * JobList
+ */
+export type JobList = {
+    /**
+     * Items
+     */
+    items: Array<JobView>;
+};
+
+/**
+ * JobResponse
+ */
+export type JobResponse = {
+    job: JobView;
+};
+
+/**
+ * JobServiceStatus
+ */
+export type JobServiceStatus = {
+    /**
+     * Enabled
+     */
+    enabled: boolean;
+};
+
+/**
+ * JobSubmission
+ */
+export type JobSubmission = {
+    /**
+     * Available At
+     */
+    available_at?: string | null;
+    /**
+     * Kind
+     */
+    kind: 'research-context' | 'account-sync' | 'market-capture';
+    /**
+     * Max Attempts
+     */
+    max_attempts?: number;
+    /**
+     * Parameters
+     */
+    parameters: {
+        [key: string]: unknown;
+    };
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * JobView
+ */
+export type JobView = {
+    /**
+     * Attempt Count
+     */
+    attempt_count: number;
+    /**
+     * Attempts
+     */
+    attempts?: Array<JobAttempt>;
+    /**
+     * Available At
+     */
+    available_at: string;
+    /**
+     * Cancel Requested
+     */
+    cancel_requested: boolean;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Error Code
+     */
+    error_code: string | null;
+    /**
+     * Finished At
+     */
+    finished_at: string | null;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Lease Expires At
+     */
+    lease_expires_at: string | null;
+    /**
+     * Max Attempts
+     */
+    max_attempts: number;
+    /**
+     * Parameters
+     */
+    parameters: {
+        [key: string]: unknown;
+    };
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Result
+     */
+    result: {
+        [key: string]: unknown;
+    } | null;
+    /**
+     * Status
+     */
+    status: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
 };
 
 /**
@@ -1231,6 +1402,266 @@ export type HealthResponses = {
 };
 
 export type HealthResponse2 = HealthResponses[keyof HealthResponses];
+
+export type ListJobsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/jobs';
+};
+
+export type ListJobsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListJobsError = ListJobsErrors[keyof ListJobsErrors];
+
+export type ListJobsResponses = {
+    /**
+     * Successful Response
+     */
+    200: JobList;
+};
+
+export type ListJobsResponse = ListJobsResponses[keyof ListJobsResponses];
+
+export type SubmitJobData = {
+    body: JobSubmission;
+    path?: never;
+    query?: never;
+    url: '/api/v1/jobs';
+};
+
+export type SubmitJobErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type SubmitJobError = SubmitJobErrors[keyof SubmitJobErrors];
+
+export type SubmitJobResponses = {
+    /**
+     * Successful Response
+     */
+    200: JobResponse;
+};
+
+export type SubmitJobResponse = SubmitJobResponses[keyof SubmitJobResponses];
+
+export type JobServiceStatusData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/jobs/status';
+};
+
+export type JobServiceStatusErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type JobServiceStatusError = JobServiceStatusErrors[keyof JobServiceStatusErrors];
+
+export type JobServiceStatusResponses = {
+    /**
+     * Successful Response
+     */
+    200: JobServiceStatus;
+};
+
+export type JobServiceStatusResponse = JobServiceStatusResponses[keyof JobServiceStatusResponses];
+
+export type GetJobData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/jobs/{id}';
+};
+
+export type GetJobErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetJobError = GetJobErrors[keyof GetJobErrors];
+
+export type GetJobResponses = {
+    /**
+     * Successful Response
+     */
+    200: JobResponse;
+};
+
+export type GetJobResponse = GetJobResponses[keyof GetJobResponses];
+
+export type CancelJobData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/jobs/{id}/cancel';
+};
+
+export type CancelJobErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CancelJobError = CancelJobErrors[keyof CancelJobErrors];
+
+export type CancelJobResponses = {
+    /**
+     * Successful Response
+     */
+    200: JobResponse;
+};
+
+export type CancelJobResponse = CancelJobResponses[keyof CancelJobResponses];
 
 export type GetResearchData = {
     body?: never;

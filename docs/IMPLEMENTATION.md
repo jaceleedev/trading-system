@@ -8,7 +8,8 @@
 `feat/17-investment-web-api`는 [기술 스택 결정](TECH_STACK.md)에 따라
 Svelte 5·SvelteKit·TypeScript 화면과 읽기 전용 FastAPI를 도입한다.
 기존 공통 Python 조회 서비스로 계좌 관측·판단·근거를 연결하며, OpenAPI에서
-TypeScript 클라이언트를 생성한다. PostgreSQL 작업 기록과 Python worker는 후속 작업이다.
+TypeScript 클라이언트를 생성한다. 후속 `feat/18-durable-jobs-worker`는 PostgreSQL
+작업 기록과 Python worker, 작업 제출·조회·취소 화면을 추가한다. [작업 실행](JOBS.md)을 따른다.
 초기 TimescaleDB·pgvector·Redis는 제외하며 기존 Streamlit 실행도 유지한다.
 실행·검증 방법은 [웹 작업실](WEB_WORKBENCH.md)을 따른다.
 
