@@ -91,5 +91,6 @@ uv run trading research context --root var/research-demo
 
 기록은 `var/research/`의 사용자 소유 0700 디렉터리, 0600 파일에 저장한다.
 계좌 기록과 마찬가지로 Git에서 제외되며, 저장한 참조의 누락이나 변조는 읽을 때도 거부한다.
-이 파일들은 PostgreSQL 백업에 포함되지 않으므로 `var/accounts/`, `var/research/`,
-필요한 `var/captures/`는 별도로 비공개 백업해야 한다. 키체인 토큰을 백업 문서에 복사하지 않는다.
+이 파일들은 PostgreSQL 백업에 포함되지 않는다. [개인 자료 백업](ARTIFACT_BACKUP.md)으로
+`var/accounts/`, `var/research/`, `var/captures/`를 별도로 보존하고 복원을 검증한다.
+키체인 토큰을 백업 문서에 복사하지 않는다.

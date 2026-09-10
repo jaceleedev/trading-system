@@ -78,6 +78,8 @@ docker compose -f compose.yaml -f compose.app.yaml stop
 복구 절차에 사용하지 않는다. [로컬 백업 검사](LOCAL_BACKUP.md)는 원본 연구 DB의
 일관된 snapshot을 덤프하고, 새 임시 DB로 복원한 뒤 행 단위 해시를 비교한다.
 덤프는 `var/backups/`에 보존하며 별도 보관 장치로의 전송이나 정기 백업 예약은 설정하지 않았다.
+계좌·AI 연구·시장 수집 파일은 DB 밖에 있으므로 [개인 자료 백업](ARTIFACT_BACKUP.md)을
+별도로 실행한다. 이 복원 검사도 기존 저장소를 덮어쓰지 않고 새 디렉터리에서 수행한다.
 
 ## 실전 자료와 서버 배포에 남은 작업
 
