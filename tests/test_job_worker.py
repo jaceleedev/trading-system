@@ -1,10 +1,13 @@
 import copy
 import json
 import stat
+import sys
 import threading
 import time
 import uuid
 from contextlib import contextmanager
+from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -55,6 +58,10 @@ class FakeStore:
         self.job["attempt_count"] += 1
         return copy.deepcopy(self.job)
 
+    def get(self, identity):
+        assert identity == self.job["id"]
+        return copy.deepcopy(self.job)
+
     def _check(self, identity, token):
         assert identity == self.job["id"]
         if token != self.job["attempt_token"] or self.job["status"] != "running":
@@ -86,6 +93,10 @@ class FakeStore:
     "kind,parameters",
     [
         ("shell", {"command": "echo secret"}),
+        (
+            "investigation-run",
+            {"investigation_id": str(uuid.uuid4()), "revision": 1, "input_id": "a" * 64},
+        ),
         ("research-context", {"path": "/tmp/other"}),
         ("research-context", {"snapshot_id": "../outside"}),
         ("research-context", {"max_records": True}),
@@ -460,3 +471,351 @@ def test_cancelled_account_attempt_keeps_earlier_artifact_without_publishing_sna
     assert Worker(store, tmp_path, allow_network=True).run_once()["status"] == "cancelled"
     assert len(list_objects(tmp_path / "var/accounts")) == 1
     assert not store.successes
+
+
+@pytest.fixture
+def investigation(tmp_path):
+    from trading_research.codex_runner import RunnerSettings
+
+    store = FakeStore(
+        "investigation-run",
+        {"investigation_id": str(uuid.uuid4()), "revision": 1, "input_id": "b" * 64},
+    )
+
+    class Service:
+        def __init__(self):
+            self.store = self
+            self.runs, self.finishes, self.dispatches, self.ticks = [], [], [], 0
+            self.result = {
+                "run_id": "c" * 64,
+                "output_id": "d" * 64,
+                "review_after": None,
+                "event_conditions": [],
+                "orders_enabled": False,
+            }
+
+        def run(self, job, guard, settings):
+            guard.checkpoint()
+            self.runs.append((job, settings))
+            return copy.deepcopy(self.result)
+
+        def finish(self, identity, token, result):
+            store._check(identity, token)
+            self.finishes.append((identity, token, result))
+            store.job["status"] = "cancelled" if store.job["cancel_requested"] else "succeeded"
+            accepted = store.job["status"] == "succeeded"
+            return {
+                "id": store.job["parameters"]["investigation_id"],
+                "status": "active",
+                "current_revision": 1,
+                "latest_completed_revision": 1 if accepted else None,
+                "latest_result": result if accepted else None,
+            }
+
+        def dispatch_requests(self, item):
+            self.dispatches.append(item)
+            return []
+
+        def tick(self):
+            self.ticks += 1
+            return {"queued_job_ids": []}
+
+    return (
+        store,
+        Service(),
+        RunnerSettings(Path(sys.executable), synthetic=True, allow_web_search=False),
+    )
+
+
+def codex_worker(workspace, investigation, **kwargs):
+    store, service, settings = investigation
+    return Worker(
+        store,
+        workspace,
+        allow_codex=True,
+        codex_settings=settings,
+        investigation_service=service,
+        **kwargs,
+    )
+
+
+def test_codex_jobs_stay_queued_without_explicit_capability(tmp_path, investigation):
+    store, service, _ = investigation
+    assert Worker(store, tmp_path, allow_network=True).run_once() == {"status": "idle"}
+    assert store.job["status"] == "queued" and not service.runs
+    assert "investigation-run" not in store.claimed_kinds
+
+
+def test_investigation_uses_revision_finish_and_then_dispatches(tmp_path, investigation):
+    store, service, settings = investigation
+    assert codex_worker(tmp_path, investigation).run_once()["status"] == "succeeded"
+    assert service.runs[0][1] is settings
+    assert service.finishes == [(store.job["id"], "a" * 64, service.result)]
+    assert len(service.dispatches) == 1
+    assert not store.successes
+    assert store.claimed_kinds == ["research-context", "investigation-run"]
+
+
+def test_utc_timestamp_normalization_does_not_skip_follow_up_dispatch(tmp_path, investigation):
+    _, service, _ = investigation
+    service.result["review_after"] = "2026-09-11T00:00:00Z"
+    original = service.finish
+
+    def normalized_finish(identity, token, result):
+        item = original(identity, token, result)
+        item["latest_result"] = {
+            **item["latest_result"],
+            "review_after": "2026-09-11T00:00:00+00:00",
+        }
+        return item
+
+    service.finish = normalized_finish
+    assert codex_worker(tmp_path, investigation).run_once()["status"] == "succeeded"
+    assert len(service.dispatches) == 1
+    assert service.dispatches[0]["latest_result"]["review_after"].endswith("+00:00")
+
+
+@pytest.mark.parametrize(
+    "parameters",
+    [
+        {"investigation_id": "a" * 64, "revision": 1, "input_id": "b" * 64},
+        {"investigation_id": str(uuid.uuid4()), "revision": True, "input_id": "b" * 64},
+        {"investigation_id": str(uuid.uuid4()), "revision": 0, "input_id": "b" * 64},
+        {"investigation_id": str(uuid.uuid4()), "revision": 1, "input_id": "../private"},
+        {
+            "investigation_id": str(uuid.uuid4()),
+            "revision": 1,
+            "input_id": "b" * 64,
+            "model": "override",
+        },
+    ],
+)
+def test_internal_investigation_parameters_are_closed_and_revalidated(
+    tmp_path, investigation, parameters
+):
+    store, service, _ = investigation
+    store.job["parameters"] = parameters
+    assert codex_worker(tmp_path, investigation).run_once()["status"] == "failed"
+    assert not service.runs and not service.finishes
+    assert store.failures == [("invalid_parameters", False)]
+
+
+@pytest.mark.parametrize("state", ["cancelled", "new_revision", "lost_lease"])
+def test_late_investigation_result_cannot_publish_or_dispatch(tmp_path, investigation, state):
+    store, service, _ = investigation
+    original = service.finish
+
+    def finish(identity, token, result):
+        if state == "lost_lease":
+            store.job["attempt_token"] = "e" * 64
+        else:
+            store.job["cancel_requested"] = True
+        item = original(identity, token, result)
+        if state == "new_revision":
+            item["current_revision"] = 2
+        return item
+
+    service.finish = finish
+    expected = "lease_lost" if state == "lost_lease" else "cancelled"
+    assert codex_worker(tmp_path, investigation).run_once()["status"] == expected
+    assert not service.dispatches and not store.successes
+
+
+def test_dispatch_failure_keeps_committed_result_and_leaves_follow_up_pending(
+    tmp_path, investigation
+):
+    store, service, _ = investigation
+
+    def fail(_):
+        raise RuntimeError("private-database-details")
+
+    service.dispatch_requests = fail
+    result = codex_worker(tmp_path, investigation).run_once()
+    assert result == {"id": store.job["id"], "status": "succeeded", "follow_up_pending": True}
+    assert not store.failures
+    assert "private-database-details" not in json.dumps(result)
+
+
+def test_codex_failure_code_is_preserved_without_exception_details(tmp_path, investigation):
+    from trading_research.codex_runner import CodexRunError
+
+    store, service, _ = investigation
+
+    def fail(*_):
+        raise CodexRunError("deadline_exceeded", {"stderr_sha256": "e" * 64})
+
+    service.run = fail
+    assert codex_worker(tmp_path, investigation).run_once()["status"] == "failed"
+    assert store.failures == [("deadline_exceeded", False)]
+    assert not service.finishes and not service.dispatches
+
+
+def test_coordinator_observes_new_evidence_while_investigation_runs(tmp_path, investigation):
+    store, service, _ = investigation
+    started, observed = threading.Event(), threading.Event()
+
+    def run(job, guard, settings):
+        started.set()
+        assert observed.wait(2)
+        guard.checkpoint()
+        pytest.fail("A superseded investigation continued")
+
+    def tick():
+        if started.is_set():
+            store.job["cancel_requested"] = True
+            observed.set()
+        service.ticks += 1
+
+    service.run, service.tick = run, tick
+    worker = codex_worker(tmp_path, investigation)
+    worker.start_coordinator(interval_seconds=0.02)
+    try:
+        result = worker.run_once()
+    finally:
+        worker.close()
+    assert result["status"] == "cancelled"
+    assert observed.is_set() and service.ticks >= 1
+    assert not service.finishes and not service.dispatches
+    assert not worker.coordinator_thread.is_alive()
+
+
+def test_coordinator_failure_stops_claims_and_is_sanitized(tmp_path, investigation):
+    store, service, _ = investigation
+
+    def fail():
+        raise RuntimeError("secret-source-error")
+
+    service.tick = fail
+    worker = codex_worker(tmp_path, investigation)
+    worker.start_coordinator(interval_seconds=0.02)
+    try:
+        assert worker.stop.wait(2)
+        assert worker.run_once() == {"status": "stopped"}
+        assert worker.coordinator_failed.is_set()
+    finally:
+        worker.close()
+    assert store.job["status"] == "queued"
+
+
+def test_worker_cli_once_ticks_once_and_claims_at_most_one_with_trusted_settings(
+    tmp_path, investigation, monkeypatch, capsys
+):
+    from trading_research.job_worker import main
+
+    store, service, _ = investigation
+    disposed = []
+    store.engine = SimpleNamespace(dispose=lambda: disposed.append(True))
+    monkeypatch.setattr("trading_research.jobs.local_job_store", lambda _: store)
+    monkeypatch.setattr(
+        "trading_research.job_worker.shutil.which",
+        lambda name: sys.executable if name == "codex" else None,
+    )
+    monkeypatch.setattr(
+        "trading_research.investigation_service.InvestigationService",
+        lambda *_args, **_kwargs: service,
+    )
+    assert (
+        main(
+            [
+                "--once",
+                "--workspace",
+                str(tmp_path),
+                "--allow-codex",
+                "--codex-model",
+                "synthetic-model",
+                "--codex-reasoning-effort",
+                "high",
+                "--codex-timeout",
+                "12",
+            ]
+        )
+        == 0
+    )
+    assert json.loads(capsys.readouterr().out)["status"] == "succeeded"
+    assert service.ticks == 1 and len(service.runs) == 1
+    settings = service.runs[0][1]
+    assert settings.codex_executable == Path(sys.executable)
+    assert settings.model == "synthetic-model" and settings.reasoning_effort == "high"
+    assert settings.timeout_seconds == 12
+    assert store.claimed_kinds == ["research-context", "investigation-run"]
+    assert disposed == [True]
+
+
+def test_worker_cli_codex_builtin_default_and_no_brokerage_opt_in(
+    tmp_path, investigation, monkeypatch
+):
+    from trading_research.job_worker import main
+
+    store, service, _ = investigation
+    store.engine = SimpleNamespace(dispose=lambda: None)
+    monkeypatch.setattr("trading_research.jobs.local_job_store", lambda _: store)
+    monkeypatch.setattr("trading_research.job_worker.shutil.which", lambda _: sys.executable)
+    monkeypatch.setattr(
+        "trading_research.investigation_service.InvestigationService",
+        lambda *_args, **_kwargs: service,
+    )
+    assert main(["--once", "--workspace", str(tmp_path), "--allow-codex"]) == 0
+    settings = service.runs[0][1]
+    assert settings.model is None and settings.reasoning_effort is None
+    assert settings.allow_web_search is True
+    assert "account-sync" not in store.claimed_kinds and "market-capture" not in store.claimed_kinds
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        ["--codex-model", "synthetic-model"],
+        ["--allow-codex", "--codex-executable", "/arbitrary"],
+        ["--allow-codex", "--codex-timeout", "nan"],
+        ["--allow-codex", "--codex-reasoning-effort", "unbounded"],
+    ],
+)
+def test_worker_cli_invalid_settings_fail_before_database(monkeypatch, arguments):
+    from trading_research.job_worker import main
+
+    monkeypatch.setattr("trading_research.jobs.local_job_store", lambda _: pytest.fail("database"))
+    with pytest.raises(SystemExit):
+        main(arguments)
+
+
+@pytest.mark.parametrize("scenario,expected", [("normal", "succeeded"), ("hang", "failed")])
+def test_worker_integrates_bounded_synthetic_subprocess_before_fenced_finish(
+    tmp_path, investigation, scenario, expected
+):
+    from trading_research.codex_runner import RunnerSettings, run
+
+    store, service, _ = investigation
+    fixture = Path(__file__).parent / "fixtures/codex_runner/fake_codex.py"
+    executable = tmp_path / "synthetic-codex"
+    executable.write_text(f"#!{sys.executable}\n" + "\n".join(fixture.read_text().splitlines()[1:]))
+    executable.chmod(0o700)
+    settings = RunnerSettings(
+        executable,
+        timeout_seconds=0.5,
+        terminate_grace_seconds=0.1,
+        allow_web_search=False,
+        synthetic=True,
+    )
+    observed = []
+
+    def execute(job, guard, trusted_settings):
+        result = run(
+            {"scenario": scenario, "pid_file": str(tmp_path / "child.pid")},
+            guard.checkpoint,
+            trusted_settings,
+        )
+        observed.append(result["execution"])
+        return service.result
+
+    service.run = execute
+    result = codex_worker(tmp_path, (store, service, settings)).run_once()
+    assert result["status"] == expected
+    assert not store.successes
+    if scenario == "normal":
+        assert observed[0]["source"] == "local_subprocess"
+        assert observed[0]["cli_version"] == "0.0.0-synthetic"
+        assert observed[0]["completed_event"] is True
+        assert len(service.finishes) == len(service.dispatches) == 1
+    else:
+        assert not service.finishes and not service.dispatches
+        assert store.failures == [("deadline_exceeded", False)]

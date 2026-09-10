@@ -37,7 +37,9 @@ SvelteKit workbench and read-only FastAPI layer for saved account/research recor
 Streamlit research screens remain available. Feature 18 adds durable PostgreSQL jobs and the
 Python worker for saved context and opt-in read-only captures; see `docs/JOBS.md`. Feature 19
 adds schema-pinned candle observations, revisions, cited events, and charts; see
-`docs/MARKET_OBSERVATIONS.md`. Ongoing AI execution and broker order submission are future work.
+`docs/MARKET_OBSERVATIONS.md`. Feature 20 adds frozen investigation inputs, existing Codex CLI
+execution, revision fencing, adaptive read requests, and review conditions; see
+`docs/INVESTIGATIONS.md`. Broker order submission remains future work and must stay disabled.
 
 The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate

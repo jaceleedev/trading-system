@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CancelJobData, CancelJobErrors, CancelJobResponses, GetContextData, GetContextErrors, GetContextResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses } from './types.gen';
+import type { CancelJobData, CancelJobErrors, CancelJobResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, GetContextData, GetContextErrors, GetContextResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -32,6 +32,52 @@ export const getContext = <ThrowOnError extends boolean = false>(options?: Optio
  * Health
  */
 export const health = <ThrowOnError extends boolean = false>(options?: Options<HealthData, ThrowOnError>): RequestResult<HealthResponses, HealthErrors, ThrowOnError> => (options?.client ?? client).get<HealthResponses, HealthErrors, ThrowOnError>({ url: '/api/v1/health', ...options });
+
+/**
+ * List Investigations
+ */
+export const listInvestigations = <ThrowOnError extends boolean = false>(options?: Options<ListInvestigationsData, ThrowOnError>): RequestResult<ListInvestigationsResponses, ListInvestigationsErrors, ThrowOnError> => (options?.client ?? client).get<ListInvestigationsResponses, ListInvestigationsErrors, ThrowOnError>({ url: '/api/v1/investigations', ...options });
+
+/**
+ * Create Investigation
+ */
+export const createInvestigation = <ThrowOnError extends boolean = false>(options: Options<CreateInvestigationData, ThrowOnError>): RequestResult<CreateInvestigationResponses, CreateInvestigationErrors, ThrowOnError> => (options.client ?? client).post<CreateInvestigationResponses, CreateInvestigationErrors, ThrowOnError>({
+    url: '/api/v1/investigations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Investigation
+ */
+export const getInvestigation = <ThrowOnError extends boolean = false>(options: Options<GetInvestigationData, ThrowOnError>): RequestResult<GetInvestigationResponses, GetInvestigationErrors, ThrowOnError> => (options.client ?? client).get<GetInvestigationResponses, GetInvestigationErrors, ThrowOnError>({ url: '/api/v1/investigations/{id}', ...options });
+
+/**
+ * Pause Investigation
+ */
+export const pauseInvestigation = <ThrowOnError extends boolean = false>(options: Options<PauseInvestigationData, ThrowOnError>): RequestResult<PauseInvestigationResponses, PauseInvestigationErrors, ThrowOnError> => (options.client ?? client).post<PauseInvestigationResponses, PauseInvestigationErrors, ThrowOnError>({
+    url: '/api/v1/investigations/{id}/pause',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Revise Investigation
+ */
+export const reviseInvestigation = <ThrowOnError extends boolean = false>(options: Options<ReviseInvestigationData, ThrowOnError>): RequestResult<ReviseInvestigationResponses, ReviseInvestigationErrors, ThrowOnError> => (options.client ?? client).post<ReviseInvestigationResponses, ReviseInvestigationErrors, ThrowOnError>({
+    url: '/api/v1/investigations/{id}/revisions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * List Jobs

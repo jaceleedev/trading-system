@@ -1,4 +1,4 @@
-"""Cooperative, lease-fenced workers for three explicit local research operations.
+"""Cooperative, lease-fenced workers for explicit research and internal Codex runs.
 
 Provider requests and local artifacts are not a distributed transaction with the job
 database. A crash can leave captured artifacts and a later attempt can repeat reads.
@@ -10,6 +10,7 @@ import copy
 import json
 import os
 import re
+import shutil
 import signal
 import threading
 import time
@@ -66,6 +67,31 @@ def validate_parameters(kind, parameters):
         raise DataError("Only candle capture supports multiple pages")
     query = validate_query(ENDPOINT_ALIASES[endpoint], parameters["query"])
     return {"endpoint": endpoint, "query": query, "pages": pages}
+
+
+def _investigation_parameters(parameters):
+    """Validate only persisted internal links, without expanding the public job API."""
+    if type(parameters) is not dict or set(parameters) != {
+        "investigation_id",
+        "revision",
+        "input_id",
+    }:
+        raise DataError("Investigation jobs require frozen revision references")
+    identity, revision, input_id = (
+        parameters["investigation_id"],
+        parameters["revision"],
+        parameters["input_id"],
+    )
+    try:
+        if type(identity) is not str or str(uuid.UUID(identity)) != identity:
+            raise ValueError
+    except ValueError, TypeError, AttributeError:
+        raise DataError("Investigation job identity is invalid") from None
+    if type(revision) is not int or not 1 <= revision <= 2**31 - 1:
+        raise DataError("Investigation job revision is invalid")
+    if type(input_id) is not str or _OBJECT_ID.fullmatch(input_id) is None:
+        raise DataError("Investigation job input must be a stored object ID")
+    return dict(parameters)
 
 
 class _Interrupted(Exception):
@@ -297,7 +323,17 @@ HANDLERS = {
 
 class Worker:
     def __init__(
-        self, store, workspace, *, allow_network=False, lease_seconds=30, stop=None, handlers=None
+        self,
+        store,
+        workspace,
+        *,
+        allow_network=False,
+        allow_codex=False,
+        codex_settings=None,
+        investigation_service=None,
+        lease_seconds=30,
+        stop=None,
+        handlers=None,
     ):
         if type(lease_seconds) is not int or not 3 <= lease_seconds <= 300:
             raise DataError("Worker lease_seconds must be from 3 through 300")
@@ -305,9 +341,81 @@ class Worker:
         if not self.workspace.is_dir():
             raise DataError("Worker workspace must be an existing directory")
         self.allow_network, self.lease_seconds = allow_network, lease_seconds
+        if type(allow_network) is not bool or type(allow_codex) is not bool:
+            raise DataError("Worker capabilities must be explicit booleans")
+        self.allow_codex, self.codex_settings = allow_codex, codex_settings
         self.stop = stop if stop is not None else threading.Event()
         self.handlers = HANDLERS if handlers is None else handlers
         self.owner = f"worker-{os.getpid()}-{uuid.uuid4().hex}"
+        self.investigations = None
+        if allow_codex:
+            from trading_research.codex_runner import RunnerSettings
+            from trading_research.investigation_service import InvestigationService
+
+            if not isinstance(codex_settings, RunnerSettings):
+                raise DataError("Codex-enabled workers require trusted runner settings")
+            self.investigations = investigation_service or InvestigationService(
+                self.workspace, store, synthetic=codex_settings.synthetic
+            )
+        self.coordinator_closed = threading.Event()
+        self.coordinator_failed = threading.Event()
+        self.coordinator_thread = None
+
+    def coordinate_once(self):
+        if self.investigations is not None and not self.stop.is_set():
+            return self.investigations.tick()
+        return None
+
+    def start_coordinator(self, *, interval_seconds=5):
+        """Poll local conditions independently of model runtime or investment horizon."""
+        if self.investigations is None or self.coordinator_thread is not None:
+            return
+        if not 0.01 <= interval_seconds <= 60:
+            raise DataError("Coordinator poll interval is invalid")
+
+        def coordinate():
+            while not self.stop.is_set() and not self.coordinator_closed.is_set():
+                try:
+                    self.coordinate_once()
+                except Exception:
+                    self.coordinator_failed.set()
+                    self.stop.set()
+                    return
+                self.coordinator_closed.wait(interval_seconds)
+
+        self.coordinator_thread = threading.Thread(
+            target=coordinate, name="investigation-coordinator", daemon=True
+        )
+        self.coordinator_thread.start()
+
+    def close(self):
+        self.coordinator_closed.set()
+        if self.coordinator_thread is not None:
+            self.coordinator_thread.join(timeout=10)
+
+    def _finish_investigation(self, job, result):
+        # This transaction fences both the lease and investigation revision.
+        item = self.investigations.store.finish(job["id"], job["attempt_token"], result)
+        state = self.store.get(job["id"])
+        status = state["status"] if state else "lease_lost"
+        if (
+            status == "succeeded"
+            and item is not None
+            and item["latest_completed_revision"] == job["parameters"]["revision"]
+            and item["current_revision"] == job["parameters"]["revision"]
+            # The store normalizes UTC timestamps (Z to +00:00), so compare
+            # immutable artifact identities rather than the entire result JSON.
+            and item["latest_result"] is not None
+            and item["latest_result"]["run_id"] == result["run_id"]
+            and item["latest_result"]["output_id"] == result["output_id"]
+        ):
+            # A failed follow-up enqueue must not turn an already committed result
+            # into a job failure. The durable coordinator retries dispatch later.
+            try:
+                self.investigations.dispatch_requests(item)
+            except Exception:
+                return {"id": job["id"], "status": status, "follow_up_pending": True}
+        return {"id": job["id"], "status": status}
 
     def _fail(self, job, code, retryable=False):
         try:
@@ -320,19 +428,31 @@ class Worker:
         if self.stop.is_set():
             return {"status": "stopped"}
         allowed = list(KINDS) if self.allow_network else ["research-context"]
+        if self.allow_codex:
+            allowed.append("investigation-run")
         job = self.store.claim(self.owner, lease_seconds=self.lease_seconds, allowed_kinds=allowed)
         if job is None:
             return {"status": "idle"}
         try:
             job = copy.deepcopy(job)
-            job["parameters"] = validate_parameters(job["kind"], job["parameters"])
+            job["parameters"] = (
+                _investigation_parameters(job["parameters"])
+                if job["kind"] == "investigation-run"
+                else validate_parameters(job["kind"], job["parameters"])
+            )
         except DataError, KeyError, TypeError:
             return self._fail(job, "invalid_parameters")
         if job["kind"] in NETWORK_KINDS and not self.allow_network:
             return self._fail(job, "network_disabled")
+        if job["kind"] == "investigation-run" and not self.allow_codex:
+            return self._fail(job, "codex_disabled")
         guard = LeaseGuard(self.store, job, self.stop, self.lease_seconds)
         try:
             with guard:
+                if job["kind"] == "investigation-run":
+                    result = self.investigations.run(job, guard, self.codex_settings)
+                    guard.checkpoint()
+                    return self._finish_investigation(job, result)
                 result = self.handlers[job["kind"]](self.workspace, job, guard)
                 guard.checkpoint()
                 state = self.store.succeed(job["id"], job["attempt_token"], result)
@@ -351,36 +471,84 @@ class Worker:
                 return {"id": job["id"], "status": "cancelled"}
             if self.stop.is_set():
                 return self._fail(job, "worker_stopped", retryable=True)
-            code = "invalid_data" if isinstance(exc, DataError) else "handler_failed"
+            from trading_research.codex_runner import CodexRunError
+
+            code = (
+                exc.error_code
+                if isinstance(exc, CodexRunError)
+                else "invalid_data"
+                if isinstance(exc, DataError)
+                else "handler_failed"
+            )
             return self._fail(job, code, retryable=isinstance(exc, RetryableJobError))
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Run durable research jobs; no models or orders")
+    parser = argparse.ArgumentParser(
+        description="Run durable research jobs; orders remain disabled"
+    )
     parser.add_argument("--workspace", type=Path, default=Path.cwd())
     parser.add_argument("--once", action="store_true", help="Claim at most one eligible job")
     parser.add_argument("--allow-network", action="store_true", help="Allow explicit Toss GET jobs")
+    parser.add_argument(
+        "--allow-codex",
+        action="store_true",
+        help="Allow bounded Codex investigations using the existing ChatGPT login",
+    )
+    parser.add_argument(
+        "--codex-model", help="Explicit Codex model; omitted uses CLI built-in default"
+    )
+    parser.add_argument(
+        "--codex-reasoning-effort",
+        choices=("none", "minimal", "low", "medium", "high", "xhigh", "max", "ultra"),
+    )
+    parser.add_argument(
+        "--codex-timeout", type=float, default=300, help="Maximum seconds per Codex execution"
+    )
     parser.add_argument("--lease-seconds", type=int, default=30)
     parser.add_argument("--poll-seconds", type=float, default=1)
     args = parser.parse_args(argv)
     if not 0.1 <= args.poll_seconds <= 60:
         parser.error("--poll-seconds must be from 0.1 through 60")
-    store, previous = None, {}
+    if not 0.1 <= args.codex_timeout <= 3600:
+        parser.error("--codex-timeout must be from 0.1 through 3600")
+    if not args.allow_codex and (args.codex_model or args.codex_reasoning_effort):
+        parser.error("Codex model settings require --allow-codex")
+    store, worker, previous = None, None, {}
     stop = threading.Event()
     try:
         from trading_research.jobs import local_job_store
 
+        codex_settings = None
+        if args.allow_codex:
+            from trading_research.codex_runner import RunnerSettings
+
+            executable = shutil.which("codex")
+            if executable is None:
+                raise DataError("Codex CLI is unavailable")
+            codex_settings = RunnerSettings(
+                Path(executable),
+                model=args.codex_model,
+                reasoning_effort=args.codex_reasoning_effort,
+                timeout_seconds=args.codex_timeout,
+            )
         store = local_job_store(args.workspace)
         worker = Worker(
             store,
             args.workspace,
             allow_network=args.allow_network,
+            allow_codex=args.allow_codex,
+            codex_settings=codex_settings,
             lease_seconds=args.lease_seconds,
             stop=stop,
         )
         if threading.current_thread() is threading.main_thread():
             for signum in (signal.SIGINT, signal.SIGTERM):
                 previous[signum] = signal.signal(signum, lambda *_: stop.set())
+        if args.once:
+            worker.coordinate_once()
+        else:
+            worker.start_coordinator()
         while not stop.is_set():
             result = worker.run_once()
             if args.once or result["status"] != "idle":
@@ -389,12 +557,21 @@ def main(argv=None):
                 return 1 if result["status"] == "failed" else 0
             if result["status"] == "idle":
                 stop.wait(args.poll_seconds)
+        if worker.coordinator_failed.is_set():
+            print(
+                json.dumps(
+                    {"status": "error", "error_code": "investigation_coordinator_unavailable"}
+                )
+            )
+            return 1
         return 0
     except Exception, KeyboardInterrupt:
         print(json.dumps({"status": "error", "error_code": "worker_unavailable"}))
         return 1
     finally:
         stop.set()
+        if worker is not None:
+            worker.close()
         for signum, handler in previous.items():
             signal.signal(signum, handler)
         if store is not None:

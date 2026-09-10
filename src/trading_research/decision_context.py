@@ -125,6 +125,7 @@ def build_context(
     now=None,
     max_records=50,
     max_account_age_seconds=900,
+    modes=None,
 ) -> dict:
     """Build current research context without fetching data, calling a model, or placing orders.
 
@@ -137,8 +138,19 @@ def build_context(
         raise DataError("Context max_records must be an integer from 1 through 100")
     if type(max_account_age_seconds) is not int or not 1 <= max_account_age_seconds <= 86400:
         raise DataError("Context account freshness limit must be 1 through 86400 seconds")
+    if modes is not None and (
+        type(modes) not in (list, tuple)
+        or not modes
+        or any(
+            type(mode) is not str or mode not in {"prospective", "retrospective", "synthetic"}
+            for mode in modes
+        )
+    ):
+        raise DataError("Context mode filter is invalid")
     instant = _instant(datetime.now(UTC) if now is None else now() if callable(now) else now)
     indexed = list_records(root, account_root=account_root, capture_root=capture_root)
+    if modes is not None:
+        indexed = [item for item in indexed if item["mode"] in modes]
     ordered = sorted(indexed, key=lambda item: (_instant(item["recorded_at"]), item["id"]))
     records = {}
     future_ids = []

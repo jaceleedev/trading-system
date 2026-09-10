@@ -558,6 +558,373 @@ export type HypothesisRecord = {
 };
 
 /**
+ * InvestigationCondition
+ */
+export type InvestigationCondition = {
+    /**
+     * Kind
+     */
+    kind: 'evidence' | 'market';
+    /**
+     * Symbol
+     */
+    symbol: string | null;
+};
+
+/**
+ * InvestigationCreate
+ */
+export type InvestigationCreate = {
+    /**
+     * Capture Ids
+     */
+    capture_ids?: Array<string>;
+    /**
+     * Evidence Ids
+     */
+    evidence_ids?: Array<string>;
+    /**
+     * Mode
+     */
+    mode?: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Purpose
+     */
+    purpose: string;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id?: string | null;
+    /**
+     * Symbols
+     */
+    symbols?: Array<string>;
+};
+
+/**
+ * InvestigationInput
+ */
+export type InvestigationInput = {
+    /**
+     * As Of
+     */
+    as_of: string;
+    /**
+     * Capture Ids
+     */
+    capture_ids: Array<string>;
+    /**
+     * Evidence Ids
+     */
+    evidence_ids: Array<string>;
+    /**
+     * Input Id
+     */
+    input_id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Purpose
+     */
+    purpose: string;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string | null;
+    /**
+     * Symbols
+     */
+    symbols: Array<string>;
+};
+
+/**
+ * InvestigationList
+ */
+export type InvestigationList = {
+    /**
+     * Items
+     */
+    items: Array<InvestigationView>;
+};
+
+/**
+ * InvestigationOpportunity
+ */
+export type InvestigationOpportunity = {
+    /**
+     * Action
+     */
+    action: 'buy' | 'add' | 'trim' | 'sell' | 'hold' | 'avoid' | 'research' | 'watch' | 'wait';
+    /**
+     * Evidence Ids
+     */
+    evidence_ids: Array<string>;
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Rationale
+     */
+    rationale: string;
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
+ * InvestigationOutput
+ */
+export type InvestigationOutput = {
+    /**
+     * Alternatives
+     */
+    alternatives: Array<string>;
+    /**
+     * Opportunities
+     */
+    opportunities: Array<InvestigationOpportunity>;
+    /**
+     * Opposing Evidence
+     */
+    opposing_evidence: Array<string>;
+    /**
+     * Rationale
+     */
+    rationale: string;
+    /**
+     * Research Requests
+     */
+    research_requests: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Review After
+     */
+    review_after: string | null;
+    /**
+     * Review Conditions
+     */
+    review_conditions: Array<InvestigationCondition>;
+    /**
+     * Source Findings
+     */
+    source_findings: Array<InvestigationSourceFinding>;
+    /**
+     * Summary
+     */
+    summary: string;
+    /**
+     * Uncertainties
+     */
+    uncertainties: Array<string>;
+};
+
+/**
+ * InvestigationPause
+ */
+export type InvestigationPause = {
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+};
+
+/**
+ * InvestigationResponse
+ */
+export type InvestigationResponse = {
+    active_job: JobView | null;
+    investigation: InvestigationView;
+    /**
+     * Latest Execution
+     */
+    latest_execution: {
+        [key: string]: unknown;
+    } | null;
+    latest_output: InvestigationOutput | null;
+    /**
+     * Research Jobs
+     */
+    research_jobs?: Array<JobView>;
+};
+
+/**
+ * InvestigationRevise
+ */
+export type InvestigationRevise = {
+    /**
+     * Capture Ids
+     */
+    capture_ids?: Array<string>;
+    /**
+     * Evidence Ids
+     */
+    evidence_ids?: Array<string>;
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Mode
+     */
+    mode?: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Purpose
+     */
+    purpose: string;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id?: string | null;
+    /**
+     * Symbols
+     */
+    symbols?: Array<string>;
+};
+
+/**
+ * InvestigationRevision
+ */
+export type InvestigationRevision = {
+    /**
+     * Completed At
+     */
+    completed_at: string | null;
+    context_input: InvestigationInput;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Input Sha256
+     */
+    input_sha256: string;
+    /**
+     * Job Id
+     */
+    job_id: string;
+    /**
+     * Number
+     */
+    number: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Result
+     */
+    result: {
+        [key: string]: unknown;
+    } | null;
+    /**
+     * Trigger Kind
+     */
+    trigger_kind: string;
+};
+
+/**
+ * InvestigationSourceFinding
+ */
+export type InvestigationSourceFinding = {
+    /**
+     * Claim
+     */
+    claim: string;
+    /**
+     * Source Published At
+     */
+    source_published_at: string | null;
+    /**
+     * Title
+     */
+    title: string;
+    /**
+     * Url
+     */
+    url: string;
+};
+
+/**
+ * InvestigationView
+ */
+export type InvestigationView = {
+    /**
+     * Active Job Id
+     */
+    active_job_id: string | null;
+    context_input: InvestigationInput;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Current Revision
+     */
+    current_revision: number;
+    /**
+     * Event Conditions
+     */
+    event_conditions: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Latest Completed Revision
+     */
+    latest_completed_revision: number | null;
+    /**
+     * Latest Result
+     */
+    latest_result: {
+        [key: string]: unknown;
+    } | null;
+    /**
+     * Next Review At
+     */
+    next_review_at: string | null;
+    /**
+     * Omitted Revision Count
+     */
+    omitted_revision_count: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Revisions
+     */
+    revisions: Array<InvestigationRevision>;
+    /**
+     * Status
+     */
+    status: 'active' | 'paused';
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+};
+
+/**
  * InvestmentContext
  */
 export type InvestmentContext = {
@@ -1801,6 +2168,271 @@ export type HealthResponses = {
 };
 
 export type HealthResponse2 = HealthResponses[keyof HealthResponses];
+
+export type ListInvestigationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/investigations';
+};
+
+export type ListInvestigationsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListInvestigationsError = ListInvestigationsErrors[keyof ListInvestigationsErrors];
+
+export type ListInvestigationsResponses = {
+    /**
+     * Successful Response
+     */
+    200: InvestigationList;
+};
+
+export type ListInvestigationsResponse = ListInvestigationsResponses[keyof ListInvestigationsResponses];
+
+export type CreateInvestigationData = {
+    body: InvestigationCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/investigations';
+};
+
+export type CreateInvestigationErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CreateInvestigationError = CreateInvestigationErrors[keyof CreateInvestigationErrors];
+
+export type CreateInvestigationResponses = {
+    /**
+     * Successful Response
+     */
+    200: InvestigationResponse;
+};
+
+export type CreateInvestigationResponse = CreateInvestigationResponses[keyof CreateInvestigationResponses];
+
+export type GetInvestigationData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/investigations/{id}';
+};
+
+export type GetInvestigationErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetInvestigationError = GetInvestigationErrors[keyof GetInvestigationErrors];
+
+export type GetInvestigationResponses = {
+    /**
+     * Successful Response
+     */
+    200: InvestigationResponse;
+};
+
+export type GetInvestigationResponse = GetInvestigationResponses[keyof GetInvestigationResponses];
+
+export type PauseInvestigationData = {
+    body: InvestigationPause;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/investigations/{id}/pause';
+};
+
+export type PauseInvestigationErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type PauseInvestigationError = PauseInvestigationErrors[keyof PauseInvestigationErrors];
+
+export type PauseInvestigationResponses = {
+    /**
+     * Successful Response
+     */
+    200: InvestigationResponse;
+};
+
+export type PauseInvestigationResponse = PauseInvestigationResponses[keyof PauseInvestigationResponses];
+
+export type ReviseInvestigationData = {
+    body: InvestigationRevise;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/investigations/{id}/revisions';
+};
+
+export type ReviseInvestigationErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ReviseInvestigationError = ReviseInvestigationErrors[keyof ReviseInvestigationErrors];
+
+export type ReviseInvestigationResponses = {
+    /**
+     * Successful Response
+     */
+    200: InvestigationResponse;
+};
+
+export type ReviseInvestigationResponse = ReviseInvestigationResponses[keyof ReviseInvestigationResponses];
 
 export type ListJobsData = {
     body?: never;

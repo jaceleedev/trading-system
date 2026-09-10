@@ -988,6 +988,726 @@
         "title": "HypothesisRecord",
         "type": "object"
       },
+      "InvestigationCondition": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "evidence",
+              "market"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbol"
+          }
+        },
+        "required": [
+          "kind",
+          "symbol"
+        ],
+        "title": "InvestigationCondition",
+        "type": "object"
+      },
+      "InvestigationCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Capture Ids",
+            "type": "array"
+          },
+          "evidence_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "mode": {
+            "default": "prospective",
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "purpose": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "request_key": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Key",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          },
+          "symbols": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9.\\-_]{0,31}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "purpose",
+          "request_key"
+        ],
+        "title": "InvestigationCreate",
+        "type": "object"
+      },
+      "InvestigationInput": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "capture_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Capture Ids",
+            "type": "array"
+          },
+          "evidence_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "input_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          },
+          "symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "input_id",
+          "purpose",
+          "snapshot_id",
+          "capture_ids",
+          "evidence_ids",
+          "symbols",
+          "as_of",
+          "mode"
+        ],
+        "title": "InvestigationInput",
+        "type": "object"
+      },
+      "InvestigationList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationView"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "InvestigationList",
+        "type": "object"
+      },
+      "InvestigationOpportunity": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "buy",
+              "add",
+              "trim",
+              "sell",
+              "hold",
+              "avoid",
+              "research",
+              "watch",
+              "wait"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "evidence_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "market": {
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "title": "Market",
+            "type": "string"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "market",
+          "action",
+          "rationale",
+          "evidence_ids"
+        ],
+        "title": "InvestigationOpportunity",
+        "type": "object"
+      },
+      "InvestigationOutput": {
+        "additionalProperties": false,
+        "properties": {
+          "alternatives": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "opportunities": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationOpportunity"
+            },
+            "title": "Opportunities",
+            "type": "array"
+          },
+          "opposing_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Opposing Evidence",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "research_requests": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Research Requests",
+            "type": "array"
+          },
+          "review_after": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review After"
+          },
+          "review_conditions": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationCondition"
+            },
+            "title": "Review Conditions",
+            "type": "array"
+          },
+          "source_findings": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationSourceFinding"
+            },
+            "title": "Source Findings",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "uncertainties": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Uncertainties",
+            "type": "array"
+          }
+        },
+        "required": [
+          "summary",
+          "rationale",
+          "opportunities",
+          "opposing_evidence",
+          "uncertainties",
+          "alternatives",
+          "review_after",
+          "review_conditions",
+          "research_requests",
+          "source_findings"
+        ],
+        "title": "InvestigationOutput",
+        "type": "object"
+      },
+      "InvestigationPause": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_revision"
+        ],
+        "title": "InvestigationPause",
+        "type": "object"
+      },
+      "InvestigationResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "active_job": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JobView"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "investigation": {
+            "$ref": "#/components/schemas/InvestigationView"
+          },
+          "latest_execution": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Execution"
+          },
+          "latest_output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InvestigationOutput"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "research_jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobView"
+            },
+            "title": "Research Jobs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "investigation",
+          "active_job",
+          "latest_output",
+          "latest_execution"
+        ],
+        "title": "InvestigationResponse",
+        "type": "object"
+      },
+      "InvestigationRevise": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Capture Ids",
+            "type": "array"
+          },
+          "evidence_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "mode": {
+            "default": "prospective",
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "purpose": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Purpose",
+            "type": "string"
+          },
+          "request_key": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Key",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          },
+          "symbols": {
+            "items": {
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9.\\-_]{0,31}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "title": "Symbols",
+            "type": "array"
+          }
+        },
+        "required": [
+          "purpose",
+          "request_key",
+          "expected_revision"
+        ],
+        "title": "InvestigationRevise",
+        "type": "object"
+      },
+      "InvestigationRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "context_input": {
+            "$ref": "#/components/schemas/InvestigationInput"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "input_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "job_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Job Id",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "request_key": {
+            "title": "Request Key",
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "trigger_kind": {
+            "title": "Trigger Kind",
+            "type": "string"
+          }
+        },
+        "required": [
+          "number",
+          "request_key",
+          "trigger_kind",
+          "input_sha256",
+          "context_input",
+          "job_id",
+          "result",
+          "created_at",
+          "completed_at"
+        ],
+        "title": "InvestigationRevision",
+        "type": "object"
+      },
+      "InvestigationSourceFinding": {
+        "additionalProperties": false,
+        "properties": {
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "source_published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Published At"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "title",
+          "claim",
+          "source_published_at"
+        ],
+        "title": "InvestigationSourceFinding",
+        "type": "object"
+      },
+      "InvestigationView": {
+        "additionalProperties": false,
+        "properties": {
+          "active_job_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Job Id"
+          },
+          "context_input": {
+            "$ref": "#/components/schemas/InvestigationInput"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "current_revision": {
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "event_conditions": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Event Conditions",
+            "type": "array"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "latest_completed_revision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Completed Revision"
+          },
+          "latest_result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Result"
+          },
+          "next_review_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Review At"
+          },
+          "omitted_revision_count": {
+            "title": "Omitted Revision Count",
+            "type": "integer"
+          },
+          "request_key": {
+            "title": "Request Key",
+            "type": "string"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationRevision"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "paused"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workspace_key": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Workspace Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workspace_key",
+          "request_key",
+          "current_revision",
+          "status",
+          "context_input",
+          "active_job_id",
+          "latest_completed_revision",
+          "latest_result",
+          "next_review_at",
+          "event_conditions",
+          "created_at",
+          "updated_at",
+          "revisions",
+          "omitted_revision_count"
+        ],
+        "title": "InvestigationView",
+        "type": "object"
+      },
       "InvestmentContext": {
         "additionalProperties": false,
         "properties": {
@@ -3281,6 +4001,524 @@
           }
         },
         "summary": "Health"
+      }
+    },
+    "/api/v1/investigations": {
+      "get": {
+        "operationId": "list_investigations",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Investigations"
+      },
+      "post": {
+        "operationId": "create_investigation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvestigationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Investigation"
+      }
+    },
+    "/api/v1/investigations/{id}": {
+      "get": {
+        "operationId": "get_investigation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Investigation"
+      }
+    },
+    "/api/v1/investigations/{id}/pause": {
+      "post": {
+        "operationId": "pause_investigation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvestigationPause"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Pause Investigation"
+      }
+    },
+    "/api/v1/investigations/{id}/revisions": {
+      "post": {
+        "operationId": "revise_investigation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InvestigationRevise"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InvestigationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Revise Investigation"
       }
     },
     "/api/v1/jobs": {

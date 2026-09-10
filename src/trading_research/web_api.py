@@ -277,6 +277,9 @@ def create_app(
     from trading_research.market_api import register_market_routes
 
     register_market_routes(app, workspace)
+    from trading_research.investigation_api import register_investigation_routes
+
+    register_investigation_routes(app, workspace, job_store, synthetic=synthetic)
 
     @app.get("/{path:path}", include_in_schema=False)
     def static(path: str):

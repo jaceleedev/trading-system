@@ -200,6 +200,30 @@ def _terminal(row, status, now, error_code=None):
     row.error_code = error_code
 
 
+def _prepare_enqueue(kind, parameters, request_key, available_at=None, max_attempts=3):
+    kind = _name(kind, 64, "kind")
+    key = _name(request_key, 128, "request key")
+    parameters = _json(parameters)
+    _integer(max_attempts, 1, 10, "attempt limit")
+    schedule = _instant(available_at) if available_at is not None else None
+    digest = fingerprint(
+        {
+            "kind": kind,
+            "parameters": parameters,
+            "available_at": schedule,
+            "max_attempts": max_attempts,
+        }
+    )
+    return {
+        "kind": kind,
+        "parameters": parameters,
+        "request_key": key,
+        "request_sha256": digest,
+        "available_at": schedule,
+        "max_attempts": max_attempts,
+    }
+
+
 class JobStore:
     def __init__(self, engine, workspace_key):
         if type(workspace_key) is not str or not _HEX.fullmatch(workspace_key):
@@ -283,57 +307,43 @@ class JobStore:
 
     @_safe
     def enqueue(self, kind, parameters, request_key, available_at=None, max_attempts=3):
-        kind = _name(kind, 64, "kind")
-        key = _name(request_key, 128, "request key")
-        parameters = _json(parameters)
-        _integer(max_attempts, 1, 10, "attempt limit")
-        schedule = _instant(available_at) if available_at is not None else None
-        digest = fingerprint(
-            {
-                "kind": kind,
-                "parameters": parameters,
-                "available_at": schedule,
-                "max_attempts": max_attempts,
-            }
-        )
+        prepared = _prepare_enqueue(kind, parameters, request_key, available_at, max_attempts)
         with Session(self.engine) as session, session.begin():
-            now = _now(session)
-            identity = str(uuid4())
-            session.execute(
-                insert(JobRow)
-                .values(
-                    id=identity,
-                    workspace_key=self.workspace_key,
-                    request_key=key,
-                    request_sha256=digest,
-                    kind=kind,
-                    parameters=parameters,
-                    status="queued",
-                    available_at=schedule or now,
-                    created_at=now,
-                    updated_at=now,
-                    finished_at=None,
-                    max_attempts=max_attempts,
-                    attempt_count=0,
-                    cancel_requested=False,
-                    attempt_token=None,
-                    lease_expires_at=None,
-                    result=None,
-                    error_code=None,
-                )
-                .on_conflict_do_nothing(constraint="uq_jobs_workspace_request")
+            return _public(session, self._enqueue_in_session(session, prepared))
+
+    def _enqueue_in_session(self, session, prepared):
+        now = _now(session)
+        session.execute(
+            insert(JobRow)
+            .values(
+                **{key: value for key, value in prepared.items() if key != "available_at"},
+                id=str(uuid4()),
+                workspace_key=self.workspace_key,
+                status="queued",
+                available_at=prepared["available_at"] or now,
+                created_at=now,
+                updated_at=now,
+                finished_at=None,
+                attempt_count=0,
+                cancel_requested=False,
+                attempt_token=None,
+                lease_expires_at=None,
+                result=None,
+                error_code=None,
             )
-            row = session.scalar(
-                select(JobRow)
-                .where(
-                    JobRow.workspace_key == self.workspace_key,
-                    JobRow.request_key == key,
-                )
-                .with_for_update(read=True)
+            .on_conflict_do_nothing(constraint="uq_jobs_workspace_request")
+        )
+        row = session.scalar(
+            select(JobRow)
+            .where(
+                JobRow.workspace_key == self.workspace_key,
+                JobRow.request_key == prepared["request_key"],
             )
-            if row.request_sha256 != digest:
-                raise DataError("Job request key already identifies different input")
-            return _public(session, row)
+            .with_for_update(read=True)
+        )
+        if row.request_sha256 != prepared["request_sha256"]:
+            raise DataError("Job request key already identifies different input")
+        return row
 
     @_safe
     def get(self, job_id):
@@ -363,12 +373,16 @@ class JobStore:
             row = self._row(session, job_id)
             if row is None:
                 return None
-            if row.status in {"queued", "running"}:
-                now = _now(session)
-                row.cancel_requested, row.updated_at = True, now
-                if row.status == "queued":
-                    _terminal(row, "cancelled", now)
+            self._cancel_in_session(session, row)
             return _public(session, row)
+
+    @staticmethod
+    def _cancel_in_session(session, row):
+        if row.status in {"queued", "running"}:
+            now = _now(session)
+            row.cancel_requested, row.updated_at = True, now
+            if row.status == "queued":
+                _terminal(row, "cancelled", now)
 
     @_safe
     def claim(self, owner, lease_seconds=30, allowed_kinds=None):
@@ -472,13 +486,19 @@ class JobStore:
             row, attempt, now = self._active(session, job_id, token)
             if row is None:
                 return None
+            if row.kind == "investigation-run":
+                raise DataError("Investigation results require revision-aware completion")
             if row.cancel_requested:
                 self._cancel_active(row, attempt, now)
             else:
-                attempt.status, attempt.finished_at = "succeeded", now
-                row.result = result
-                _terminal(row, "succeeded", now)
+                self._succeed_active(row, attempt, now, result)
             return _public(session, row)
+
+    @staticmethod
+    def _succeed_active(row, attempt, now, result):
+        attempt.status, attempt.finished_at = "succeeded", now
+        row.result = result
+        _terminal(row, "succeeded", now)
 
     @_safe
     def fail(self, job_id, token, error_code, retryable=False):
