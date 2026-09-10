@@ -19,6 +19,9 @@ def main() -> int:
 
     add_auth_parser(sub)
     add_account_parser(sub)
+    from trading_research.research_cli import add_research_parser
+
+    add_research_parser(sub)
     sub.add_parser("doctor", help="Read-only runtime and database connectivity check")
     sub.add_parser("db-upgrade", help="Apply schema migrations to the configured research database")
     demo = sub.add_parser("demo-data", help="Generate clearly marked synthetic fixtures")
@@ -82,6 +85,10 @@ def main() -> int:
                 from trading_research.toss_cli import handle_account
 
                 print(json.dumps(handle_account(args), ensure_ascii=False, indent=2))
+            elif args.command == "research":
+                from trading_research.research_cli import handle_research
+
+                print(json.dumps(handle_research(args), ensure_ascii=False, indent=2))
             elif args.command == "db-upgrade":
                 from alembic import command
                 from alembic.config import Config
