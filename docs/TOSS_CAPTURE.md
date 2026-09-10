@@ -17,8 +17,9 @@ uv run trading capture-market --endpoint candles \
 uv run trading inspect-capture var/captures/내용해시.json
 ```
 
-토큰을 명령행 인수·Git 파일·문서·채팅에 넣지 않는다. 토큰 발급/갱신과 허용 IP 등록은
-이 클라이언트가 수행하지 않는다. 공식 명세는 Client Credentials Bearer 인증과 허용 IP를
+토큰을 명령행 인수·Git 파일·문서·채팅에 넣지 않는다. 토큰 발급/캐시는 별도의
+[인증 도구](TOSS_AUTH.md)가 담당하며 `capture-market --authenticate`로 연결한다.
+허용 IP 등록은 토스 WTS에서 직접 수행한다. 공식 명세는 Client Credentials Bearer 인증과 허용 IP를
 요구하며, 새 토큰을 발급하면 기존 토큰이 폐기될 수 있다. 이번 구현 작업에서는 토큰을
 발급하거나 실제 인증된 API 요청을 하지 않았다.
 

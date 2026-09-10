@@ -15,6 +15,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Trading research; recommendations only")
     parser.add_argument("--version", action="version", version=__version__)
     sub = parser.add_subparsers(dest="command", required=True)
+    from trading_research.toss_cli import add_auth_parser
+
+    add_auth_parser(sub)
     sub.add_parser("doctor", help="Read-only runtime and database connectivity check")
     sub.add_parser("db-upgrade", help="Apply schema migrations to the configured research database")
     demo = sub.add_parser("demo-data", help="Generate clearly marked synthetic fixtures")
@@ -62,12 +65,19 @@ def main() -> int:
     capture.add_argument("--query", required=True, help="JSON query file, never a credentials file")
     capture.add_argument("--pages", type=int, default=1)
     capture.add_argument("--output", default="var/captures")
+    capture.add_argument(
+        "--authenticate", action="store_true", help="Resolve a token using local Toss credentials"
+    )
     inspect = sub.add_parser("inspect-capture", help="Verify a saved source capture; no network")
     inspect.add_argument("path")
     args = parser.parse_args()
     if args.command != "doctor":
         try:
-            if args.command == "db-upgrade":
+            if args.command == "toss-auth":
+                from trading_research.toss_cli import print_auth
+
+                print_auth(args.action)
+            elif args.command == "db-upgrade":
                 from alembic import command
                 from alembic.config import Config
 
@@ -164,7 +174,12 @@ def main() -> int:
                 endpoint = ENDPOINT_ALIASES[args.endpoint]
                 query = validate_query(endpoint, json.loads(Path(args.query).read_text()))
                 paths = []
-                client = TossMarketClient.from_env()
+                if args.authenticate:
+                    from trading_research.toss_auth import resolve_access_token
+
+                    client = TossMarketClient(resolve_access_token())
+                else:
+                    client = TossMarketClient.from_env()
                 for envelope in client.capture_pages(endpoint, query, max_pages=args.pages):
                     path = write_capture(Path(args.output), envelope)
                     paths.append(str(path))
