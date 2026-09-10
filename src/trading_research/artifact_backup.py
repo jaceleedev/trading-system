@@ -18,8 +18,9 @@ from trading_research.toss_account import validate_observation, validate_snapsho
 LEGACY_STORES = ("accounts", "captures", "research")
 V2_STORES = (*LEGACY_STORES, "investigations")
 V3_STORES = (*V2_STORES, "capital-plans")
-STORES = (*V3_STORES, "broker-observations", "reconciliations")
-_VERSION_STORES = {1: LEGACY_STORES, 2: V2_STORES, 3: V3_STORES, 4: STORES}
+V4_STORES = (*V3_STORES, "broker-observations", "reconciliations")
+STORES = (*V4_STORES, "outcomes")
+_VERSION_STORES = {1: LEGACY_STORES, 2: V2_STORES, 3: V3_STORES, 4: V4_STORES, 5: STORES}
 MAX_OBJECTS = 10000
 MAX_TOTAL_BYTES = 2 * 1024 * 1024 * 1024
 MAX_MANIFEST_BYTES = 4 * 1024 * 1024
@@ -123,6 +124,7 @@ def _source_inventory(source):
     with _directory(source, private=False) as base:
         # Select dependent immutable objects before their already-published sources.
         for store in (
+            "outcomes",
             "reconciliations",
             "broker-observations",
             "capital-plans",
@@ -168,7 +170,11 @@ def _validated_bytes(root, store, identity):
     value = parse_json(raw)
     if object_bytes(value) != raw:
         raise DataError("Artifact content is not canonical JSON")
-    if store == "reconciliations":
+    if store == "outcomes":
+        from trading_research.outcome_artifacts import read_outcome_from_stores
+
+        checked = read_outcome_from_stores(root, identity)
+    elif store == "reconciliations":
         from trading_research.reconciliation import read_report_from_stores
 
         checked = read_report_from_stores(root, identity)
@@ -357,7 +363,7 @@ def create_backup(source: Path, destination: Path, *, now=None) -> dict:
         objects = _copy_objects(source, destination, statuses, selected)
         manifest = {
             "kind": "private_artifact_backup",
-            "schema_version": 4,
+            "schema_version": 5,
             "created_at": _now(now),
             "consistency": CONSISTENCY,
             "source_stores": statuses,

@@ -196,6 +196,106 @@ export type BrokerObservedOrder = {
 };
 
 /**
+ * BrokerOutcome
+ */
+export type BrokerOutcome = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Actual Pnl
+     */
+    actual_pnl: null;
+    /**
+     * Comparisons
+     */
+    comparisons: Array<BrokerOutcomeComparison>;
+    /**
+     * External Cash Flows
+     */
+    external_cash_flows: null;
+    /**
+     * Fx Pnl
+     */
+    fx_pnl: null;
+    /**
+     * Individual Fills Available
+     */
+    individual_fills_available: false;
+    /**
+     * Intent Id
+     */
+    intent_id: string | null;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Operation States
+     */
+    operation_states: Array<string>;
+    /**
+     * Reconciliation Ids
+     */
+    reconciliation_ids: Array<string>;
+    /**
+     * Reservation Held
+     */
+    reservation_held: boolean | null;
+    /**
+     * Warnings
+     */
+    warnings: Array<string>;
+    /**
+     * Workflow Id
+     */
+    workflow_id: string;
+    /**
+     * Workflow Status
+     */
+    workflow_status: string;
+};
+
+/**
+ * BrokerOutcomeComparison
+ */
+export type BrokerOutcomeComparison = {
+    /**
+     * After Snapshot At
+     */
+    after_snapshot_at: string;
+    /**
+     * As Of
+     */
+    as_of: string;
+    /**
+     * Before Snapshot At
+     */
+    before_snapshot_at: string;
+    /**
+     * Buying Power
+     */
+    buying_power: Array<ReconciliationBuyingPower>;
+    /**
+     * Holdings
+     */
+    holdings: Array<ReconciliationHolding>;
+    /**
+     * Orders
+     */
+    orders: Array<ReconciliationOrder>;
+    /**
+     * Period Matches Requested Window
+     */
+    period_matches_requested_window: boolean;
+    /**
+     * Reconciliation Id
+     */
+    reconciliation_id: string;
+};
+
+/**
  * BrokerScanList
  */
 export type BrokerScanList = {
@@ -1463,6 +1563,24 @@ export type HealthResponse = {
      * Synthetic
      */
     synthetic: boolean;
+};
+
+/**
+ * HistoricalCostRealized
+ */
+export type HistoricalCostRealized = {
+    /**
+     * Amount
+     */
+    amount: string | null;
+    /**
+     * Known Amount
+     */
+    known_amount: string;
+    /**
+     * Unknown Sales
+     */
+    unknown_sales: number;
 };
 
 /**
@@ -3190,6 +3308,270 @@ export type OrderValidation = {
 };
 
 /**
+ * OutcomeComparison
+ */
+export type OutcomeComparison = {
+    /**
+     * Aggregate Pnl
+     */
+    aggregate_pnl: null;
+    /**
+     * Automatic Winner
+     */
+    automatic_winner: null;
+    /**
+     * Initial Holdings Book Ids
+     */
+    initial_holdings_book_ids: Array<string>;
+    /**
+     * Limitations
+     */
+    limitations: Array<string>;
+    /**
+     * Mixed Methods Book Ids
+     */
+    mixed_methods_book_ids: Array<string>;
+    /**
+     * Same Initial Paper Seed
+     */
+    same_initial_paper_seed: boolean | null;
+    /**
+     * Same Paper Profiles
+     */
+    same_paper_profiles: boolean | null;
+    /**
+     * Window Basis
+     */
+    window_basis: 'system_recorded_at';
+};
+
+/**
+ * OutcomeCreate
+ */
+export type OutcomeCreate = {
+    /**
+     * Book Ids
+     */
+    book_ids?: Array<string>;
+    /**
+     * End At
+     */
+    end_at?: string | null;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Start At
+     */
+    start_at: string;
+    /**
+     * Workflow Ids
+     */
+    workflow_ids?: Array<string>;
+};
+
+/**
+ * OutcomeList
+ */
+export type OutcomeList = {
+    /**
+     * Invalid Count
+     */
+    invalid_count: number;
+    /**
+     * Items
+     */
+    items: Array<OutcomeSummary>;
+    /**
+     * Omitted Count
+     */
+    omitted_count: number;
+    /**
+     * Total Count
+     */
+    total_count: number;
+};
+
+/**
+ * OutcomeMethod
+ */
+export type OutcomeMethod = {
+    /**
+     * Book Ids
+     */
+    book_ids: Array<string>;
+    /**
+     * Cli Version
+     */
+    cli_version: string | null;
+    /**
+     * Input Id
+     */
+    input_id: string | null;
+    /**
+     * Instructions Sha256
+     */
+    instructions_sha256: string | null;
+    /**
+     * Model Identity Verified
+     */
+    model_identity_verified: false;
+    /**
+     * Output Schema Sha256
+     */
+    output_schema_sha256: string | null;
+    /**
+     * Output Schema Version
+     */
+    output_schema_version: number | null;
+    /**
+     * Plan Id
+     */
+    plan_id: string;
+    /**
+     * Purpose
+     */
+    purpose: string;
+    /**
+     * Reported Model
+     */
+    reported_model: null;
+    /**
+     * Requested Model
+     */
+    requested_model: string | null;
+    /**
+     * Requested Reasoning Effort
+     */
+    requested_reasoning_effort: string | null;
+    /**
+     * Run Ids
+     */
+    run_ids: Array<string>;
+    /**
+     * Run Selection
+     */
+    run_selection: 'unique' | 'unavailable' | 'ambiguous';
+    /**
+     * Source Id
+     */
+    source_id: string;
+    /**
+     * Source Kind
+     */
+    source_kind: 'decision' | 'investigation_output';
+    /**
+     * Workflow Ids
+     */
+    workflow_ids: Array<string>;
+};
+
+/**
+ * OutcomeReport
+ */
+export type OutcomeReport = {
+    /**
+     * Actual Pnl Computed
+     */
+    actual_pnl_computed: false;
+    /**
+     * Broker
+     */
+    broker: Array<BrokerOutcome>;
+    comparison: OutcomeComparison;
+    /**
+     * End At
+     */
+    end_at: string;
+    /**
+     * Input Id
+     */
+    input_id: string;
+    /**
+     * Kind
+     */
+    kind: 'outcome_report';
+    /**
+     * Methods
+     */
+    methods: Array<OutcomeMethod>;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Paper
+     */
+    paper: Array<PaperWindowOutcome>;
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Schema Version
+     */
+    schema_version: 1;
+    /**
+     * Start At
+     */
+    start_at: string;
+};
+
+/**
+ * OutcomeResponse
+ */
+export type OutcomeResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    record: OutcomeReport;
+};
+
+/**
+ * OutcomeSummary
+ */
+export type OutcomeSummary = {
+    /**
+     * Book Count
+     */
+    book_count: number;
+    /**
+     * End At
+     */
+    end_at: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Start At
+     */
+    start_at: string;
+    /**
+     * Workflow Count
+     */
+    workflow_count: number;
+};
+
+/**
  * OverviewDailyProfitLoss
  */
 export type OverviewDailyProfitLoss = {
@@ -3222,6 +3604,64 @@ export type OverviewProfitLoss = {
      * Rateaftercost
      */
     rateAfterCost: string;
+};
+
+/**
+ * PaperActionOutcome
+ */
+export type PaperActionOutcome = {
+    /**
+     * Action
+     */
+    action: 'buy' | 'add' | 'trim' | 'sell';
+    /**
+     * Cash Delta
+     */
+    cash_delta: string;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Fees
+     */
+    fees: string;
+    /**
+     * Fill Count
+     */
+    fill_count: number;
+    /**
+     * Known Realized Pnl
+     */
+    known_realized_pnl: string;
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Notional
+     */
+    notional: string;
+    /**
+     * Quantity
+     */
+    quantity: string;
+    /**
+     * Slippage Cost
+     */
+    slippage_cost: string;
+    /**
+     * Symbol
+     */
+    symbol: string;
+    /**
+     * Taxes
+     */
+    taxes: string;
+    /**
+     * Unknown Realized Sales
+     */
+    unknown_realized_sales: number;
 };
 
 /**
@@ -3495,6 +3935,109 @@ export type PaperCashInput = {
 };
 
 /**
+ * PaperCurrencyOutcome
+ */
+export type PaperCurrencyOutcome = {
+    /**
+     * Cash Delta
+     */
+    cash_delta: string | null;
+    /**
+     * Cash Rounding Residual
+     */
+    cash_rounding_residual: string | null;
+    /**
+     * Cost Rounding Residual
+     */
+    cost_rounding_residual: string;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * End Cash
+     */
+    end_cash: string | null;
+    /**
+     * End Equity
+     */
+    end_equity: string | null;
+    /**
+     * End Missing Price Symbols
+     */
+    end_missing_price_symbols: Array<string>;
+    /**
+     * End Position Value
+     */
+    end_position_value: string | null;
+    /**
+     * End Unknown Cost Symbols
+     */
+    end_unknown_cost_symbols: Array<string>;
+    /**
+     * End Unrealized Pnl
+     */
+    end_unrealized_pnl: string | null;
+    /**
+     * Equity Delta
+     */
+    equity_delta: string | null;
+    /**
+     * Fees
+     */
+    fees: string;
+    /**
+     * Fill Cash Delta
+     */
+    fill_cash_delta: string;
+    historical_cost_realized: HistoricalCostRealized;
+    /**
+     * Realized Rounding Residual
+     */
+    realized_rounding_residual: string;
+    /**
+     * Return Unknown Reason
+     */
+    return_unknown_reason: 'equity_unknown' | 'nonpositive_start_equity' | null;
+    /**
+     * Simple Return
+     */
+    simple_return: string | null;
+    /**
+     * Slippage Cost
+     */
+    slippage_cost: string;
+    /**
+     * Start Cash
+     */
+    start_cash: string | null;
+    /**
+     * Start Equity
+     */
+    start_equity: string | null;
+    /**
+     * Start Missing Price Symbols
+     */
+    start_missing_price_symbols: Array<string>;
+    /**
+     * Start Position Value
+     */
+    start_position_value: string | null;
+    /**
+     * Start Unknown Cost Symbols
+     */
+    start_unknown_cost_symbols: Array<string>;
+    /**
+     * Start Unrealized Pnl
+     */
+    start_unrealized_pnl: string | null;
+    /**
+     * Taxes
+     */
+    taxes: string;
+};
+
+/**
  * PaperEvent
  */
 export type PaperEvent = {
@@ -3760,6 +4303,136 @@ export type PaperMutation = {
 };
 
 /**
+ * PaperOutcomeCounts
+ */
+export type PaperOutcomeCounts = {
+    /**
+     * Cancellations
+     */
+    cancellations: number;
+    /**
+     * Fills
+     */
+    fills: number;
+    /**
+     * Observations
+     */
+    observations: number;
+    /**
+     * Submissions
+     */
+    submissions: number;
+    /**
+     * Unfilled
+     */
+    unfilled: number;
+};
+
+/**
+ * PaperOutcomeCoverage
+ */
+export type PaperOutcomeCoverage = {
+    /**
+     * Actual Pnl Computed
+     */
+    actual_pnl_computed: false;
+    /**
+     * Automatic Winner
+     */
+    automatic_winner: false;
+    /**
+     * External Paper Flows
+     */
+    external_paper_flows: 'unsupported_after_seed';
+    /**
+     * Fx Conversion
+     */
+    fx_conversion: false;
+    /**
+     * Historical Cost Pnl Is Ai Attribution
+     */
+    historical_cost_pnl_is_ai_attribution: false;
+    /**
+     * Report Arithmetic Precision
+     */
+    report_arithmetic_precision: 1536;
+    /**
+     * Report Arithmetic Rounded
+     */
+    report_arithmetic_rounded: boolean;
+    /**
+     * Source Arithmetic Rounded
+     */
+    source_arithmetic_rounded: boolean;
+    /**
+     * Source Authenticity Verified
+     */
+    source_authenticity_verified: false;
+    /**
+     * Source Counters Verified
+     */
+    source_counters_verified: true;
+};
+
+/**
+ * PaperOutcomeIntentSource
+ */
+export type PaperOutcomeIntentSource = {
+    /**
+     * Alternative Id
+     */
+    alternative_id: string;
+    /**
+     * Intent Id
+     */
+    intent_id: string;
+    /**
+     * Plan Id
+     */
+    plan_id: string;
+};
+
+/**
+ * PaperOutcomeMarks
+ */
+export type PaperOutcomeMarks = {
+    /**
+     * End
+     */
+    end: Array<PaperMark>;
+    /**
+     * Start
+     */
+    start: Array<PaperMark>;
+};
+
+/**
+ * PaperOutcomeWindow
+ */
+export type PaperOutcomeWindow = {
+    /**
+     * Basis
+     */
+    basis: 'system_recorded_at';
+    /**
+     * End At
+     */
+    end_at: string;
+    /**
+     * End Sequence
+     */
+    end_sequence: number;
+    /**
+     * Start At
+     */
+    start_at: string;
+    /**
+     * Start Sequence
+     */
+    start_sequence: number;
+};
+
+/**
  * PaperPosition
  */
 export type PaperPosition = {
@@ -3904,6 +4577,40 @@ export type PaperValuation = {
      * Unrealized Pnl
      */
     unrealized_pnl: string | null;
+};
+
+/**
+ * PaperWindowOutcome
+ */
+export type PaperWindowOutcome = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Actions
+     */
+    actions: Array<PaperActionOutcome>;
+    /**
+     * Book Id
+     */
+    book_id: string;
+    counts: PaperOutcomeCounts;
+    coverage: PaperOutcomeCoverage;
+    /**
+     * Currencies
+     */
+    currencies: Array<PaperCurrencyOutcome>;
+    /**
+     * Intent Sources
+     */
+    intent_sources: Array<PaperOutcomeIntentSource>;
+    marks: PaperOutcomeMarks;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    window: PaperOutcomeWindow;
 };
 
 /**
@@ -6900,6 +7607,151 @@ export type RecoverOrderIntentResponses = {
 };
 
 export type RecoverOrderIntentResponse = RecoverOrderIntentResponses[keyof RecoverOrderIntentResponses];
+
+export type ListOutcomeReportsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/outcomes';
+};
+
+export type ListOutcomeReportsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListOutcomeReportsError = ListOutcomeReportsErrors[keyof ListOutcomeReportsErrors];
+
+export type ListOutcomeReportsResponses = {
+    /**
+     * Successful Response
+     */
+    200: OutcomeList;
+};
+
+export type ListOutcomeReportsResponse = ListOutcomeReportsResponses[keyof ListOutcomeReportsResponses];
+
+export type CreateOutcomeReportData = {
+    body: OutcomeCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/outcomes';
+};
+
+export type CreateOutcomeReportErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CreateOutcomeReportError = CreateOutcomeReportErrors[keyof CreateOutcomeReportErrors];
+
+export type CreateOutcomeReportResponses = {
+    /**
+     * Successful Response
+     */
+    200: OutcomeResponse;
+};
+
+export type CreateOutcomeReportResponse = CreateOutcomeReportResponses[keyof CreateOutcomeReportResponses];
+
+export type GetOutcomeReportData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/outcomes/{id}';
+};
+
+export type GetOutcomeReportErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetOutcomeReportError = GetOutcomeReportErrors[keyof GetOutcomeReportErrors];
+
+export type GetOutcomeReportResponses = {
+    /**
+     * Successful Response
+     */
+    200: OutcomeResponse;
+};
+
+export type GetOutcomeReportResponse = GetOutcomeReportResponses[keyof GetOutcomeReportResponses];
 
 export type ListPaperBooksData = {
     body?: never;

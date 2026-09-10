@@ -13,6 +13,7 @@
   import BrokerPanel from '$lib/components/BrokerPanel.svelte';
   import OrderPanel from '$lib/components/OrderPanel.svelte';
   const workflowPanel = import('$lib/components/WorkflowPanel.svelte');
+  const outcomePanel = import('$lib/components/OutcomePanel.svelte');
   import { fetchContext, fetchHealth, fetchRecord, fetchSnapshots } from '$lib/queries';
   import { formatTime } from '$lib/format';
 
@@ -224,6 +225,21 @@
     {selectedSnapshot}
     {context}
   />
+  {#await outcomePanel}
+    <section class="panel capital-panel" aria-label="기간별 결과 비교">
+      <p class="muted">결과 비교 화면을 읽고 있습니다.</p>
+    </section>
+  {:then { default: OutcomePanel }}
+    <OutcomePanel
+      ready={health.isSuccess && !health.isFetching}
+      jobsEnabled={health.data?.jobs_enabled ?? false}
+      synthetic={health.data?.synthetic ?? false}
+    />
+  {:catch}
+    <section class="panel capital-panel" aria-label="기간별 결과 비교">
+      <p class="error-message">결과 비교 화면을 읽지 못했습니다. 페이지를 다시 열어 주세요.</p>
+    </section>
+  {/await}
   <RecordDetail
     item={selectedRecord}
     knownRecords={context?.records ?? []}

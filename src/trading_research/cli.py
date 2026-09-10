@@ -46,6 +46,9 @@ def main() -> int:
     from trading_research.workflow_cli import add_workflow_parser
 
     add_workflow_parser(sub)
+    from trading_research.outcome_cli import add_outcome_parser
+
+    add_outcome_parser(sub)
     from trading_research.order_cli import add_order_parser
 
     add_order_parser(sub)
@@ -148,6 +151,10 @@ def main() -> int:
                 from trading_research.workflow_cli import handle_workflows
 
                 print(json.dumps(handle_workflows(args), ensure_ascii=False, indent=2))
+            elif args.command == "outcomes":
+                from trading_research.outcome_cli import handle_outcomes
+
+                print(json.dumps(handle_outcomes(args), ensure_ascii=False, indent=2))
             elif args.command == "orders":
                 from trading_research.order_cli import handle_orders
 

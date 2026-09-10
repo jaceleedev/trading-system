@@ -57,6 +57,11 @@ Feature 25 adds source-bound V2 capital proposals and durable local operation wo
 `docs/AI_OPERATION_WORKFLOW.md`. Preserve V1 artifacts and schema hashes. Frozen operator
 budgets cannot be increased by model output. Resume original idempotent local effects after
 checking sources; never turn recovery into order submission or automatic allocation release.
+Feature 26 freezes read-only period exports and source-validated outcome reports; see
+`docs/OUTCOME_ATTRIBUTION.md`. Keep paper books and currencies separate. Broker cumulative
+comparisons can have different observation periods and do not establish actual cash flows,
+individual fills, FX profit or causal AI attribution. Replay saved reports without current DB
+state or later model references. File backup v5 includes frozen exports, not operational DB recovery.
 
 The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate
