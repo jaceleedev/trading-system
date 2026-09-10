@@ -14,7 +14,14 @@ from trading_research.data import DataError, timestamp
 from trading_research.serialization import encode
 from trading_research.strategy import Account, ResearchConfig, recommend
 
-PAGES = ["추천 만들기", "과거 성과", "데이터 살펴보기", "저장한 기록", "반복 검증"]
+PAGES = [
+    "AI 투자 작업실",
+    "추천 만들기",
+    "과거 성과",
+    "데이터 살펴보기",
+    "저장한 기록",
+    "반복 검증",
+]
 NAMES = {
     "strategy": "연구 전략",
     "KR_reference": "한국 비교 계좌",
@@ -390,6 +397,7 @@ def history_page(bundle):
 
 def main():
     from trading_research.dashboard_evaluation import render_evaluation_page
+    from trading_research.dashboard_investment import render_investment_page
 
     st.set_page_config(page_title="투자 연구실", page_icon="◈", layout="wide")
     st.markdown(
@@ -403,9 +411,12 @@ def main():
         unsafe_allow_html=True,
     )
     st.sidebar.title("투자 연구실")
-    st.sidebar.caption("국내·미국 주식\n\n추천 · 재현 · 기록")
-    page = st.sidebar.radio("작업", PAGES, label_visibility="collapsed")
+    st.sidebar.caption("국내·미국 주식\n\n조사 · 판단 · 재검토")
+    page = st.sidebar.radio("작업", PAGES, key="workspace-page", label_visibility="collapsed")
     st.sidebar.divider()
+    if page == "AI 투자 작업실":
+        render_investment_page()
+        return
     try:
         datasets = service.list_datasets()
         if not datasets:
@@ -434,11 +445,11 @@ def main():
         else:
             st.info("연구용 자료입니다. 현재 시세와 실제 체결 가능 가격은 별도로 확인해야 합니다.")
         {
-            PAGES[0]: recommendation_page,
-            PAGES[1]: backtest_page,
-            PAGES[2]: data_page,
-            PAGES[3]: history_page,
-            PAGES[4]: render_evaluation_page,
+            "추천 만들기": recommendation_page,
+            "과거 성과": backtest_page,
+            "데이터 살펴보기": data_page,
+            "저장한 기록": history_page,
+            "반복 검증": render_evaluation_page,
         }[page](bundle)
     except DataError as exc:
         st.error(str(exc))
