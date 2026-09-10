@@ -1,4 +1,5 @@
 import copy
+import hashlib
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor
@@ -9,7 +10,7 @@ import pytest
 
 from trading_research import artifact_backup, cli
 from trading_research.artifact_backup import create_backup, restore_backup, verify_backup
-from trading_research.capture_store import write_capture
+from trading_research.capture_store import read_capture, write_capture
 from trading_research.decision_workspace import read_record, record
 from trading_research.errors import DataError
 from trading_research.private_store import object_bytes, put_object
@@ -160,6 +161,55 @@ def test_allowlist_excludes_nonstores_and_unrelated_regular_files(source, tmp_pa
     assert result["source_stores"]["captures"]["excluded_regular_files"] == 1
     assert "never-copy-this-test-string" not in json.dumps(manifest(backup))
     assert all("never-copy-this-test-string" not in raw.decode() for raw in files(backup).values())
+
+
+def test_deep_market_capture_preserves_its_existing_contract_on_backup_and_restore(
+    source, tmp_path
+):
+    capture = json.loads(next((source / "captures").iterdir()).read_text())
+    nested = "synthetic nested market response"
+    for _ in range(45):
+        nested = {"nested": nested}
+    capture["response"]["result"] = nested
+    path = write_capture(source / "captures", capture)
+    assert read_capture(path) == capture
+    original = files(source)
+    backup, restored = tmp_path / "backup", tmp_path / "restored"
+
+    created = create_backup(source, backup)
+    checked = verify_backup(backup)
+    result = restore_backup(backup, restored)
+
+    assert created["status"] == checked["status"] == result["status"] == "passed"
+    assert result["restored_comparison_passed"] is True
+    assert checked["store_counts"] == {"accounts": 1, "captures": 2, "research": 2}
+    assert files(source) == files(backup) == files(restored) == original
+    assert read_capture(restored / "captures" / path.name) == capture
+
+
+@pytest.mark.parametrize("change", ["invalid_envelope", "noncanonical", "tampered"])
+def test_market_capture_validation_is_preserved_during_backup(source, tmp_path, change):
+    path = next((source / "captures").iterdir())
+    capture = json.loads(path.read_text())
+    if change == "invalid_envelope":
+        capture["endpoint"] = "/api/v1/orders"
+    raw = (
+        json.dumps(capture, indent=2).encode()
+        if change == "noncanonical"
+        else object_bytes(capture)
+    )
+    if change == "tampered":
+        raw += b" "
+    else:
+        path.unlink()
+        path = path.with_name(hashlib.sha256(raw).hexdigest() + ".json")
+    path.write_bytes(raw)
+    path.chmod(0o600)
+
+    backup = tmp_path / "backup"
+    with pytest.raises(DataError):
+        create_backup(source, backup)
+    assert not (backup / "manifest.json").exists()
 
 
 def test_absent_stores_are_explicit_and_stay_absent_on_restore(tmp_path):

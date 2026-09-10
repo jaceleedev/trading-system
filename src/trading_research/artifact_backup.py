@@ -146,12 +146,15 @@ def _validated_bytes(root, store, identity):
         raw = _read(directory, identity + ".json", limit)
     if hashlib.sha256(raw).hexdigest() != identity:
         raise DataError("Artifact content does not match its identity")
+    if store == "captures":
+        # The capture reader checks the same identity and canonical bytes using
+        # its own JSON contract, which permits deeper nesting than private records.
+        read_capture(root / store / (identity + ".json"))
+        return raw
     value = parse_json(raw)
     if object_bytes(value) != raw:
         raise DataError("Artifact content is not canonical JSON")
-    if store == "captures":
-        checked = read_capture(root / store / (identity + ".json"))
-    elif store == "research":
+    if store == "research":
         checked = read_record(root / store, identity, account_root=root / "accounts")
     elif value.get("kind") == "toss_account_snapshot":
         checked = validate_snapshot(value)
