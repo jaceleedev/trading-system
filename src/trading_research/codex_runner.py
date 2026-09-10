@@ -34,6 +34,10 @@ SCHEMA_PATH = Path(__file__).with_name("investigation_output.schema.json")
 _SCHEMA_BYTES = SCHEMA_PATH.read_bytes()
 OUTPUT_SCHEMA = json.loads(_SCHEMA_BYTES)
 _VALIDATOR = Draft202012Validator(OUTPUT_SCHEMA, format_checker=FormatChecker())
+V2_SCHEMA_PATH = Path(__file__).with_name("investigation_output_v2.schema.json")
+_V2_SCHEMA_BYTES = V2_SCHEMA_PATH.read_bytes()
+OUTPUT_SCHEMA_V2 = json.loads(_V2_SCHEMA_BYTES)
+_V2_VALIDATOR = Draft202012Validator(OUTPUT_SCHEMA_V2, format_checker=FormatChecker())
 _DISABLED_FEATURES = (
     "apps",
     "hooks",
@@ -77,6 +81,29 @@ class RunnerSettings:
     terminate_grace_seconds: float = 2
     allow_web_search: bool = True
     synthetic: bool = False
+    output_schema_version: int = 1
+
+
+def output_schema_bytes(version=1):
+    """Return the exact immutable schema bytes supplied to the selected CLI run."""
+    if type(version) is not int or version not in (1, 2):
+        raise DataError("Investigation output schema version is unsupported")
+    return _SCHEMA_BYTES if version == 1 else _V2_SCHEMA_BYTES
+
+
+def output_schema_sha256(version=1):
+    return hashlib.sha256(output_schema_bytes(version)).hexdigest()
+
+
+def output_schema_version(value):
+    """Legacy V1 has no discriminator; only the exact integer 2 opts into V2."""
+    if type(value) is not dict:
+        raise DataError("Investigation output must be an object")
+    if "schema_version" not in value:
+        return 1
+    if type(value["schema_version"]) is int and value["schema_version"] == 2:
+        return 2
+    raise DataError("Investigation output schema discriminator is unsupported")
 
 
 def _utc_timestamp(value):
@@ -108,15 +135,20 @@ def _normalized_requests(output):
     return result
 
 
-def validate_output(value):
+def validate_output(value, *, expected_version=None):
     """Return a validated copy, retaining nullable fields in the original strict schema.
 
     Source links, claimed publication dates and investment rationales are model
     proposals. Validation does not fetch URLs or establish their truth.
     """
     object_bytes(value)
+    version = output_schema_version(value)
+    if expected_version is not None:
+        output_schema_bytes(expected_version)
+        if version != expected_version:
+            raise DataError("Investigation output differs from the requested schema version")
     try:
-        _VALIDATOR.validate(value)
+        (_VALIDATOR if version == 1 else _V2_VALIDATOR).validate(value)
     except Exception:
         raise DataError("Investigation output does not match its proposal schema") from None
 
@@ -131,6 +163,10 @@ def validate_output(value):
             raise DataError("Investigation text must be nonempty")
 
     nonempty(value)
+    if version == 2:
+        from trading_research.investigation_proposals import validate_capital_proposal
+
+        validate_capital_proposal(value["capital_proposal"])
     if value["review_after"] is not None:
         _utc_timestamp(value["review_after"])
     for finding in value["source_findings"]:
@@ -164,6 +200,7 @@ def normalized_research_requests(output):
 def _settings(settings):
     if not isinstance(settings, RunnerSettings):
         raise DataError("Codex runner settings must be trusted worker configuration")
+    output_schema_bytes(settings.output_schema_version)
     for name in ("max_input_bytes", "max_output_bytes", "max_result_bytes"):
         value = getattr(settings, name)
         # The private control messages also contain base64 input/output, whose
@@ -515,7 +552,7 @@ def run(input_document, checkpoint, settings):
     input_bytes = object_bytes(input_document)
     if len(input_bytes) > settings.max_input_bytes:
         raise CodexRunError("input_limit")
-    schema_bytes = _SCHEMA_BYTES
+    schema_bytes = output_schema_bytes(settings.output_schema_version)
     execution, version = {}, None
     try:
         with tempfile.TemporaryDirectory(prefix="trading-codex-run-") as directory:
@@ -559,7 +596,9 @@ def run(input_document, checkpoint, settings):
             if raw.strip() != final_message.encode("utf-8").strip():
                 raise CodexRunError("output_event_mismatch")
             try:
-                output = validate_output(parse_json(raw))
+                output = validate_output(
+                    parse_json(raw), expected_version=settings.output_schema_version
+                )
             except DataError:
                 raise CodexRunError("proposal_invalid") from None
             checkpoint()

@@ -888,6 +888,20 @@ export type CapitalPlanSummary = {
 };
 
 /**
+ * CapitalProposal
+ */
+export type CapitalProposal = {
+    /**
+     * Alternatives
+     */
+    alternatives: Array<ProposedAlternative>;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+};
+
+/**
  * CapitalReservations
  */
 export type CapitalReservations = {
@@ -1588,6 +1602,52 @@ export type HypothesisRecord = {
 };
 
 /**
+ * IncompleteAlternative
+ */
+export type IncompleteAlternative = {
+    /**
+     * Key
+     */
+    key: string;
+    /**
+     * Missing Fields
+     */
+    missing_fields: Array<string>;
+};
+
+/**
+ * InvestigationCapitalContext
+ */
+export type InvestigationCapitalContext = {
+    /**
+     * Account Seq
+     */
+    account_seq: string | null;
+    /**
+     * Expected Pool Revisions
+     */
+    expected_pool_revisions: {
+        [key: string]: unknown | number;
+    };
+    /**
+     * Funding
+     */
+    funding: Array<CapitalFunding> | null;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Pools
+     */
+    pools: Array<FundingPool>;
+    /**
+     * Status
+     */
+    status: 'available' | 'unconfigured' | 'inconsistent';
+};
+
+/**
  * InvestigationCondition
  */
 export type InvestigationCondition = {
@@ -1758,6 +1818,59 @@ export type InvestigationOutput = {
 };
 
 /**
+ * InvestigationOutputV2
+ */
+export type InvestigationOutputV2 = {
+    /**
+     * Alternatives
+     */
+    alternatives: Array<string>;
+    capital_proposal: CapitalProposal | null;
+    /**
+     * Opportunities
+     */
+    opportunities: Array<InvestigationOpportunity>;
+    /**
+     * Opposing Evidence
+     */
+    opposing_evidence: Array<string>;
+    /**
+     * Rationale
+     */
+    rationale: string;
+    /**
+     * Research Requests
+     */
+    research_requests: Array<{
+        [key: string]: unknown;
+    }>;
+    /**
+     * Review After
+     */
+    review_after: string | null;
+    /**
+     * Review Conditions
+     */
+    review_conditions: Array<InvestigationCondition>;
+    /**
+     * Schema Version
+     */
+    schema_version: 2;
+    /**
+     * Source Findings
+     */
+    source_findings: Array<InvestigationSourceFinding>;
+    /**
+     * Summary
+     */
+    summary: string;
+    /**
+     * Uncertainties
+     */
+    uncertainties: Array<string>;
+};
+
+/**
  * InvestigationPause
  */
 export type InvestigationPause = {
@@ -1779,7 +1892,10 @@ export type InvestigationResponse = {
     latest_execution: {
         [key: string]: unknown;
     } | null;
-    latest_output: InvestigationOutput | null;
+    /**
+     * Latest Output
+     */
+    latest_output: InvestigationOutput | InvestigationOutputV2 | null;
     /**
      * Research Jobs
      */
@@ -3868,6 +3984,20 @@ export type ProfitLoss = {
 };
 
 /**
+ * ProposalCompleteness
+ */
+export type ProposalCompleteness = {
+    /**
+     * Complete Alternative Keys
+     */
+    complete_alternative_keys: Array<string>;
+    /**
+     * Incomplete Alternatives
+     */
+    incomplete_alternatives: Array<IncompleteAlternative>;
+};
+
+/**
  * ProposedAction
  */
 export type ProposedAction = {
@@ -3895,6 +4025,94 @@ export type ProposedAction = {
      * Target Weight
      */
     target_weight?: string | null;
+};
+
+/**
+ * ProposedAlternative
+ */
+export type ProposedAlternative = {
+    /**
+     * Key
+     */
+    key: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Legs
+     */
+    legs: Array<ProposedLeg>;
+    /**
+     * Rationale
+     */
+    rationale: string;
+};
+
+/**
+ * ProposedLeg
+ */
+export type ProposedLeg = {
+    /**
+     * Action
+     */
+    action: 'buy' | 'add' | 'hold' | 'trim' | 'sell';
+    /**
+     * Capture Ids
+     */
+    capture_ids: Array<string>;
+    /**
+     * Cost Rationale
+     */
+    cost_rationale: string;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Evidence Ids
+     */
+    evidence_ids: Array<string>;
+    /**
+     * Fee Bps
+     */
+    fee_bps: string | null;
+    /**
+     * Fixed Fee
+     */
+    fixed_fee: string | null;
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Price
+     */
+    price: string | null;
+    /**
+     * Price Rationale
+     */
+    price_rationale: string;
+    /**
+     * Quantity
+     */
+    quantity: string | null;
+    /**
+     * Rationale
+     */
+    rationale: string;
+    /**
+     * Sizing Rationale
+     */
+    sizing_rationale: string;
+    /**
+     * Symbol
+     */
+    symbol: string;
+    /**
+     * Tax Bps
+     */
+    tax_bps: string | null;
 };
 
 /**
@@ -4674,6 +4892,275 @@ export type UnselectedFreshness = {
      * Status
      */
     status: 'not_selected';
+};
+
+/**
+ * WorkflowCreate
+ */
+export type WorkflowCreate = {
+    /**
+     * Alternative Id
+     */
+    alternative_id: string;
+    /**
+     * Investigation Id
+     */
+    investigation_id: string;
+    /**
+     * Investigation Revision
+     */
+    investigation_revision: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * WorkflowList
+ */
+export type WorkflowList = {
+    /**
+     * Items
+     */
+    items: Array<WorkflowView>;
+    /**
+     * Omitted Count
+     */
+    omitted_count: number;
+    /**
+     * Total Count
+     */
+    total_count: number;
+};
+
+/**
+ * WorkflowMutation
+ */
+export type WorkflowMutation = {
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * WorkflowObserve
+ */
+export type WorkflowObserve = {
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Scan Id
+     */
+    scan_id: string;
+};
+
+/**
+ * WorkflowProposal
+ */
+export type WorkflowProposal = {
+    /**
+     * Account Seq
+     */
+    account_seq: string | null;
+    capital_context: InvestigationCapitalContext | null;
+    capital_proposal: CapitalProposal | null;
+    completeness: ProposalCompleteness;
+    /**
+     * Input Id
+     */
+    input_id: string;
+    /**
+     * Investigation Id
+     */
+    investigation_id: string;
+    /**
+     * Investigation Revision
+     */
+    investigation_revision: number;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Output Id
+     */
+    output_id: string;
+    /**
+     * Run Id
+     */
+    run_id: string;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string | null;
+};
+
+/**
+ * WorkflowReconcile
+ */
+export type WorkflowReconcile = {
+    /**
+     * After Scan Id
+     */
+    after_scan_id: string;
+    /**
+     * After Snapshot Id
+     */
+    after_snapshot_id: string;
+    /**
+     * Before Scan Id
+     */
+    before_scan_id: string | null;
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * WorkflowStep
+ */
+export type WorkflowStep = {
+    /**
+     * Attempt Count
+     */
+    attempt_count: number;
+    /**
+     * Completed At
+     */
+    completed_at: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Error Code
+     */
+    error_code: string | null;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Input
+     */
+    input: {
+        [key: string]: unknown;
+    };
+    /**
+     * Kind
+     */
+    kind: 'funding_refresh' | 'capital_plan' | 'reservation' | 'order_intent' | 'order_observation' | 'reconciliation';
+    /**
+     * Lease Expires At
+     */
+    lease_expires_at: string | null;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Request Sha256
+     */
+    request_sha256: string;
+    /**
+     * Result
+     */
+    result: {
+        [key: string]: unknown;
+    } | null;
+    /**
+     * Sequence
+     */
+    sequence: number;
+    /**
+     * State
+     */
+    state: 'prepared' | 'running' | 'succeeded' | 'needs_check';
+    /**
+     * Updated At
+     */
+    updated_at: string;
+    /**
+     * Workflow Id
+     */
+    workflow_id: string;
+};
+
+/**
+ * WorkflowView
+ */
+export type WorkflowView = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Execution Ready
+     */
+    execution_ready: false;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Revision
+     */
+    revision: number;
+    /**
+     * Seed
+     */
+    seed: {
+        [key: string]: unknown;
+    };
+    /**
+     * Stage
+     */
+    stage: string | null;
+    /**
+     * Status
+     */
+    status: 'active' | 'paused' | 'attention' | 'completed';
+    /**
+     * Steps
+     */
+    steps: Array<WorkflowStep>;
+    /**
+     * Updated At
+     */
+    updated_at: string;
 };
 
 export type ListAccountSnapshotsData = {
@@ -7055,3 +7542,498 @@ export type GetResearchResponses = {
 };
 
 export type GetResearchResponse = GetResearchResponses[keyof GetResearchResponses];
+
+export type ListWorkflowsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/workflows';
+};
+
+export type ListWorkflowsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListWorkflowsError = ListWorkflowsErrors[keyof ListWorkflowsErrors];
+
+export type ListWorkflowsResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowList;
+};
+
+export type ListWorkflowsResponse = ListWorkflowsResponses[keyof ListWorkflowsResponses];
+
+export type CreateWorkflowData = {
+    body: WorkflowCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/workflows';
+};
+
+export type CreateWorkflowErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CreateWorkflowError = CreateWorkflowErrors[keyof CreateWorkflowErrors];
+
+export type CreateWorkflowResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowView;
+};
+
+export type CreateWorkflowResponse = CreateWorkflowResponses[keyof CreateWorkflowResponses];
+
+export type GetWorkflowProposalData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/workflows/proposal/{id}';
+};
+
+export type GetWorkflowProposalErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetWorkflowProposalError = GetWorkflowProposalErrors[keyof GetWorkflowProposalErrors];
+
+export type GetWorkflowProposalResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowProposal;
+};
+
+export type GetWorkflowProposalResponse = GetWorkflowProposalResponses[keyof GetWorkflowProposalResponses];
+
+export type GetWorkflowData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/workflows/{id}';
+};
+
+export type GetWorkflowErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetWorkflowError = GetWorkflowErrors[keyof GetWorkflowErrors];
+
+export type GetWorkflowResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowView;
+};
+
+export type GetWorkflowResponse = GetWorkflowResponses[keyof GetWorkflowResponses];
+
+export type AdvanceWorkflowData = {
+    body: WorkflowMutation;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/workflows/{id}/advance';
+};
+
+export type AdvanceWorkflowErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type AdvanceWorkflowError = AdvanceWorkflowErrors[keyof AdvanceWorkflowErrors];
+
+export type AdvanceWorkflowResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowView;
+};
+
+export type AdvanceWorkflowResponse = AdvanceWorkflowResponses[keyof AdvanceWorkflowResponses];
+
+export type ObserveWorkflowData = {
+    body: WorkflowObserve;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/workflows/{id}/observe';
+};
+
+export type ObserveWorkflowErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ObserveWorkflowError = ObserveWorkflowErrors[keyof ObserveWorkflowErrors];
+
+export type ObserveWorkflowResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowView;
+};
+
+export type ObserveWorkflowResponse = ObserveWorkflowResponses[keyof ObserveWorkflowResponses];
+
+export type PauseWorkflowData = {
+    body: WorkflowMutation;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/workflows/{id}/pause';
+};
+
+export type PauseWorkflowErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type PauseWorkflowError = PauseWorkflowErrors[keyof PauseWorkflowErrors];
+
+export type PauseWorkflowResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowView;
+};
+
+export type PauseWorkflowResponse = PauseWorkflowResponses[keyof PauseWorkflowResponses];
+
+export type ReconcileWorkflowData = {
+    body: WorkflowReconcile;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/workflows/{id}/reconcile';
+};
+
+export type ReconcileWorkflowErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ReconcileWorkflowError = ReconcileWorkflowErrors[keyof ReconcileWorkflowErrors];
+
+export type ReconcileWorkflowResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowView;
+};
+
+export type ReconcileWorkflowResponse = ReconcileWorkflowResponses[keyof ReconcileWorkflowResponses];
+
+export type RecoverWorkflowData = {
+    body: WorkflowMutation;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/workflows/{id}/recover';
+};
+
+export type RecoverWorkflowErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type RecoverWorkflowError = RecoverWorkflowErrors[keyof RecoverWorkflowErrors];
+
+export type RecoverWorkflowResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowView;
+};
+
+export type RecoverWorkflowResponse = RecoverWorkflowResponses[keyof RecoverWorkflowResponses];
+
+export type ResumeWorkflowData = {
+    body: WorkflowMutation;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/workflows/{id}/resume';
+};
+
+export type ResumeWorkflowErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ResumeWorkflowError = ResumeWorkflowErrors[keyof ResumeWorkflowErrors];
+
+export type ResumeWorkflowResponses = {
+    /**
+     * Successful Response
+     */
+    200: WorkflowView;
+};
+
+export type ResumeWorkflowResponse = ResumeWorkflowResponses[keyof ResumeWorkflowResponses];

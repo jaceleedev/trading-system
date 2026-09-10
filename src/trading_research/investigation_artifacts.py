@@ -120,7 +120,11 @@ class _Reader:
                 continue
             self.checked.add(current)
             value = self.values[current]
-            _require(type(value.get("schema_version")) is int and value["schema_version"] == 1)
+            _require(type(value.get("schema_version")) is int)
+            _require(
+                value["schema_version"]
+                in ({1, 2} if value.get("kind") == "investigation_input" else {1})
+            )
             _instant(value["recorded_at"])
             kind = value.get("kind")
             if kind == "investigation_input":
@@ -147,7 +151,10 @@ class _Reader:
         from trading_research.investigation_sources import capture_input
         from trading_research.toss_market import CONTRACT_SHA256, validate_query
 
-        _require(set(value) == _INPUT_KEYS)
+        _require(
+            set(value)
+            == _INPUT_KEYS | ({"capital_context"} if value["schema_version"] == 2 else set())
+        )
         if len(object_bytes(value)) > INPUT_LIMIT:
             raise DataError("Investigation input exceeds its size limit")
         request = value["request"]
@@ -179,6 +186,10 @@ class _Reader:
         InvestmentContext.model_validate(context)
         _require(_instant(context["generated_at"]) == deadline)
         account = context["account"]
+        if value["schema_version"] == 2:
+            from trading_research.investigation_capital import validate_capital_context
+
+            validate_capital_context(value["capital_context"], account, request["mode"])
         _require((account["id"] if account is not None else None) == request["snapshot_id"])
         _require(context["snapshot_freshness"]["snapshot_id"] == request["snapshot_id"])
         if account is not None:
@@ -308,7 +319,10 @@ class _Reader:
         _require(value["mode"] == frozen["request"]["mode"])
         _require(_instant(value["recorded_at"]) >= _instant(frozen["recorded_at"]))
         _identity(value["raw_output_sha"])
-        output = validate_output(value["output"])
+        output = validate_output(value["output"], expected_version=frozen["schema_version"])
+        from trading_research.investigation_proposals import validate_proposal_sources
+
+        validate_proposal_sources(output, frozen)
         known = {
             item["id"]
             for item in frozen["context"]["records"] + frozen["explicit_evidence"]
@@ -341,6 +355,13 @@ class _Reader:
         execution = value["execution"]
         _require(type(execution) is dict)
         if execution:
+            if frozen["schema_version"] == 2:
+                from hashlib import sha256
+
+                schema = (
+                    Path(__file__).with_name("investigation_output_v2.schema.json").read_bytes()
+                )
+                _require(execution.get("output_schema_sha256") == sha256(schema).hexdigest())
             _require(execution.get("input_sha256") == value["input_id"])
             _require(execution.get("source") == "local_subprocess")
             _require(

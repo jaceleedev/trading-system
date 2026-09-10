@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Synthetic subprocess protocol fixture. Never imports Codex or accesses a provider."""
 
+import hashlib
 import json
 import os
 import signal
@@ -22,9 +23,15 @@ document = json.load(sys.stdin)
 scenario = document.get("scenario", "normal")
 result_path = Path(sys.argv[sys.argv.index("--output-last-message") + 1])
 if document.get("inspection_file"):
+    schema = Path(sys.argv[sys.argv.index("--output-schema") + 1]).read_bytes()
     Path(document["inspection_file"]).write_text(
         json.dumps(
-            {"argv": sys.argv[1:], "environment_names": sorted(os.environ), "cwd": os.getcwd()}
+            {
+                "argv": sys.argv[1:],
+                "environment_names": sorted(os.environ),
+                "cwd": os.getcwd(),
+                "schema_sha256": hashlib.sha256(schema).hexdigest(),
+            }
         )
     )
 emit(

@@ -295,6 +295,9 @@ def create_app(
     from trading_research.order_api import register_order_routes
 
     register_order_routes(app, workspace, job_store, synthetic=synthetic)
+    from trading_research.workflow_api import register_workflow_routes
+
+    register_workflow_routes(app, workspace, job_store, synthetic=synthetic)
 
     @app.get("/{path:path}", include_in_schema=False)
     def static(path: str):

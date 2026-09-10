@@ -9,6 +9,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from trading_research.api_models import APIModel, ErrorResponse, ObjectId, TimestampText
 from trading_research.errors import DataError
+from trading_research.investigation_proposal_models import CapitalProposal
 from trading_research.job_api import JobView
 from trading_research.jobs import JobStoreUnavailable
 
@@ -93,10 +94,15 @@ class InvestigationOutput(APIModel):
     source_findings: list[InvestigationSourceFinding]
 
 
+class InvestigationOutputV2(InvestigationOutput):
+    schema_version: Literal[2]
+    capital_proposal: CapitalProposal | None
+
+
 class InvestigationResponse(APIModel):
     investigation: InvestigationView
     active_job: JobView | None
-    latest_output: InvestigationOutput | None
+    latest_output: InvestigationOutput | InvestigationOutputV2 | None
     latest_execution: dict | None
     research_jobs: list[JobView] = Field(default_factory=list)
 

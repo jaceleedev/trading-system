@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AbortOrderIntentData, AbortOrderIntentErrors, AbortOrderIntentResponses, AdvancePaperBookData, AdvancePaperBookErrors, AdvancePaperBookResponses, CancelJobData, CancelJobErrors, CancelJobResponses, CancelOrderIntentData, CancelOrderIntentErrors, CancelOrderIntentResponses, CancelPaperIntentData, CancelPaperIntentErrors, CancelPaperIntentResponses, CreateCapitalPlanData, CreateCapitalPlanErrors, CreateCapitalPlanResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, CreateOrderIntentData, CreateOrderIntentErrors, CreateOrderIntentResponses, CreatePaperBookData, CreatePaperBookErrors, CreatePaperBookResponses, GetBrokerScanData, GetBrokerScanErrors, GetBrokerScanResponses, GetCapitalPlanData, GetCapitalPlanErrors, GetCapitalPlanResponses, GetContextData, GetContextErrors, GetContextResponses, GetFundingData, GetFundingErrors, GetFundingResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetOrderIntentData, GetOrderIntentErrors, GetOrderIntentResponses, GetPaperBookData, GetPaperBookErrors, GetPaperBookResponses, GetReconciliationData, GetReconciliationErrors, GetReconciliationResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListBrokerScansData, ListBrokerScansErrors, ListBrokerScansResponses, ListCapitalPlansData, ListCapitalPlansErrors, ListCapitalPlansResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, ListOrderIntentsData, ListOrderIntentsErrors, ListOrderIntentsResponses, ListPaperBooksData, ListPaperBooksErrors, ListPaperBooksResponses, ListPaperEventsData, ListPaperEventsErrors, ListPaperEventsResponses, ListReconciliationsData, ListReconciliationsErrors, ListReconciliationsResponses, ModifyOrderIntentData, ModifyOrderIntentErrors, ModifyOrderIntentResponses, ObserveOrderIntentData, ObserveOrderIntentErrors, ObserveOrderIntentResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, PreviewCapitalPlanData, PreviewCapitalPlanErrors, PreviewCapitalPlanResponses, PreviewReconciliationData, PreviewReconciliationErrors, PreviewReconciliationResponses, RecoverOrderIntentData, RecoverOrderIntentErrors, RecoverOrderIntentResponses, RefreshFundingData, RefreshFundingErrors, RefreshFundingResponses, ReleaseFundingReservationData, ReleaseFundingReservationErrors, ReleaseFundingReservationResponses, ReserveCapitalPlanData, ReserveCapitalPlanErrors, ReserveCapitalPlanResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SaveReconciliationData, SaveReconciliationErrors, SaveReconciliationResponses, SimulateOrderOperationData, SimulateOrderOperationErrors, SimulateOrderOperationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses, SubmitPaperIntentData, SubmitPaperIntentErrors, SubmitPaperIntentResponses } from './types.gen';
+import type { AbortOrderIntentData, AbortOrderIntentErrors, AbortOrderIntentResponses, AdvancePaperBookData, AdvancePaperBookErrors, AdvancePaperBookResponses, AdvanceWorkflowData, AdvanceWorkflowErrors, AdvanceWorkflowResponses, CancelJobData, CancelJobErrors, CancelJobResponses, CancelOrderIntentData, CancelOrderIntentErrors, CancelOrderIntentResponses, CancelPaperIntentData, CancelPaperIntentErrors, CancelPaperIntentResponses, CreateCapitalPlanData, CreateCapitalPlanErrors, CreateCapitalPlanResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, CreateOrderIntentData, CreateOrderIntentErrors, CreateOrderIntentResponses, CreatePaperBookData, CreatePaperBookErrors, CreatePaperBookResponses, CreateWorkflowData, CreateWorkflowErrors, CreateWorkflowResponses, GetBrokerScanData, GetBrokerScanErrors, GetBrokerScanResponses, GetCapitalPlanData, GetCapitalPlanErrors, GetCapitalPlanResponses, GetContextData, GetContextErrors, GetContextResponses, GetFundingData, GetFundingErrors, GetFundingResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetOrderIntentData, GetOrderIntentErrors, GetOrderIntentResponses, GetPaperBookData, GetPaperBookErrors, GetPaperBookResponses, GetReconciliationData, GetReconciliationErrors, GetReconciliationResponses, GetResearchData, GetResearchErrors, GetResearchResponses, GetWorkflowData, GetWorkflowErrors, GetWorkflowProposalData, GetWorkflowProposalErrors, GetWorkflowProposalResponses, GetWorkflowResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListBrokerScansData, ListBrokerScansErrors, ListBrokerScansResponses, ListCapitalPlansData, ListCapitalPlansErrors, ListCapitalPlansResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, ListOrderIntentsData, ListOrderIntentsErrors, ListOrderIntentsResponses, ListPaperBooksData, ListPaperBooksErrors, ListPaperBooksResponses, ListPaperEventsData, ListPaperEventsErrors, ListPaperEventsResponses, ListReconciliationsData, ListReconciliationsErrors, ListReconciliationsResponses, ListWorkflowsData, ListWorkflowsErrors, ListWorkflowsResponses, ModifyOrderIntentData, ModifyOrderIntentErrors, ModifyOrderIntentResponses, ObserveOrderIntentData, ObserveOrderIntentErrors, ObserveOrderIntentResponses, ObserveWorkflowData, ObserveWorkflowErrors, ObserveWorkflowResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, PauseWorkflowData, PauseWorkflowErrors, PauseWorkflowResponses, PreviewCapitalPlanData, PreviewCapitalPlanErrors, PreviewCapitalPlanResponses, PreviewReconciliationData, PreviewReconciliationErrors, PreviewReconciliationResponses, ReconcileWorkflowData, ReconcileWorkflowErrors, ReconcileWorkflowResponses, RecoverOrderIntentData, RecoverOrderIntentErrors, RecoverOrderIntentResponses, RecoverWorkflowData, RecoverWorkflowErrors, RecoverWorkflowResponses, RefreshFundingData, RefreshFundingErrors, RefreshFundingResponses, ReleaseFundingReservationData, ReleaseFundingReservationErrors, ReleaseFundingReservationResponses, ReserveCapitalPlanData, ReserveCapitalPlanErrors, ReserveCapitalPlanResponses, ResumeWorkflowData, ResumeWorkflowErrors, ResumeWorkflowResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SaveReconciliationData, SaveReconciliationErrors, SaveReconciliationResponses, SimulateOrderOperationData, SimulateOrderOperationErrors, SimulateOrderOperationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses, SubmitPaperIntentData, SubmitPaperIntentErrors, SubmitPaperIntentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -401,3 +401,102 @@ export const getReconciliation = <ThrowOnError extends boolean = false>(options:
  * Research Record
  */
 export const getResearch = <ThrowOnError extends boolean = false>(options: Options<GetResearchData, ThrowOnError>): RequestResult<GetResearchResponses, GetResearchErrors, ThrowOnError> => (options.client ?? client).get<GetResearchResponses, GetResearchErrors, ThrowOnError>({ url: '/api/v1/research/{id}', ...options });
+
+/**
+ * List Workflows
+ */
+export const listWorkflows = <ThrowOnError extends boolean = false>(options?: Options<ListWorkflowsData, ThrowOnError>): RequestResult<ListWorkflowsResponses, ListWorkflowsErrors, ThrowOnError> => (options?.client ?? client).get<ListWorkflowsResponses, ListWorkflowsErrors, ThrowOnError>({ url: '/api/v1/workflows', ...options });
+
+/**
+ * Create Workflow
+ */
+export const createWorkflow = <ThrowOnError extends boolean = false>(options: Options<CreateWorkflowData, ThrowOnError>): RequestResult<CreateWorkflowResponses, CreateWorkflowErrors, ThrowOnError> => (options.client ?? client).post<CreateWorkflowResponses, CreateWorkflowErrors, ThrowOnError>({
+    url: '/api/v1/workflows',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Workflow Proposal
+ */
+export const getWorkflowProposal = <ThrowOnError extends boolean = false>(options: Options<GetWorkflowProposalData, ThrowOnError>): RequestResult<GetWorkflowProposalResponses, GetWorkflowProposalErrors, ThrowOnError> => (options.client ?? client).get<GetWorkflowProposalResponses, GetWorkflowProposalErrors, ThrowOnError>({ url: '/api/v1/workflows/proposal/{id}', ...options });
+
+/**
+ * Get Workflow
+ */
+export const getWorkflow = <ThrowOnError extends boolean = false>(options: Options<GetWorkflowData, ThrowOnError>): RequestResult<GetWorkflowResponses, GetWorkflowErrors, ThrowOnError> => (options.client ?? client).get<GetWorkflowResponses, GetWorkflowErrors, ThrowOnError>({ url: '/api/v1/workflows/{id}', ...options });
+
+/**
+ * Advance Workflow
+ */
+export const advanceWorkflow = <ThrowOnError extends boolean = false>(options: Options<AdvanceWorkflowData, ThrowOnError>): RequestResult<AdvanceWorkflowResponses, AdvanceWorkflowErrors, ThrowOnError> => (options.client ?? client).post<AdvanceWorkflowResponses, AdvanceWorkflowErrors, ThrowOnError>({
+    url: '/api/v1/workflows/{id}/advance',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Observe Workflow
+ */
+export const observeWorkflow = <ThrowOnError extends boolean = false>(options: Options<ObserveWorkflowData, ThrowOnError>): RequestResult<ObserveWorkflowResponses, ObserveWorkflowErrors, ThrowOnError> => (options.client ?? client).post<ObserveWorkflowResponses, ObserveWorkflowErrors, ThrowOnError>({
+    url: '/api/v1/workflows/{id}/observe',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Pause Workflow
+ */
+export const pauseWorkflow = <ThrowOnError extends boolean = false>(options: Options<PauseWorkflowData, ThrowOnError>): RequestResult<PauseWorkflowResponses, PauseWorkflowErrors, ThrowOnError> => (options.client ?? client).post<PauseWorkflowResponses, PauseWorkflowErrors, ThrowOnError>({
+    url: '/api/v1/workflows/{id}/pause',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Reconcile Workflow
+ */
+export const reconcileWorkflow = <ThrowOnError extends boolean = false>(options: Options<ReconcileWorkflowData, ThrowOnError>): RequestResult<ReconcileWorkflowResponses, ReconcileWorkflowErrors, ThrowOnError> => (options.client ?? client).post<ReconcileWorkflowResponses, ReconcileWorkflowErrors, ThrowOnError>({
+    url: '/api/v1/workflows/{id}/reconcile',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Recover Workflow
+ */
+export const recoverWorkflow = <ThrowOnError extends boolean = false>(options: Options<RecoverWorkflowData, ThrowOnError>): RequestResult<RecoverWorkflowResponses, RecoverWorkflowErrors, ThrowOnError> => (options.client ?? client).post<RecoverWorkflowResponses, RecoverWorkflowErrors, ThrowOnError>({
+    url: '/api/v1/workflows/{id}/recover',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Resume Workflow
+ */
+export const resumeWorkflow = <ThrowOnError extends boolean = false>(options: Options<ResumeWorkflowData, ThrowOnError>): RequestResult<ResumeWorkflowResponses, ResumeWorkflowErrors, ThrowOnError> => (options.client ?? client).post<ResumeWorkflowResponses, ResumeWorkflowErrors, ThrowOnError>({
+    url: '/api/v1/workflows/{id}/resume',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});

@@ -16,11 +16,12 @@ from trading_research import codex_runner, investigation_service
 from trading_research.capture_store import write_capture
 from trading_research.decision_workspace import record
 from trading_research.errors import DataError
+from trading_research.investigation_artifacts import read_artifact
 from trading_research.investigation_service import InvestigationService
 from trading_research.jobs import local_job_store
 from trading_research.market_observations import RESPONSE_CONTRACT_SHA256
 from trading_research.models import InvestigationRow, JobRow
-from trading_research.private_store import put_object
+from trading_research.private_store import get_object, put_object
 from trading_research.serialization import fingerprint
 from trading_research.toss_account import CONTRACT_SHA256 as ACCOUNT_CONTRACT
 from trading_research.toss_account import _summary
@@ -50,6 +51,8 @@ def request(key="new", **changes):
 
 def proposal(**changes):
     return {
+        "schema_version": 2,
+        "capital_proposal": None,
         "summary": "Synthetic proposal",
         "rationale": "Compare observations.",
         "opportunities": [],
@@ -210,6 +213,7 @@ def complete(service, monkeypatch, output=None):
                 # Deliberate protocol fixture, never reported as a real model run.
                 "source": "local_subprocess",
                 "synthetic": True,
+                "output_schema_sha256": codex_runner.output_schema_sha256(frozen["schema_version"]),
                 "input_sha256": fingerprint(frozen),
                 "reported_model": None,
                 "model_identity_verified": False,
@@ -228,7 +232,11 @@ def complete(service, monkeypatch, output=None):
             if state["status"] != "running":
                 raise DataError("Synthetic guard saw cancelled work")
 
-    result = service.run(job, Guard(), None)
+    result = service.run(
+        job,
+        Guard(),
+        codex_runner.RunnerSettings(codex_executable="synthetic-unused", synthetic=True),
+    )
     service.store.finish(job["id"], job["attempt_token"], result)
     return service.get(job["parameters"]["investigation_id"]), seen[0]
 
@@ -245,6 +253,47 @@ def test_create_retry_keeps_original_frozen_time_and_normalized_logical_request(
     assert len(service.jobs.list_jobs()) == 1
     with pytest.raises(DataError, match="different input"):
         service.create({**document, "purpose": "Changed objective"})
+
+
+def test_v2_post_run_source_failure_preserves_execution_but_never_promotes(service, monkeypatch):
+    created = service.create(request())["investigation"]
+    output = proposal(
+        opportunities=[
+            {
+                "symbol": "UNKNOWN",
+                "market": "US",
+                "action": "research",
+                "rationale": "Synthetic unknown reference",
+                "evidence_ids": ["f" * 64],
+            }
+        ]
+    )
+    with pytest.raises(DataError):
+        complete(service, monkeypatch, output)
+
+    records = [
+        (path.stem, get_object(service.workspace / "var/investigations", path.stem))
+        for path in (service.workspace / "var/investigations").glob("*.json")
+    ]
+    runs = [
+        (identity, record) for identity, record in records if record["kind"] == "investigation_run"
+    ]
+    assert len(runs) == 1
+    identity, failed = runs[0]
+    assert failed["status"] == "failed" and failed["output_id"] is None
+    assert failed["execution"] == {
+        "source": "local_subprocess",
+        "synthetic": True,
+        "output_schema_sha256": codex_runner.output_schema_sha256(2),
+        "input_sha256": created["context_input"]["input_id"],
+        "reported_model": None,
+        "model_identity_verified": False,
+        "completed_event": True,
+        "exit_code": 0,
+    }
+    assert read_artifact(service.workspace / "var/investigations", identity) == failed
+    assert not any(record["kind"] == "investigation_output" for _, record in records)
+    assert service.get(created["id"])["investigation"]["latest_result"] is None
 
 
 def test_concurrent_create_freezes_once_logically_and_preserves_idempotency(service, monkeypatch):

@@ -1,6 +1,7 @@
 """Freeze investigation inputs, record observed runs, and coordinate adaptive follow-ups."""
 
 import copy
+from dataclasses import replace
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -131,7 +132,15 @@ class InvestigationService:
             raise DataError("Investigation request key was reused with different input")
         return self._detail(match["investigation"])
 
-    def _freeze(self, logical, *, base_revision=None, previous=None, collection_outcomes=None):
+    def _freeze(
+        self,
+        logical,
+        *,
+        base_revision=None,
+        previous=None,
+        collection_outcomes=None,
+        schema_version=2,
+    ):
         if self.synthetic and logical["mode"] != "synthetic":
             raise DataError("A synthetic workspace requires synthetic investigation mode")
         now = utc_now()
@@ -209,7 +218,7 @@ class InvestigationService:
             }
         frozen = {
             "kind": "investigation_input",
-            "schema_version": 1,
+            "schema_version": schema_version,
             "recorded_at": now.isoformat(),
             "request": logical,
             "base_revision": base_revision,
@@ -242,6 +251,21 @@ class InvestigationService:
                 "remains under the capture id. Fields outside candle views are unnormalized.",
             ],
         }
+        from trading_research.funding import FundingStore
+        from trading_research.investigation_capital import freeze_capital_context
+
+        if schema_version == 2:
+            frozen["capital_context"] = freeze_capital_context(
+                FundingStore(self.jobs.engine, self.jobs.workspace_key),
+                context["account"],
+                logical["mode"],
+            )
+            frozen["instructions"].append(
+                "When supported by evidence, propose capital alternatives with quantities, prices, "
+                "and explicit cost assumptions. Preserve missing assumptions as null. The frozen "
+                "capital_context is an operator budget observation, not actual cash or permission "
+                "to increase a limit. Reference only this input's snapshot and source ids."
+            )
         if len(object_bytes(frozen)) > INPUT_LIMIT:
             raise DataError("Investigation input is too large; choose fewer source records")
         identity = put_object(self._root("inputs"), frozen)
@@ -335,10 +359,20 @@ class InvestigationService:
             "input_id": parameters["input_id"],
             "mode": frozen["request"]["mode"],
         }
+        observed_execution = {}
         try:
-            result = codex_runner.run(frozen, guard.checkpoint, settings)
+            result = codex_runner.run(
+                frozen,
+                guard.checkpoint,
+                replace(settings, output_schema_version=frozen["schema_version"]),
+            )
+            observed_execution = result["execution"]
             guard.checkpoint()
             output = result["output"]
+            codex_runner.validate_output(output, expected_version=frozen["schema_version"])
+            from trading_research.investigation_proposals import validate_proposal_sources
+
+            validate_proposal_sources(output, frozen)
             known = {
                 record["id"]
                 for record in frozen["context"]["records"] + frozen["explicit_evidence"]
@@ -386,7 +420,11 @@ class InvestigationService:
                 "orders_enabled": False,
             }
         except Exception as exc:
-            execution = getattr(exc, "execution", getattr(exc, "codex_execution", {}))
+            execution = (
+                getattr(exc, "execution", None)
+                or getattr(exc, "codex_execution", None)
+                or observed_execution
+            )
             put_object(
                 self._root("runs"),
                 {
