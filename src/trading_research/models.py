@@ -51,3 +51,13 @@ class FxRow(Base):
     date: Mapped[date] = mapped_column(Date, primary_key=True)
     krw_per_unit: Mapped[Decimal] = mapped_column(Numeric(28, 10))
     available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class RecommendationRow(Base):
+    __tablename__ = "recommendations"
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    dataset_id: Mapped[str] = mapped_column(ForeignKey("datasets.id"), index=True)
+    as_of: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    payload: Mapped[dict] = mapped_column(JSONB)
+    payload_sha256: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

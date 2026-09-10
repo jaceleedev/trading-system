@@ -41,6 +41,22 @@ def test_atomic_import_roundtrip_and_immutable_revision(session, tmp_path):
     assert sorted(restored.bars, key=lambda b: (b.instrument_id, b.session_date)) == sorted(
         bundle.bars, key=lambda b: (b.instrument_id, b.session_date)
     )
+    from trading_research.models import RecommendationRow
+    from trading_research.recommendations import checked_payload, save_recommendation
+    from trading_research.strategy import Account, ResearchConfig, recommend
+
+    account = Account.load("configs/account.demo.json")
+    config = ResearchConfig.load("configs/research.json")
+    payload = recommend(bundle, account, config, account.as_of)
+    assert payload == recommend(restored, account, config, account.as_of)
+    from sqlalchemy import text
+
+    session.execute(text("SET LOCAL TIME ZONE 'Asia/Seoul'"))
+    assert payload == recommend(read_bundle(session, bundle.id), account, config, account.as_of)
+    assert save_recommendation(session, payload)
+    assert not save_recommendation(session, payload)
+    row = session.get(RecommendationRow, payload["id"])
+    assert checked_payload(row) == payload
     changed = Bundle(bundle.manifest, "0" * 64, bundle.instruments, bundle.bars, bundle.fx)
     with pytest.raises(DataError, match="different content"):
         import_bundle(session, changed)
