@@ -1,0 +1,190 @@
+{
+  "provider": "toss",
+  "version": "1.2.15",
+  "source": "https://openapi.tossinvest.com/openapi-docs/latest/openapi.json",
+  "retrieved_date": "2026-09-10",
+  "source_sha256": "c5d7b87daa6db64e6e41dc581c3e820a3c6b8455412946a1f9971b813852cb79",
+  "base_url": "https://openapi.tossinvest.com",
+  "endpoints": {
+    "/api/v1/candles": [
+      {
+        "name": "symbol",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9.\\-]+$"
+        }
+      },
+      {
+        "name": "interval",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "1m",
+            "1d"
+          ]
+        }
+      },
+      {
+        "name": "count",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "default": 100,
+          "minimum": 1,
+          "maximum": 200
+        }
+      },
+      {
+        "name": "before",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      {
+        "name": "adjusted",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    ],
+    "/api/v1/stocks": [
+      {
+        "name": "symbols",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9.,\\-]+$"
+        }
+      }
+    ],
+    "/api/v1/stocks/all": [
+      {
+        "name": "market",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "KOSPI",
+            "KOSDAQ",
+            "NYSE",
+            "NASDAQ",
+            "AMEX",
+            "KR_ETC",
+            "US_ETC"
+          ]
+        }
+      },
+      {
+        "name": "status",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "SCHEDULED",
+            "ACTIVE",
+            "DELISTED"
+          ],
+          "default": "ACTIVE"
+        }
+      },
+      {
+        "name": "securityType",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "STOCK",
+            "FOREIGN_STOCK",
+            "DEPOSITARY_RECEIPT",
+            "INFRASTRUCTURE_FUND",
+            "REIT",
+            "ETF",
+            "FOREIGN_ETF",
+            "ETN",
+            "STOCK_WARRANTS"
+          ]
+        }
+      },
+      {
+        "name": "commonShare",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "boolean"
+        }
+      }
+    ],
+    "/api/v1/exchange-rate": [
+      {
+        "name": "dateTime",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      {
+        "name": "baseCurrency",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "KRW",
+            "USD"
+          ]
+        }
+      },
+      {
+        "name": "quoteCurrency",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "enum": [
+            "KRW",
+            "USD"
+          ]
+        }
+      }
+    ],
+    "/api/v1/market-calendar/KR": [
+      {
+        "name": "date",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    ],
+    "/api/v1/market-calendar/US": [
+      {
+        "name": "date",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    ]
+  }
+}
