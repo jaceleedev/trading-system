@@ -1,0 +1,813 @@
+{
+  "provider": "toss",
+  "version": "1.2.15",
+  "source": "https://openapi.tossinvest.com/openapi-docs/latest/openapi.json",
+  "retrieved_date": "2026-09-10",
+  "source_sha256": "ebaf20df342270274a5f6f5ad3a3d3d67b0ce02f30977da84606f3654924103e",
+  "base_url": "https://openapi.tossinvest.com",
+  "endpoints": {
+    "/api/v1/accounts": {
+      "method": "GET",
+      "description": "사용자의 계좌 목록을 조회합니다.\n\n- 현재는 **종합매매 (`BROKERAGE`) 계좌만 반환**하며, 계좌가 없으면 빈 배열. 자녀계좌는 사용할 수 없습니다.\n- 응답의 `accountSeq` 는 **다른 모든 사용자 컨텍스트 API** (보유 주식, 주문, 매수가능금액 등) 의 `X-Tossinvest-Account` 헤더에 사용합니다.\n- `accountType` enum 은 `BROKERAGE` / `OVERSEAS_DERIVATIVES` / `PENSION_SAVINGS` / `RESHORING_INVESTMENT` 가 정의되어 있으나 본 API 에서는 현재 `BROKERAGE` 만 노출됩니다. enum 의미는 `Account.accountType` schema 참조.\n\n**Rate Limits Group**: `ACCOUNT`\n",
+      "response_schema": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Account"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/holdings": {
+      "method": "GET",
+      "description": "보유 주식 정보를 조회합니다.\n국내(KR)·미국(US) 주식만 포함하며, 해외 옵션·채권은 제외합니다.\n보유 종목이 없으면 요약 금액은 0이고 items는 빈 배열입니다.\n\n**Rate Limits Group**: `ASSET`\n",
+      "response_schema": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "result": {
+                "$ref": "#/components/schemas/HoldingsOverview"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/buying-power": {
+      "method": "GET",
+      "description": "매수 주문 시 사용할 수 있는 매수 가능 금액을 조회합니다.\n미수거래를 제외한 현금 기반 매수 가능 금액(미수 미발생 기준)을 반환합니다.\n\n**Rate Limits Group**: `ORDER_INFO`\n",
+      "response_schema": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "result": {
+                "$ref": "#/components/schemas/BuyingPowerResponse"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/commissions": {
+      "method": "GET",
+      "description": "현재 계좌의 시장별 매매 수수료율을 조회합니다.\n국내주식과 해외주식의 수수료 정보를 배열로 반환합니다.\n\n**Rate Limits Group**: `ORDER_INFO`\n",
+      "response_schema": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "result": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Commission"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/orders": {
+      "method": "GET",
+      "description": "주문 목록을 조회합니다.\nstatus 파라미터로 주문 상태를 필터링합니다.\n\n**지원하는 status 값:**\n- 진행 중 주문: `OPEN` -- PENDING, PARTIAL_FILLED, PENDING_CANCEL, PENDING_REPLACE 상태의 주문을 반환\n- 종료된 주문: `CLOSED` -- FILLED, CANCELED, REJECTED, REPLACED 등 종료 상태 주문을 반환합니다.\n\nsymbol을 지정하면 해당 종목의 주문만 필터링하여 반환합니다.\n\n**조회 범위:**\nOpen API 가 지원하는 호가 유형(지정가 · 시장가 · 장마감지정가)으로 접수된 주문만 반환합니다.\n시간외단일가 · 장후시간외 종가 · 장전시간외 종가 등 Open API 로 주문할 수 없는 호가 유형의 주문은\n`OPEN`·`CLOSED` 목록과 주문 상세 조회 모두에서 조회되지 않습니다.\n\n**페이징 동작:**\n- `status=OPEN`: 모든 대기 중 주문을 전량 반환합니다. `limit`, `cursor` 는 무시되며, `from`/`to` 만 주문 생성일(`orderedAt`, KST 기준) 범위 필터로 적용됩니다 (미지정 시 전체 기간).\n- `status=CLOSED`: `limit` (기본 20, 최대 100), `cursor`, `from`/`to` 파라미터 모두 적용됩니다.\n\n**Rate Limits Group**: `ORDER_HISTORY`\n",
+      "response_schema": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiResponse"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "result": {
+                "$ref": "#/components/schemas/PaginatedOrderResponse"
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "description": "성공 응답 envelope. 200 응답에 사용됩니다.\n각 엔드포인트의 성공 응답 스키마는 `allOf` 로 본 스키마를 상속하며 `result` 를 구체 타입으로 specialize 합니다.\n실패 응답은 별도의 `ErrorResponse` 스키마를 사용합니다 (4xx/5xx). `result` 와 `error` 는 동시에 나타나지 않습니다.\n",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "description": "성공 응답의 페이로드. 엔드포인트별 타입이 다르며, 각 엔드포인트 스펙에서 `allOf` 로 구체 타입을 명시합니다.\n"
+          }
+        }
+      },
+      "Account": {
+        "type": "object",
+        "required": [
+          "accountNo",
+          "accountSeq",
+          "accountType"
+        ],
+        "properties": {
+          "accountNo": {
+            "type": "string",
+            "description": "계좌번호",
+            "example": "12345678901"
+          },
+          "accountSeq": {
+            "type": "integer",
+            "format": "int64",
+            "description": "계좌 식별 키. 주문 등 API 호출 시 이 값을 사용",
+            "example": 1
+          },
+          "accountType": {
+            "type": "string",
+            "enum": [
+              "BROKERAGE",
+              "OVERSEAS_DERIVATIVES",
+              "PENSION_SAVINGS",
+              "RESHORING_INVESTMENT"
+            ],
+            "description": "계좌 유형. 현재는 BROKERAGE 만 지원합니다.\n- BROKERAGE: 종합매매. 국내·해외 주식 통합 매매 계좌\n- OVERSEAS_DERIVATIVES: 해외파생. 해외 파생상품 거래 계좌\n- PENSION_SAVINGS: 연금저축. 세제혜택 연금저축 계좌\n- RESHORING_INVESTMENT: RIA 계좌\n\n클라이언트는 unknown enum 값을 허용하도록 구현해야 합니다.\n",
+            "example": "BROKERAGE"
+          }
+        }
+      },
+      "HoldingsOverview": {
+        "type": "object",
+        "required": [
+          "totalPurchaseAmount",
+          "marketValue",
+          "profitLoss",
+          "dailyProfitLoss",
+          "items"
+        ],
+        "properties": {
+          "totalPurchaseAmount": {
+            "description": "투자원금. 전체 보유 종목의 통화별 합산",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Price"
+              }
+            ]
+          },
+          "marketValue": {
+            "$ref": "#/components/schemas/OverviewMarketValue"
+          },
+          "profitLoss": {
+            "$ref": "#/components/schemas/OverviewProfitLoss"
+          },
+          "dailyProfitLoss": {
+            "$ref": "#/components/schemas/OverviewDailyProfitLoss"
+          },
+          "items": {
+            "type": "array",
+            "description": "보유 종목 목록. 보유 종목이 없으면 빈 배열",
+            "items": {
+              "$ref": "#/components/schemas/HoldingsItem"
+            }
+          }
+        }
+      },
+      "Price": {
+        "type": "object",
+        "description": "통화별 합산 금액. 각 통화 필드는 해당 통화로 거래된 종목의 합만 포함합니다 (환율 환산을 통한 통화 간 합산 미포함).",
+        "required": [
+          "krw"
+        ],
+        "properties": {
+          "krw": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "KRW로 거래되는 국내 종목의 합산 금액. 국내 종목이 없으면 0"
+          },
+          "usd": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "USD로 거래되는 해외 종목의 합산 금액. 해외 종목이 없으면 null"
+          }
+        }
+      },
+      "OverviewMarketValue": {
+        "type": "object",
+        "description": "시장 평가금액. 전체 보유 종목의 통화별 합산",
+        "required": [
+          "amount",
+          "amountAfterCost"
+        ],
+        "properties": {
+          "amount": {
+            "description": "시장 평가금액",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Price"
+              }
+            ]
+          },
+          "amountAfterCost": {
+            "description": "세금/수수료 공제 후 평가금액",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Price"
+              }
+            ]
+          }
+        }
+      },
+      "OverviewProfitLoss": {
+        "type": "object",
+        "description": "손익. 전체 보유 종목의 통화별 합산",
+        "required": [
+          "amount",
+          "amountAfterCost",
+          "rate",
+          "rateAfterCost"
+        ],
+        "properties": {
+          "amount": {
+            "description": "손익금액",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Price"
+              }
+            ]
+          },
+          "amountAfterCost": {
+            "description": "세금/수수료 공제 후 손익금액",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Price"
+              }
+            ]
+          },
+          "rate": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "손익률 (소수비율). 전체 자산을 현재 환율로 원화 환산한 기준. 0.1516 = 15.16%",
+            "example": "0.1516"
+          },
+          "rateAfterCost": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "세금/수수료 공제 후 손익률 (소수비율). 전체 자산을 현재 환율로 원화 환산한 기준. 0.1406 = 14.06%",
+            "example": "0.1406"
+          }
+        }
+      },
+      "OverviewDailyProfitLoss": {
+        "type": "object",
+        "description": "일간 손익. 전체 보유 종목의 통화별 합산",
+        "required": [
+          "amount",
+          "rate"
+        ],
+        "properties": {
+          "amount": {
+            "description": "일간 손익금액",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Price"
+              }
+            ]
+          },
+          "rate": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "일간 손익률 (소수비율). 전체 자산을 현재 환율로 원화 환산한 기준. 0.0185 = 1.85%",
+            "example": "0.0185"
+          }
+        }
+      },
+      "HoldingsItem": {
+        "type": "object",
+        "required": [
+          "symbol",
+          "name",
+          "marketCountry",
+          "currency",
+          "quantity",
+          "lastPrice",
+          "averagePurchasePrice",
+          "marketValue",
+          "profitLoss",
+          "dailyProfitLoss",
+          "cost"
+        ],
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "description": "종목 심볼. KR: 6자리 종목코드 (숫자 또는 영문·숫자 조합), US: 티커",
+            "example": "005930"
+          },
+          "name": {
+            "type": "string",
+            "description": "종목명",
+            "example": "삼성전자"
+          },
+          "marketCountry": {
+            "$ref": "#/components/schemas/MarketCountry"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "quantity": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "보유 수량",
+            "example": "100"
+          },
+          "lastPrice": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "현재가. 거래 통화(currency) 기준",
+            "example": "72000"
+          },
+          "averagePurchasePrice": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "매수 평균가. 거래 통화(currency) 기준",
+            "example": "65000"
+          },
+          "marketValue": {
+            "$ref": "#/components/schemas/MarketValue"
+          },
+          "profitLoss": {
+            "$ref": "#/components/schemas/ProfitLoss"
+          },
+          "dailyProfitLoss": {
+            "$ref": "#/components/schemas/DailyProfitLoss"
+          },
+          "cost": {
+            "$ref": "#/components/schemas/Cost"
+          }
+        }
+      },
+      "MarketCountry": {
+        "type": "string",
+        "enum": [
+          "KR",
+          "US"
+        ],
+        "description": "시장 국가 구분.\n- KR: 국내 주식 (KRX)\n- US: 미국 주식 (NYSE, NASDAQ 등)\n\n클라이언트는 unknown enum 값을 허용하도록 구현해야 합니다.\n"
+      },
+      "Currency": {
+        "type": "string",
+        "enum": [
+          "KRW",
+          "USD"
+        ],
+        "description": "통화 코드.\n- KRW: 한국 원화\n- USD: 미국 달러\n\n클라이언트는 unknown enum 값을 허용하도록 구현해야 합니다.\n"
+      },
+      "MarketValue": {
+        "type": "object",
+        "description": "시장 평가. 거래 통화(currency) 기준",
+        "required": [
+          "purchaseAmount",
+          "amount",
+          "amountAfterCost"
+        ],
+        "properties": {
+          "purchaseAmount": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "매입금액",
+            "example": "6500000"
+          },
+          "amount": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "시장 평가금액",
+            "example": "7200000"
+          },
+          "amountAfterCost": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "세금/수수료 공제 후 평가금액",
+            "example": "7050000"
+          }
+        }
+      },
+      "ProfitLoss": {
+        "type": "object",
+        "description": "손익. 거래 통화(currency) 기준",
+        "required": [
+          "amount",
+          "amountAfterCost",
+          "rate",
+          "rateAfterCost"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "손익금액",
+            "example": "700000"
+          },
+          "amountAfterCost": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "세금/수수료 공제 후 손익금액",
+            "example": "550000"
+          },
+          "rate": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "손익률. 소수비율 (0.1077 = 10.77%)",
+            "example": "0.1077"
+          },
+          "rateAfterCost": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "세금/수수료 공제 후 손익률. 소수비율 (0.0846 = 8.46%)",
+            "example": "0.0846"
+          }
+        }
+      },
+      "DailyProfitLoss": {
+        "type": "object",
+        "description": "일간 손익. 거래 통화(currency) 기준",
+        "required": [
+          "amount",
+          "rate"
+        ],
+        "properties": {
+          "amount": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "일간 손익금액",
+            "example": "100000"
+          },
+          "rate": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "일간 손익률. 소수비율 (0.0141 = 1.41%)",
+            "example": "0.0141"
+          }
+        }
+      },
+      "Cost": {
+        "type": "object",
+        "description": "비용. 거래 통화(currency) 기준",
+        "required": [
+          "commission"
+        ],
+        "properties": {
+          "commission": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "수수료",
+            "example": "14400"
+          },
+          "tax": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "세금. 세금이 없는 경우 null",
+            "example": "135600"
+          }
+        }
+      },
+      "BuyingPowerResponse": {
+        "type": "object",
+        "required": [
+          "currency",
+          "cashBuyingPower"
+        ],
+        "properties": {
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          },
+          "cashBuyingPower": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "현금 기반 매수 가능 금액 (미수 미발생 기준).\n순수 현금으로 매수할 수 있는 금액.\nKRW: 정수 (원 단위). USD: 소수점 포함 (달러 단위).\n",
+            "example": "5000000"
+          }
+        }
+      },
+      "Commission": {
+        "type": "object",
+        "required": [
+          "marketCountry",
+          "commissionRate"
+        ],
+        "properties": {
+          "marketCountry": {
+            "$ref": "#/components/schemas/MarketCountry"
+          },
+          "commissionRate": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "매매 수수료율 (소수 비율). 예: `0.00015` = 0.015%",
+            "example": "0.00015"
+          },
+          "startDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "수수료 적용 시작일 (YYYY-MM-DD, KST 기준). 해외주식은 null",
+            "example": "2026-01-01"
+          },
+          "endDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "수수료 적용 종료일 (YYYY-MM-DD, KST 기준). 무기한 적용 시 null",
+            "example": "2026-12-31"
+          }
+        }
+      },
+      "PaginatedOrderResponse": {
+        "type": "object",
+        "required": [
+          "orders",
+          "nextCursor",
+          "hasNext"
+        ],
+        "description": "주문 목록 페이징 응답.\n- `status=OPEN`: 모든 대기 중 주문을 반환합니다. `nextCursor`는 항상 `null`, `hasNext`는 항상 `false`.\n- `status=CLOSED`: `limit` 단위로 페이징합니다. 다음 페이지가 있으면 `nextCursor`에 커서가, `hasNext`에 `true`가 내려옵니다.\n",
+        "properties": {
+          "orders": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Order"
+            },
+            "description": "주문 목록"
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "다음 페이지 커서. 다음 페이지가 없으면 null",
+            "example": null
+          },
+          "hasNext": {
+            "type": "boolean",
+            "description": "다음 페이지 존재 여부",
+            "example": false
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "required": [
+          "orderId",
+          "symbol",
+          "side",
+          "orderType",
+          "timeInForce",
+          "status",
+          "quantity",
+          "currency",
+          "orderedAt",
+          "execution"
+        ],
+        "properties": {
+          "orderId": {
+            "type": "string",
+            "description": "주문 식별자",
+            "example": "bAGzNvMOOTa5Uy0xVzYNbxDJ3Qpobwau4jDF3hyZZGWbpHm7wha8CFZc7aXVOWAl"
+          },
+          "symbol": {
+            "type": "string",
+            "description": "종목 심볼. KRX: 6자리 종목코드 (숫자 또는 영문·숫자 조합), US: 영문 티커",
+            "example": "005930"
+          },
+          "side": {
+            "type": "string",
+            "enum": [
+              "BUY",
+              "SELL"
+            ],
+            "description": "주문 방향",
+            "example": "BUY"
+          },
+          "orderType": {
+            "type": "string",
+            "enum": [
+              "LIMIT",
+              "MARKET"
+            ],
+            "description": "호가 유형.\n- `LIMIT`: 지정가\n- `MARKET`: 시장가\n\n클라이언트는 unknown code 를 허용하도록 구현해야 합니다.\n",
+            "example": "LIMIT"
+          },
+          "timeInForce": {
+            "type": "string",
+            "enum": [
+              "DAY",
+              "CLS",
+              "OPG"
+            ],
+            "description": "주문 유효 조건 (Time In Force). `orderType` 과 결합되어 주문 방식이 결정됩니다 (예: `LIMIT` + `CLS` = LOC).\n- `DAY`: 당일 유효 (Day)\n- `CLS`: 장 마감 주문 (At the Close)\n- `OPG`: 장 개시 주문 (At the Opening, 국내 시가단일가)\n\n클라이언트는 unknown code 를 허용하도록 구현해야 합니다.\n",
+            "example": "DAY"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "price": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "주문 가격 (native currency). MARKET 주문 시 null",
+            "example": "70000"
+          },
+          "quantity": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "주문 수량",
+            "example": "10"
+          },
+          "orderAmount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "주문 금액 (USD). 금액 기반 US 시장가 매수 주문에만 해당. 그 외 null",
+            "example": null
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency",
+            "example": "KRW"
+          },
+          "orderedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "주문 시간 (ISO 8601, KST)",
+            "example": "2026-03-29T09:30:00.000+09:00"
+          },
+          "canceledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "취소 시간 (ISO 8601, KST). 해당 없으면 null",
+            "example": null
+          },
+          "execution": {
+            "type": "object",
+            "description": "체결 결과. 체결 내역이 없으면 filledQuantity=0",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OrderExecution"
+              }
+            ]
+          }
+        }
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "PENDING_CANCEL",
+          "PENDING_REPLACE",
+          "PARTIAL_FILLED",
+          "FILLED",
+          "CANCELED",
+          "REJECTED",
+          "CANCEL_REJECTED",
+          "REPLACE_REJECTED",
+          "REPLACED"
+        ],
+        "description": "주문 상태.\n- `PENDING`: 체결 대기. 주문이 접수되어 체결을 대기 중인 상태\n- `PENDING_CANCEL`: 취소 대기. 취소 요청이 접수되어 브로커 응답을 대기 중인 상태\n- `PENDING_REPLACE`: 정정 대기. 정정 요청이 접수되어 브로커 응답을 대기 중인 상태\n- `PARTIAL_FILLED`: 부분 체결. 주문 수량 중 일부만 체결된 상태\n- `FILLED`: 체결 완료. 주문 수량이 전량 체결된 상태\n- `CANCELED`: 취소 완료. execution.filledQuantity를 통해 부분 체결 여부를 확인할 수 있음\n- `REJECTED`: 거부됨. 브로커가 주문을 거부한 상태. execution.filledQuantity를 통해 부분 체결 여부를 확인할 수 있음\n- `CANCEL_REJECTED`: 취소 거부. 브로커가 취소 요청을 거부한 경우 별도 주문 레코드로 생성됨. 원주문은 이전 상태로 복귀함\n- `REPLACE_REJECTED`: 정정 거부. 브로커가 정정 요청을 거부한 경우 별도 주문 레코드로 생성됨. 원주문은 이전 상태로 복귀함\n- `REPLACED`: 정정됨. 정정 요청이 수락되어 원주문이 대체된 상태. execution.filledQuantity를 통해 부분 체결 여부를 확인할 수 있음\n\n클라이언트는 unknown code 를 허용하도록 구현해야 합니다.\n",
+        "example": "FILLED"
+      },
+      "OrderExecution": {
+        "type": "object",
+        "required": [
+          "filledQuantity",
+          "averageFilledPrice",
+          "filledAmount",
+          "commission",
+          "tax",
+          "filledAt",
+          "settlementDate"
+        ],
+        "properties": {
+          "filledQuantity": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "체결 수량",
+            "example": "10"
+          },
+          "averageFilledPrice": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "평균 체결 가격 (native currency). 부분 체결 시 체결된 건의 평균, 미체결 시 null",
+            "example": "70000"
+          },
+          "filledAmount": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "총 체결 금액 (native currency)",
+            "example": "700000"
+          },
+          "commission": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "총 체결 수수료 (native currency)",
+            "example": "1400"
+          },
+          "tax": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "총 체결 세금 (native currency)",
+            "example": "0"
+          },
+          "filledAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "최종 체결 시간 (ISO 8601, KST)",
+            "example": "2026-03-28T09:31:15.000+09:00"
+          },
+          "settlementDate": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "결제 예정일 (YYYY-MM-DD, KST 기준). 미결제 시 null",
+            "example": "2026-03-30"
+          }
+        }
+      }
+    }
+  }
+}
