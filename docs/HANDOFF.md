@@ -1,4 +1,41 @@
-# 2026-09-10 인수인계
+# 2026-09-11 인수인계
+
+## 기능 19 PR 준비와 재검증
+
+사용자가 기능 18의 push·PR·병합·pull 완료를 확인하고 해당 브랜치 삭제와 기능 19의
+최신 `main` 기준 rebase·검증·push를 요청했다. GitHub PR #17의 병합 커밋
+`92ace23`과 로컬 `main`·`origin/main`이 일치함을 확인했다. 18번 원격 브랜치는 이미
+삭제되어 있었고 로컬 `feat/18-durable-jobs-worker`와 남은 원격 추적 참조를 정리했다.
+
+`feat/19-market-observations`의 원래 커밋 `3f63490`을 최신 `main` 위로 rebase했다.
+충돌 없이 `8668f5c`가 되었으며 `range-diff`와 전체 파일 비교에서 원래 기능 패치와
+파일 내용이 동일했다. 이미 병합된 17·18번은 이번 PR 차이에 포함되지 않는다.
+20~26번 브랜치의 기존 끝점은 그대로 보존했다. 인수인계의 이번 준비 기록만 추가한다.
+
+- 잠금 파일 기준 `uv sync --frozen`과 `pnpm --dir web install --frozen-lockfile` 통과.
+- `TRADING_TEST_DB=1 uv run pytest`: 1,190개 통과(20.97초), 기존 의존성 경고 2개.
+- Ruff 검사·포맷 검사 통과, Python 130개 파일. `git diff --check` 통과.
+- OpenAPI·생성 SDK 일치, Svelte 오류·경고 0개, Vitest 13개 통과.
+- 웹 프로덕션 빌드(2.55초)·포맷 검사 통과, Playwright 전체 20개 통과(8.8초).
+- Chromium의 1536×1024 분봉·사건 표식·정확값과 390×844 일봉·표 스크롤을 확인했다.
+  시장 검사 7개 중 6개는 합성 HTTP 응답 모형이며 빈 저장소 1개는 실제 FastAPI다.
+  Browser 플러그인이 없어 프로젝트에 구성된 Playwright를 사용했다.
+- 별도 합성 작업실의 실제 FastAPI에서 30개 분봉으로 종목·1분봉 선택→차트·정확한
+  소수 종가→사건 선택→원본 캡처에 연결된 근거 상세 흐름을 확인했다. 데스크톱·모바일·
+  첫 화면·사건 상세를 검토했고 콘솔 오류·경고 0, 외부 요청 0, 모바일 가로 넘침 0이었다.
+  이 브라우저 확인은 API 응답 모형을 쓰지 않았으며 실제 토스·자격증명·모델을 호출하지
+  않았다. 합성 서버와 브라우저는 종료하고 입력·스크린샷·검사 결과를 보존했다.
+- 통합 DB는 기존 `127.0.0.1:55432/trading`만 사용했다. 현재 스키마는 이후 기능에서
+  적용한 `f726a13e940b`이며 이번 작업에서 마이그레이션·다운그레이드는 하지 않았다.
+  새 테스트는 격리된 합성 저장소와 자신이 생성한 DB 행만 사용한다.
+
+검사 로그는 `/tmp/trading-pr19-rebase-pytest.log`, `/tmp/trading-pr19-web-check.log`,
+`/tmp/trading-pr19-web-format.log`, `/tmp/trading-pr19-web-build.log`,
+`/tmp/trading-pr19-e2e.log`에 보존했다. E2E 산출물은
+`/tmp/trading-pr19-rebase-e2e-8668f5c/`에 있다. 실제 브라우저 검증은
+`/tmp/trading-pr19-live-qa-yvgm2qoo/browser-qa-result.json`과 같은 디렉터리의 스크린샷에
+보존했다. 아래 기능 19·18·17 절은 최초 구현 당시
+기록이며 이번 재검증과 구분한다. 이번 요청은 브랜치 push까지이고 PR 생성·병합은 포함하지 않는다.
 
 ## 기능 19 시장 관측·사건·차트
 
