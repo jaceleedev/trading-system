@@ -54,5 +54,5 @@ HTTP는 `/api/v1/workflows` 및 `proposal/{investigation_id}`, `{id}` 조회,
 pause|recover|resume|observe|reconcile`과 `--workspace`, `--id`, `--input`을 사용한다.
 합성 작업실에는 `--synthetic`을 명시한다. 실제 주문 전송 명령은 없다.
 
-파일 백업 v4는 V1·V2 조사 원문을 모두 검증하며 원래 manifest identity를 보존한다.
+파일 백업 v5는 V1·V2 조사 원문을 모두 검증하며 기존 백업의 manifest identity를 보존한다.
 살아 있는 단계·배정·주문 기록은 파일 백업 외에 같은 로컬 PostgreSQL 백업이 필요하다.

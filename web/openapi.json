@@ -330,6 +330,181 @@
         "title": "BrokerObservedOrder",
         "type": "object"
       },
+      "BrokerOutcome": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "actual_pnl": {
+            "title": "Actual Pnl",
+            "type": "null"
+          },
+          "comparisons": {
+            "items": {
+              "$ref": "#/components/schemas/BrokerOutcomeComparison"
+            },
+            "title": "Comparisons",
+            "type": "array"
+          },
+          "external_cash_flows": {
+            "title": "External Cash Flows",
+            "type": "null"
+          },
+          "fx_pnl": {
+            "title": "Fx Pnl",
+            "type": "null"
+          },
+          "individual_fills_available": {
+            "const": false,
+            "title": "Individual Fills Available",
+            "type": "boolean"
+          },
+          "intent_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intent Id"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "operation_states": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Operation States",
+            "type": "array"
+          },
+          "reconciliation_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Reconciliation Ids",
+            "type": "array"
+          },
+          "reservation_held": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reservation Held"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          },
+          "workflow_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Workflow Id",
+            "type": "string"
+          },
+          "workflow_status": {
+            "title": "Workflow Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workflow_id",
+          "account_seq",
+          "mode",
+          "workflow_status",
+          "intent_id",
+          "reservation_held",
+          "operation_states",
+          "reconciliation_ids",
+          "comparisons",
+          "actual_pnl",
+          "external_cash_flows",
+          "fx_pnl",
+          "individual_fills_available",
+          "warnings"
+        ],
+        "title": "BrokerOutcome",
+        "type": "object"
+      },
+      "BrokerOutcomeComparison": {
+        "additionalProperties": false,
+        "properties": {
+          "after_snapshot_at": {
+            "format": "date-time",
+            "title": "After Snapshot At",
+            "type": "string"
+          },
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "before_snapshot_at": {
+            "format": "date-time",
+            "title": "Before Snapshot At",
+            "type": "string"
+          },
+          "buying_power": {
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationBuyingPower"
+            },
+            "title": "Buying Power",
+            "type": "array"
+          },
+          "holdings": {
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationHolding"
+            },
+            "title": "Holdings",
+            "type": "array"
+          },
+          "orders": {
+            "items": {
+              "$ref": "#/components/schemas/ReconciliationOrder"
+            },
+            "title": "Orders",
+            "type": "array"
+          },
+          "period_matches_requested_window": {
+            "title": "Period Matches Requested Window",
+            "type": "boolean"
+          },
+          "reconciliation_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Reconciliation Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reconciliation_id",
+          "as_of",
+          "before_snapshot_at",
+          "after_snapshot_at",
+          "period_matches_requested_window",
+          "orders",
+          "holdings",
+          "buying_power"
+        ],
+        "title": "BrokerOutcomeComparison",
+        "type": "object"
+      },
       "BrokerScanList": {
         "additionalProperties": false,
         "properties": {
@@ -2788,6 +2963,42 @@
           "jobs_enabled"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "HistoricalCostRealized": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "known_amount": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Known Amount",
+            "type": "string"
+          },
+          "unknown_sales": {
+            "minimum": 0.0,
+            "title": "Unknown Sales",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "known_amount",
+          "unknown_sales",
+          "amount"
+        ],
+        "title": "HistoricalCostRealized",
         "type": "object"
       },
       "Holding": {
@@ -6029,6 +6240,508 @@
         "title": "OrderValidation",
         "type": "object"
       },
+      "OutcomeComparison": {
+        "additionalProperties": false,
+        "properties": {
+          "aggregate_pnl": {
+            "title": "Aggregate Pnl",
+            "type": "null"
+          },
+          "automatic_winner": {
+            "title": "Automatic Winner",
+            "type": "null"
+          },
+          "initial_holdings_book_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "title": "Initial Holdings Book Ids",
+            "type": "array"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "mixed_methods_book_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "title": "Mixed Methods Book Ids",
+            "type": "array"
+          },
+          "same_initial_paper_seed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Same Initial Paper Seed"
+          },
+          "same_paper_profiles": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Same Paper Profiles"
+          },
+          "window_basis": {
+            "const": "system_recorded_at",
+            "title": "Window Basis",
+            "type": "string"
+          }
+        },
+        "required": [
+          "window_basis",
+          "aggregate_pnl",
+          "automatic_winner",
+          "same_initial_paper_seed",
+          "same_paper_profiles",
+          "mixed_methods_book_ids",
+          "initial_holdings_book_ids",
+          "limitations"
+        ],
+        "title": "OutcomeComparison",
+        "type": "object"
+      },
+      "OutcomeCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "book_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "maxItems": 4,
+            "title": "Book Ids",
+            "type": "array"
+          },
+          "end_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End At"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "request_key": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Key",
+            "type": "string"
+          },
+          "start_at": {
+            "format": "date-time",
+            "title": "Start At",
+            "type": "string"
+          },
+          "workflow_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "maxItems": 4,
+            "title": "Workflow Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "start_at",
+          "mode",
+          "request_key"
+        ],
+        "title": "OutcomeCreate",
+        "type": "object"
+      },
+      "OutcomeList": {
+        "additionalProperties": false,
+        "properties": {
+          "invalid_count": {
+            "title": "Invalid Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OutcomeSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "omitted_count": {
+            "title": "Omitted Count",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total_count",
+          "omitted_count",
+          "invalid_count"
+        ],
+        "title": "OutcomeList",
+        "type": "object"
+      },
+      "OutcomeMethod": {
+        "additionalProperties": false,
+        "properties": {
+          "book_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "title": "Book Ids",
+            "type": "array"
+          },
+          "cli_version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cli Version"
+          },
+          "input_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Id"
+          },
+          "instructions_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instructions Sha256"
+          },
+          "model_identity_verified": {
+            "const": false,
+            "title": "Model Identity Verified",
+            "type": "boolean"
+          },
+          "output_schema_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Schema Sha256"
+          },
+          "output_schema_version": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Schema Version"
+          },
+          "plan_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Plan Id",
+            "type": "string"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "reported_model": {
+            "title": "Reported Model",
+            "type": "null"
+          },
+          "requested_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Model"
+          },
+          "requested_reasoning_effort": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Requested Reasoning Effort"
+          },
+          "run_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Run Ids",
+            "type": "array"
+          },
+          "run_selection": {
+            "enum": [
+              "unique",
+              "unavailable",
+              "ambiguous"
+            ],
+            "title": "Run Selection",
+            "type": "string"
+          },
+          "source_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_kind": {
+            "enum": [
+              "decision",
+              "investigation_output"
+            ],
+            "title": "Source Kind",
+            "type": "string"
+          },
+          "workflow_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "type": "string"
+            },
+            "title": "Workflow Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "plan_id",
+          "source_kind",
+          "source_id",
+          "purpose",
+          "input_id",
+          "output_schema_version",
+          "instructions_sha256",
+          "run_ids",
+          "run_selection",
+          "requested_model",
+          "requested_reasoning_effort",
+          "reported_model",
+          "model_identity_verified",
+          "cli_version",
+          "output_schema_sha256",
+          "book_ids",
+          "workflow_ids"
+        ],
+        "title": "OutcomeMethod",
+        "type": "object"
+      },
+      "OutcomeReport": {
+        "additionalProperties": false,
+        "properties": {
+          "actual_pnl_computed": {
+            "const": false,
+            "title": "Actual Pnl Computed",
+            "type": "boolean"
+          },
+          "broker": {
+            "items": {
+              "$ref": "#/components/schemas/BrokerOutcome"
+            },
+            "title": "Broker",
+            "type": "array"
+          },
+          "comparison": {
+            "$ref": "#/components/schemas/OutcomeComparison"
+          },
+          "end_at": {
+            "format": "date-time",
+            "title": "End At",
+            "type": "string"
+          },
+          "input_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "outcome_report",
+            "title": "Kind",
+            "type": "string"
+          },
+          "methods": {
+            "items": {
+              "$ref": "#/components/schemas/OutcomeMethod"
+            },
+            "title": "Methods",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "orders_enabled": {
+            "const": false,
+            "title": "Orders Enabled",
+            "type": "boolean"
+          },
+          "paper": {
+            "items": {
+              "$ref": "#/components/schemas/PaperWindowOutcome"
+            },
+            "title": "Paper",
+            "type": "array"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "start_at": {
+            "format": "date-time",
+            "title": "Start At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "schema_version",
+          "input_id",
+          "mode",
+          "start_at",
+          "end_at",
+          "recorded_at",
+          "paper",
+          "broker",
+          "methods",
+          "comparison",
+          "orders_enabled",
+          "actual_pnl_computed"
+        ],
+        "title": "OutcomeReport",
+        "type": "object"
+      },
+      "OutcomeResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "record": {
+            "$ref": "#/components/schemas/OutcomeReport"
+          }
+        },
+        "required": [
+          "id",
+          "record"
+        ],
+        "title": "OutcomeResponse",
+        "type": "object"
+      },
+      "OutcomeSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "book_count": {
+            "title": "Book Count",
+            "type": "integer"
+          },
+          "end_at": {
+            "format": "date-time",
+            "title": "End At",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "start_at": {
+            "format": "date-time",
+            "title": "Start At",
+            "type": "string"
+          },
+          "workflow_count": {
+            "title": "Workflow Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "start_at",
+          "end_at",
+          "recorded_at",
+          "book_count",
+          "workflow_count"
+        ],
+        "title": "OutcomeSummary",
+        "type": "object"
+      },
       "OverviewDailyProfitLoss": {
         "additionalProperties": false,
         "properties": {
@@ -6092,6 +6805,111 @@
           "rateAfterCost"
         ],
         "title": "OverviewProfitLoss",
+        "type": "object"
+      },
+      "PaperActionOutcome": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "buy",
+              "add",
+              "trim",
+              "sell"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "cash_delta": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Cash Delta",
+            "type": "string"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "fees": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Fees",
+            "type": "string"
+          },
+          "fill_count": {
+            "minimum": 0.0,
+            "title": "Fill Count",
+            "type": "integer"
+          },
+          "known_realized_pnl": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Known Realized Pnl",
+            "type": "string"
+          },
+          "market": {
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "title": "Market",
+            "type": "string"
+          },
+          "notional": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Notional",
+            "type": "string"
+          },
+          "quantity": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Quantity",
+            "type": "string"
+          },
+          "slippage_cost": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Slippage Cost",
+            "type": "string"
+          },
+          "symbol": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$",
+            "title": "Symbol",
+            "type": "string"
+          },
+          "taxes": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Taxes",
+            "type": "string"
+          },
+          "unknown_realized_sales": {
+            "minimum": 0.0,
+            "title": "Unknown Realized Sales",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "market",
+          "symbol",
+          "currency",
+          "action",
+          "fill_count",
+          "quantity",
+          "notional",
+          "cash_delta",
+          "fees",
+          "taxes",
+          "slippage_cost",
+          "known_realized_pnl",
+          "unknown_realized_sales"
+        ],
+        "title": "PaperActionOutcome",
         "type": "object"
       },
       "PaperAdvance": {
@@ -6541,6 +7359,286 @@
           "amount"
         ],
         "title": "PaperCashInput",
+        "type": "object"
+      },
+      "PaperCurrencyOutcome": {
+        "additionalProperties": false,
+        "properties": {
+          "cash_delta": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Delta"
+          },
+          "cash_rounding_residual": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cash Rounding Residual"
+          },
+          "cost_rounding_residual": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Cost Rounding Residual",
+            "type": "string"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "end_cash": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Cash"
+          },
+          "end_equity": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Equity"
+          },
+          "end_missing_price_symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "End Missing Price Symbols",
+            "type": "array"
+          },
+          "end_position_value": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Position Value"
+          },
+          "end_unknown_cost_symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "End Unknown Cost Symbols",
+            "type": "array"
+          },
+          "end_unrealized_pnl": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Unrealized Pnl"
+          },
+          "equity_delta": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Equity Delta"
+          },
+          "fees": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Fees",
+            "type": "string"
+          },
+          "fill_cash_delta": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Fill Cash Delta",
+            "type": "string"
+          },
+          "historical_cost_realized": {
+            "$ref": "#/components/schemas/HistoricalCostRealized"
+          },
+          "realized_rounding_residual": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Realized Rounding Residual",
+            "type": "string"
+          },
+          "return_unknown_reason": {
+            "anyOf": [
+              {
+                "enum": [
+                  "equity_unknown",
+                  "nonpositive_start_equity"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Return Unknown Reason"
+          },
+          "simple_return": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Simple Return"
+          },
+          "slippage_cost": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Slippage Cost",
+            "type": "string"
+          },
+          "start_cash": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Cash"
+          },
+          "start_equity": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Equity"
+          },
+          "start_missing_price_symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Start Missing Price Symbols",
+            "type": "array"
+          },
+          "start_position_value": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Position Value"
+          },
+          "start_unknown_cost_symbols": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Start Unknown Cost Symbols",
+            "type": "array"
+          },
+          "start_unrealized_pnl": {
+            "anyOf": [
+              {
+                "maxLength": 3200,
+                "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Unrealized Pnl"
+          },
+          "taxes": {
+            "maxLength": 3200,
+            "pattern": "^-?[0-9]+(?:\\.[0-9]+)?$",
+            "title": "Taxes",
+            "type": "string"
+          }
+        },
+        "required": [
+          "currency",
+          "start_cash",
+          "end_cash",
+          "cash_delta",
+          "start_position_value",
+          "end_position_value",
+          "start_equity",
+          "end_equity",
+          "equity_delta",
+          "simple_return",
+          "return_unknown_reason",
+          "fees",
+          "taxes",
+          "slippage_cost",
+          "fill_cash_delta",
+          "cash_rounding_residual",
+          "cost_rounding_residual",
+          "realized_rounding_residual",
+          "historical_cost_realized",
+          "start_unrealized_pnl",
+          "end_unrealized_pnl",
+          "start_missing_price_symbols",
+          "end_missing_price_symbols",
+          "start_unknown_cost_symbols",
+          "end_unknown_cost_symbols"
+        ],
+        "title": "PaperCurrencyOutcome",
         "type": "object"
       },
       "PaperEvent": {
@@ -7008,6 +8106,203 @@
         "title": "PaperMutation",
         "type": "object"
       },
+      "PaperOutcomeCounts": {
+        "additionalProperties": false,
+        "properties": {
+          "cancellations": {
+            "minimum": 0.0,
+            "title": "Cancellations",
+            "type": "integer"
+          },
+          "fills": {
+            "minimum": 0.0,
+            "title": "Fills",
+            "type": "integer"
+          },
+          "observations": {
+            "minimum": 0.0,
+            "title": "Observations",
+            "type": "integer"
+          },
+          "submissions": {
+            "minimum": 0.0,
+            "title": "Submissions",
+            "type": "integer"
+          },
+          "unfilled": {
+            "minimum": 0.0,
+            "title": "Unfilled",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "fills",
+          "submissions",
+          "cancellations",
+          "unfilled",
+          "observations"
+        ],
+        "title": "PaperOutcomeCounts",
+        "type": "object"
+      },
+      "PaperOutcomeCoverage": {
+        "additionalProperties": false,
+        "properties": {
+          "actual_pnl_computed": {
+            "const": false,
+            "title": "Actual Pnl Computed",
+            "type": "boolean"
+          },
+          "automatic_winner": {
+            "const": false,
+            "title": "Automatic Winner",
+            "type": "boolean"
+          },
+          "external_paper_flows": {
+            "const": "unsupported_after_seed",
+            "title": "External Paper Flows",
+            "type": "string"
+          },
+          "fx_conversion": {
+            "const": false,
+            "title": "Fx Conversion",
+            "type": "boolean"
+          },
+          "historical_cost_pnl_is_ai_attribution": {
+            "const": false,
+            "title": "Historical Cost Pnl Is Ai Attribution",
+            "type": "boolean"
+          },
+          "report_arithmetic_precision": {
+            "const": 1536,
+            "title": "Report Arithmetic Precision",
+            "type": "integer"
+          },
+          "report_arithmetic_rounded": {
+            "title": "Report Arithmetic Rounded",
+            "type": "boolean"
+          },
+          "source_arithmetic_rounded": {
+            "title": "Source Arithmetic Rounded",
+            "type": "boolean"
+          },
+          "source_authenticity_verified": {
+            "const": false,
+            "title": "Source Authenticity Verified",
+            "type": "boolean"
+          },
+          "source_counters_verified": {
+            "const": true,
+            "title": "Source Counters Verified",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "source_counters_verified",
+          "source_arithmetic_rounded",
+          "report_arithmetic_precision",
+          "report_arithmetic_rounded",
+          "external_paper_flows",
+          "fx_conversion",
+          "actual_pnl_computed",
+          "automatic_winner",
+          "source_authenticity_verified",
+          "historical_cost_pnl_is_ai_attribution"
+        ],
+        "title": "PaperOutcomeCoverage",
+        "type": "object"
+      },
+      "PaperOutcomeIntentSource": {
+        "additionalProperties": false,
+        "properties": {
+          "alternative_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Alternative Id",
+            "type": "string"
+          },
+          "intent_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Intent Id",
+            "type": "string"
+          },
+          "plan_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Plan Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intent_id",
+          "plan_id",
+          "alternative_id"
+        ],
+        "title": "PaperOutcomeIntentSource",
+        "type": "object"
+      },
+      "PaperOutcomeMarks": {
+        "additionalProperties": false,
+        "properties": {
+          "end": {
+            "items": {
+              "$ref": "#/components/schemas/PaperMark"
+            },
+            "title": "End",
+            "type": "array"
+          },
+          "start": {
+            "items": {
+              "$ref": "#/components/schemas/PaperMark"
+            },
+            "title": "Start",
+            "type": "array"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "PaperOutcomeMarks",
+        "type": "object"
+      },
+      "PaperOutcomeWindow": {
+        "additionalProperties": false,
+        "properties": {
+          "basis": {
+            "const": "system_recorded_at",
+            "title": "Basis",
+            "type": "string"
+          },
+          "end_at": {
+            "format": "date-time",
+            "title": "End At",
+            "type": "string"
+          },
+          "end_sequence": {
+            "minimum": 0.0,
+            "title": "End Sequence",
+            "type": "integer"
+          },
+          "start_at": {
+            "format": "date-time",
+            "title": "Start At",
+            "type": "string"
+          },
+          "start_sequence": {
+            "minimum": 0.0,
+            "title": "Start Sequence",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start_at",
+          "end_at",
+          "basis",
+          "start_sequence",
+          "end_sequence"
+        ],
+        "title": "PaperOutcomeWindow",
+        "type": "object"
+      },
       "PaperPosition": {
         "additionalProperties": false,
         "properties": {
@@ -7303,6 +8598,76 @@
           "equity"
         ],
         "title": "PaperValuation",
+        "type": "object"
+      },
+      "PaperWindowOutcome": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/PaperActionOutcome"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "book_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Book Id",
+            "type": "string"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/PaperOutcomeCounts"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/PaperOutcomeCoverage"
+          },
+          "currencies": {
+            "items": {
+              "$ref": "#/components/schemas/PaperCurrencyOutcome"
+            },
+            "title": "Currencies",
+            "type": "array"
+          },
+          "intent_sources": {
+            "items": {
+              "$ref": "#/components/schemas/PaperOutcomeIntentSource"
+            },
+            "title": "Intent Sources",
+            "type": "array"
+          },
+          "marks": {
+            "$ref": "#/components/schemas/PaperOutcomeMarks"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "window": {
+            "$ref": "#/components/schemas/PaperOutcomeWindow"
+          }
+        },
+        "required": [
+          "book_id",
+          "account_seq",
+          "mode",
+          "window",
+          "currencies",
+          "actions",
+          "counts",
+          "marks",
+          "coverage",
+          "intent_sources"
+        ],
+        "title": "PaperWindowOutcome",
         "type": "object"
       },
       "PreparedOrder": {
@@ -13013,6 +14378,274 @@
           }
         },
         "summary": "Recover Order Intent"
+      }
+    },
+    "/api/v1/outcomes": {
+      "get": {
+        "operationId": "list_outcome_reports",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcomeList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Outcome Reports"
+      },
+      "post": {
+        "operationId": "create_outcome_report",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OutcomeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcomeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Outcome Report"
+      }
+    },
+    "/api/v1/outcomes/{id}": {
+      "get": {
+        "operationId": "get_outcome_report",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{64}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OutcomeResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Outcome Report"
       }
     },
     "/api/v1/paper/books": {

@@ -1723,6 +1723,85 @@ blockquote {
 .workflow-panel .capital-result {
   min-width: 0;
 }
+
+.outcome-panel .capital-form > *,
+.outcome-panel .capital-result,
+.outcome-report {
+  min-width: 0;
+}
+.outcome-panel p,
+.outcome-panel dd {
+  overflow-wrap: anywhere;
+}
+.outcome-panel .table-container {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 12px;
+}
+.outcome-panel table {
+  min-width: 740px;
+}
+.outcome-panel td small {
+  display: block;
+  color: #687890;
+}
+.outcome-selection {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 14px;
+  min-width: 0;
+}
+.outcome-selection legend {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0 5px;
+}
+.outcome-selection label {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 10px 0;
+  font-weight: 400;
+}
+.outcome-selection input {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.outcome-selection span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.outcome-selection small {
+  display: block;
+  color: #687890;
+  font-size: 11px;
+  margin-top: 4px;
+}
+.outcome-report {
+  margin-top: 20px;
+}
+.outcome-source {
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  margin-top: 22px;
+}
+.outcome-source h4 {
+  font-size: 15px;
+  margin-bottom: 6px;
+}
+.outcome-source h5 {
+  font-size: 13px;
+  margin-top: 15px;
+}
+.outcome-method {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 14px;
+  margin-top: 14px;
+}
+.outcome-method p {
+  margin-top: 8px;
+}
 .workflow-panel p,
 .workflow-panel dd {
   overflow-wrap: anywhere;

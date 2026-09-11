@@ -445,6 +445,8 @@ def test_openapi_is_offline_typed_and_matches_export(client):
         "/api/v1/reconciliations",
         "/api/v1/reconciliations/preview",
         "/api/v1/reconciliations/{id}",
+        "/api/v1/outcomes",
+        "/api/v1/outcomes/{id}",
     }
 
 

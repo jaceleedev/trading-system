@@ -48,7 +48,7 @@
 중단하고 미해결 범위를 남깁니다. 작업 완료에도 `coverage_complete=false`일 수 있습니다.
 
 관측·스캔은 `var/broker-observations`, 보고서는 `var/reconciliations`의 개인 불변
-파일입니다. 개인 자료 백업 v4는 두 저장소의 원문·참조·재계산을 검증하며 v1~v3도
+파일입니다. 개인 자료 백업 v5는 두 저장소의 원문·참조·재계산을 검증하며 v1~v4도
 지원합니다. DB migration은 추가하지 않았습니다.
 
 현재 고정 계약은 [토스 공식 OpenAPI](https://openapi.tossinvest.com/openapi-docs/latest/openapi.json)의
