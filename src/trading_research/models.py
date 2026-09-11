@@ -1,7 +1,20 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from sqlalchemy import Date, DateTime, ForeignKey, ForeignKeyConstraint, Numeric, String, func
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    Date,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Index,
+    Integer,
+    Numeric,
+    String,
+    UniqueConstraint,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -79,3 +92,63 @@ class EvaluationRow(Base):
     payload: Mapped[dict] = mapped_column(JSONB)
     payload_sha256: Mapped[str] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class JobRow(Base):
+    __tablename__ = "jobs"
+    __table_args__ = (
+        UniqueConstraint("workspace_key", "request_key", name="uq_jobs_workspace_request"),
+        CheckConstraint(
+            "status IN ('queued','running','succeeded','failed','cancelled')", name="ck_jobs_status"
+        ),
+        CheckConstraint(
+            "max_attempts BETWEEN 1 AND 10 AND attempt_count BETWEEN 0 AND max_attempts",
+            name="ck_jobs_attempts",
+        ),
+        CheckConstraint(
+            "(status = 'running' AND attempt_token IS NOT NULL AND lease_expires_at IS NOT NULL) "
+            "OR (status <> 'running' AND attempt_token IS NULL AND lease_expires_at IS NULL)",
+            name="ck_jobs_lease",
+        ),
+        Index("ix_jobs_claim", "workspace_key", "status", "available_at", "created_at"),
+        Index("ix_jobs_lease", "workspace_key", "status", "lease_expires_at"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    workspace_key: Mapped[str] = mapped_column(String(64))
+    request_key: Mapped[str] = mapped_column(String(128))
+    request_sha256: Mapped[str] = mapped_column(String(64))
+    kind: Mapped[str] = mapped_column(String(64))
+    parameters: Mapped[dict] = mapped_column(JSONB)
+    status: Mapped[str] = mapped_column(String(16))
+    available_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    max_attempts: Mapped[int] = mapped_column(Integer)
+    attempt_count: Mapped[int] = mapped_column(Integer)
+    cancel_requested: Mapped[bool] = mapped_column(Boolean)
+    attempt_token: Mapped[str | None] = mapped_column(String(64))
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    result: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    error_code: Mapped[str | None] = mapped_column(String(64))
+
+
+class JobAttemptRow(Base):
+    __tablename__ = "job_attempts"
+    __table_args__ = (
+        UniqueConstraint("token", name="uq_job_attempts_token"),
+        CheckConstraint(
+            "status IN ('running','succeeded','failed','cancelled','lease_expired')",
+            name="ck_job_attempts_status",
+        ),
+        CheckConstraint("number BETWEEN 1 AND 10", name="ck_job_attempts_number"),
+    )
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id", ondelete="CASCADE"), primary_key=True)
+    number: Mapped[int] = mapped_column(Integer, primary_key=True)
+    token: Mapped[str] = mapped_column(String(64))
+    owner: Mapped[str] = mapped_column(String(128))
+    status: Mapped[str] = mapped_column(String(16))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    heartbeat_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    error_code: Mapped[str | None] = mapped_column(String(64))

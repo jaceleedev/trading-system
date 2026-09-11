@@ -25,6 +25,9 @@ def main() -> int:
     from trading_research.artifact_backup_cli import add_artifact_backup_parser
 
     add_artifact_backup_parser(sub)
+    from trading_research.job_cli import add_jobs_parser
+
+    add_jobs_parser(sub)
     sub.add_parser("doctor", help="Read-only runtime and database connectivity check")
     sub.add_parser("db-upgrade", help="Apply schema migrations to the configured research database")
     demo = sub.add_parser("demo-data", help="Generate clearly marked synthetic fixtures")
@@ -96,6 +99,10 @@ def main() -> int:
                 from trading_research.artifact_backup_cli import handle_artifact_backup
 
                 print(json.dumps(handle_artifact_backup(args), ensure_ascii=False, indent=2))
+            elif args.command == "jobs":
+                from trading_research.job_cli import handle_jobs
+
+                print(json.dumps(handle_jobs(args), ensure_ascii=False, indent=2))
             elif args.command == "db-upgrade":
                 from alembic import command
                 from alembic.config import Config

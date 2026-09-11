@@ -1,0 +1,8 @@
+node_modules/
+.svelte-kit/
+build/
+src/lib/api/
+openapi.json
+pnpm-lock.yaml
+test-results/
+playwright-report/

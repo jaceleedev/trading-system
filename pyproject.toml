@@ -18,14 +18,23 @@ dependencies = [
   "keyring>=25.6,<26",
   "jsonschema>=4.25,<5",
   "mcp>=1.26,<2",
+  "fastapi>=0.141,<0.142",
+  "uvicorn>=0.52,<0.53",
+  "pydantic>=2.13,<2.14",
 ]
 
 [project.scripts]
 trading = "trading_research.cli:main"
 trading-mcp = "trading_research.mcp_server:main"
+trading-web = "trading_research.web_api:main"
+trading-worker = "trading_research.job_worker:main"
 
 [dependency-groups]
-dev = ["pytest>=9,<10", "ruff>=0.12,<1"]
+dev = [
+    "httpx>=0.28,<0.29",
+    "pytest>=9,<10",
+    "ruff>=0.12,<1",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/trading_research"]

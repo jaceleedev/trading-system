@@ -1,5 +1,9 @@
 # 개인 연구 화면 사용법
 
+새 SvelteKit 투자 작업실은 <http://127.0.0.1:8765>에서 계좌·판단·근거를 연결한다.
+설치·실행과 기능 범위는 [웹 작업실 안내](WEB_WORKBENCH.md)를 따른다.
+아래는 기존 Streamlit 화면과 추천·백테스트 도구의 사용법이다.
+
 ```bash
 uv sync --frozen
 mise run ui

@@ -1,5 +1,7 @@
 [tools]
 python = "3.14.7"
+node = "24.18.0"
+pnpm = "11.13.0"
 
 [tasks.setup]
 description = "Install the locked development environment"
@@ -34,3 +36,31 @@ run = "docker compose -f compose.yaml -f compose.app.yaml up -d --wait app"
 [tasks.backup-check]
 description = "Back up and verify restoration of only the isolated local research DB"
 run = "uv run python scripts/verify_local_backup.py"
+
+[tasks.web-setup]
+description = "Install the locked Python and web dependencies"
+run = ["uv sync --frozen", "pnpm --dir web install --frozen-lockfile"]
+
+[tasks.web-build]
+description = "Build the Svelte workbench using the checked API contract"
+run = ["uv run python scripts/export_openapi.py --check", "pnpm --dir web api:check", "pnpm --dir web build"]
+
+[tasks.web]
+description = "Serve the built workbench and local read-only API on port 8765"
+run = "uv run trading-web --port 8765"
+
+[tasks.web-dev]
+description = "Start the Svelte dev server; run mise run web separately for the API"
+run = "pnpm --dir web dev"
+
+[tasks.web-jobs]
+description = "Serve the workbench with local PostgreSQL jobs enabled"
+run = "uv run trading-web --port 8765 --jobs"
+
+[tasks.worker]
+description = "Run saved-data jobs; network collection remains opt-in"
+run = "uv run trading-worker"
+
+[tasks.web-check]
+description = "Check API generation, Svelte types, and frontend unit tests"
+run = ["uv run python scripts/export_openapi.py --check", "pnpm --dir web api:check", "pnpm --dir web check", "pnpm --dir web test"]

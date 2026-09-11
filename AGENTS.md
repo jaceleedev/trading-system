@@ -32,9 +32,23 @@ execution by changing local holdings or label a saved decision as an executed in
 
 The agreed target stack and initial scope are in [docs/TECH_STACK.md](docs/TECH_STACK.md):
 Svelte 5 + SvelteKit + TypeScript, FastAPI, PostgreSQL, and a Python worker with durable job records.
-TimescaleDB, pgvector, and Redis are excluded from the initial configuration. The current runtime
-is still Streamlit; do not describe the target stack as implemented. The current documentation
-task does not resume frontend/backend implementation.
+TimescaleDB, pgvector, and Redis are excluded from the initial configuration. Feature 17 adds the
+SvelteKit workbench and read-only FastAPI layer for saved account/research records. The existing
+Streamlit research screens remain available. Feature 18 adds durable PostgreSQL jobs and the
+Python worker for saved context and opt-in read-only captures; see `docs/JOBS.md`. Ongoing AI
+execution, market-data normalization, and broker order submission are still future work.
+
+The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
+integration implemented with actual brokerage transmission disabled. Design the Toss mandate
+to cover existing holdings and new investment funds. Do not insert user-described balances or
+assets at another broker into the observed account. Continue validating on this Mac; no new paid
+model/data services, remote operation, or actual orders are authorized by this development scope.
+
+For web changes, follow `docs/WEB_WORKBENCH.md`. Preserve the OpenAPI-generated client, exact
+decimal strings, unknown balances, observation times, and explicit account selection. Validate
+the built app in a browser using isolated synthetic workspaces, never fixtures written into the
+user's private stores. Use `mise run web-check`, `pnpm --dir web format:check`,
+`mise run web-build`, and `pnpm --dir web test:e2e` in addition to Python checks.
 
 The user requested successive feature branches with local verification and commits. Start each new
 feature branch from the preceding completed feature. Preserve branch tips so PRs can be prepared
