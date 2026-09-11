@@ -423,7 +423,10 @@ def test_investigation_output_source_validates_frozen_account_and_preserves_unve
     from trading_research.investigation_service import InvestigationService
 
     workspace, request = setup
+    from functools import partial
+
     service = object.__new__(InvestigationService)
+    service._freeze = partial(service._freeze, schema_version=1)
     service.workspace, service.synthetic = workspace, True
     monkeypatch.setattr(
         "trading_research.investigation_service.utc_now", lambda: NOW - timedelta(seconds=30)

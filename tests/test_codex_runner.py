@@ -15,6 +15,9 @@ from trading_research.codex_runner import (
     CodexRunError,
     RunnerSettings,
     normalized_research_requests,
+    output_schema_bytes,
+    output_schema_sha256,
+    output_schema_version,
     run,
     validate_output,
 )
@@ -343,3 +346,123 @@ def test_caller_runtime_and_arbitrary_followup_are_rejected():
     ]
     with pytest.raises(DataError):
         validate_output(value)
+
+
+def test_v1_schema_bytes_and_discriminatorless_output_remain_unchanged():
+    expected = "7c48471369e01979af6ab1c80bbe162047bcf81c5dd9f74171685609807f53e6"
+    assert output_schema_sha256(1) == expected
+    assert hashlib.sha256(output_schema_bytes()).hexdigest() == expected
+    assert output_schema_sha256(2) != expected
+    assert output_schema_version(proposal()) == 1
+    assert validate_output(proposal(), expected_version=1) == proposal()
+
+
+def test_v2_schema_preserves_all_v1_properties_without_altering_them():
+    first, second = (json.loads(output_schema_bytes(i)) for i in (1, 2))
+    assert {key: second["properties"][key] for key in first["properties"]} == first["properties"]
+    assert set(second["required"]) == set(first["required"]) | {
+        "schema_version",
+        "capital_proposal",
+    }
+
+
+@pytest.mark.parametrize("version", [None, True, False, 0, 1, 3, 2.0, "2"])
+def test_only_exact_v2_discriminator_is_accepted(version):
+    with pytest.raises(DataError):
+        validate_output({**proposal(), "schema_version": version, "capital_proposal": None})
+
+
+@pytest.mark.parametrize("version", [0, 3, True, 2.0, "2", None])
+def test_runner_rejects_untrusted_or_unsupported_schema_setting_before_subprocess(
+    settings, monkeypatch, version
+):
+    def forbidden(*args, **kwargs):
+        pytest.fail("Invalid schema setting reached a child process")
+
+    monkeypatch.setattr("trading_research.codex_runner._supervised", forbidden)
+    with pytest.raises(DataError):
+        run({}, lambda: None, replace(settings, output_schema_version=version))
+
+
+@pytest.mark.parametrize("version", [1, 2])
+def test_selected_schema_bytes_are_written_to_cli_and_attached_to_process_metadata(
+    settings, tmp_path, version
+):
+    value = proposal()
+    if version == 2:
+        value.update(schema_version=2, capital_proposal=None)
+    inspection = tmp_path / "schema-inspection.json"
+    result = run(
+        {"proposal": value, "inspection_file": str(inspection)},
+        lambda: None,
+        replace(settings, output_schema_version=version),
+    )
+    inspected = json.loads(inspection.read_text())
+    assert result["output"] == value
+    assert (
+        result["execution"]["output_schema_sha256"]
+        == inspected["schema_sha256"]
+        == output_schema_sha256(version)
+    )
+    assert result["execution"]["reported_model"] is None
+    assert result["execution"]["model_identity_verified"] is False
+    assert result["raw_output_sha"] == hashlib.sha256(object_bytes(value)).hexdigest()
+
+
+@pytest.mark.parametrize("expected,actual", [(1, 2), (2, 1)])
+def test_valid_output_in_the_wrong_schema_is_not_a_successful_run(settings, expected, actual):
+    value = proposal()
+    if actual == 2:
+        value.update(schema_version=2, capital_proposal=None)
+    with pytest.raises(DataError):
+        validate_output(value, expected_version=expected)
+    with pytest.raises(CodexRunError) as caught:
+        run({"proposal": value}, lambda: None, replace(settings, output_schema_version=expected))
+    assert caught.value.error_code == "proposal_invalid"
+    assert caught.value.execution["output_schema_sha256"] == output_schema_sha256(expected)
+
+
+def test_v2_null_proposal_keeps_existing_read_only_followup_normalization():
+    value = {**proposal(), "schema_version": 2, "capital_proposal": None}
+    value["research_requests"] = [
+        {
+            "kind": "market-capture",
+            "parameters": {
+                "endpoint": "candles",
+                "query": {
+                    "symbol": "ALPHA",
+                    "interval": "1m",
+                    "count": None,
+                    "before": None,
+                    "adjusted": None,
+                },
+                "pages": 1,
+            },
+        }
+    ]
+    original = copy.deepcopy(value)
+    assert validate_output(value, expected_version=2) == original
+    assert normalized_research_requests(value)[0]["parameters"]["query"] == {
+        "symbol": "ALPHA",
+        "interval": "1m",
+        "count": 100,
+        "adjusted": True,
+    }
+    assert value == original
+
+
+def test_v2_capital_proposal_requires_explicit_null_or_object():
+    with pytest.raises(DataError):
+        validate_output({**proposal(), "schema_version": 2})
+
+
+def test_v2_structured_sizing_survives_the_subprocess_without_runtime_authority(settings):
+    from test_investigation_proposals import proposal as sizing_proposal
+
+    value = sizing_proposal()
+    result = run({"proposal": value}, lambda: None, replace(settings, output_schema_version=2))
+    assert result["output"] == value
+    assert result["execution"]["output_schema_sha256"] == output_schema_sha256(2)
+    assert result["raw_output_sha"] == hashlib.sha256(object_bytes(value)).hexdigest()
+    assert "execution" not in result["output"]
+    assert "funding" not in result["output"]["capital_proposal"]

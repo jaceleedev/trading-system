@@ -12,6 +12,7 @@
   import PaperPanel from '$lib/components/PaperPanel.svelte';
   import BrokerPanel from '$lib/components/BrokerPanel.svelte';
   import OrderPanel from '$lib/components/OrderPanel.svelte';
+  const workflowPanel = import('$lib/components/WorkflowPanel.svelte');
   import { fetchContext, fetchHealth, fetchRecord, fetchSnapshots } from '$lib/queries';
   import { formatTime } from '$lib/format';
 
@@ -198,6 +199,24 @@
     {selectedSnapshot}
     {context}
   />
+  {#await workflowPanel}
+    <section class="panel capital-panel" aria-label="AI 운용 흐름">
+      <p class="muted">AI 운용 흐름을 읽고 있습니다.</p>
+    </section>
+  {:then { default: WorkflowPanel }}
+    <WorkflowPanel
+      ready={health.isSuccess && !health.isFetching}
+      jobsEnabled={health.data?.jobs_enabled ?? false}
+      synthetic={health.data?.synthetic ?? false}
+      {selectedSnapshot}
+      {context}
+      onSnapshot={selectSnapshot}
+    />
+  {:catch}
+    <section class="panel capital-panel" aria-label="AI 운용 흐름">
+      <p class="error-message">운용 화면을 읽지 못했습니다. 페이지를 다시 열어 주세요.</p>
+    </section>
+  {/await}
   <OrderPanel
     ready={health.isSuccess && !health.isFetching}
     jobsEnabled={health.data?.jobs_enabled ?? false}

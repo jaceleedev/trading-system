@@ -1,0 +1,903 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Investigation proposal V2; sizing assumptions do not authorize capital or orders",
+  "type": "object",
+  "properties": {
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 6000
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 12000
+    },
+    "opportunities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "symbol": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+          },
+          "market": {
+            "type": "string",
+            "enum": [
+              "KR",
+              "US"
+            ]
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "buy",
+              "add",
+              "trim",
+              "sell",
+              "hold",
+              "avoid",
+              "research",
+              "watch",
+              "wait"
+            ]
+          },
+          "rationale": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "evidence_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "symbol",
+          "market",
+          "action",
+          "rationale",
+          "evidence_ids"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 50
+    },
+    "opposing_evidence": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "maxItems": 50
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "maxItems": 50
+    },
+    "alternatives": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4000
+      },
+      "maxItems": 50
+    },
+    "review_after": {
+      "anyOf": [
+        {
+          "type": "string",
+          "format": "date-time",
+          "maxLength": 64
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "review_conditions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "evidence",
+              "market"
+            ]
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "symbol"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 50
+    },
+    "research_requests": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "market-capture"
+                ]
+              },
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "endpoint": {
+                    "type": "string",
+                    "enum": [
+                      "candles"
+                    ]
+                  },
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "symbol": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+                      },
+                      "interval": {
+                        "type": "string",
+                        "enum": [
+                          "1m",
+                          "1d"
+                        ]
+                      },
+                      "count": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 200
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "before": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "maxLength": 64
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "adjusted": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "symbol",
+                      "interval",
+                      "count",
+                      "before",
+                      "adjusted"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "pages": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 10
+                  }
+                },
+                "required": [
+                  "endpoint",
+                  "query",
+                  "pages"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "kind",
+              "parameters"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "market-capture"
+                ]
+              },
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "endpoint": {
+                    "type": "string",
+                    "enum": [
+                      "stocks"
+                    ]
+                  },
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "symbols": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 6600,
+                        "pattern": "^[A-Za-z0-9.,\\-]+$"
+                      }
+                    },
+                    "required": [
+                      "symbols"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "pages": {
+                    "type": "integer",
+                    "enum": [
+                      1
+                    ]
+                  }
+                },
+                "required": [
+                  "endpoint",
+                  "query",
+                  "pages"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "kind",
+              "parameters"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "market-capture"
+                ]
+              },
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "endpoint": {
+                    "type": "string",
+                    "enum": [
+                      "stock-list"
+                    ]
+                  },
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "market": {
+                        "type": "string",
+                        "enum": [
+                          "KOSPI",
+                          "KOSDAQ",
+                          "NYSE",
+                          "NASDAQ",
+                          "AMEX",
+                          "KR_ETC",
+                          "US_ETC"
+                        ]
+                      },
+                      "status": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "SCHEDULED",
+                              "ACTIVE",
+                              "DELISTED"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "securityType": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "STOCK",
+                              "FOREIGN_STOCK",
+                              "DEPOSITARY_RECEIPT",
+                              "INFRASTRUCTURE_FUND",
+                              "REIT",
+                              "ETF",
+                              "FOREIGN_ETF",
+                              "ETN",
+                              "STOCK_WARRANTS"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "commonShare": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "market",
+                      "status",
+                      "securityType",
+                      "commonShare"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "pages": {
+                    "type": "integer",
+                    "enum": [
+                      1
+                    ]
+                  }
+                },
+                "required": [
+                  "endpoint",
+                  "query",
+                  "pages"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "kind",
+              "parameters"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "market-capture"
+                ]
+              },
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "endpoint": {
+                    "type": "string",
+                    "enum": [
+                      "fx"
+                    ]
+                  },
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "dateTime": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "maxLength": 64
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "baseCurrency": {
+                        "type": "string",
+                        "enum": [
+                          "KRW",
+                          "USD"
+                        ]
+                      },
+                      "quoteCurrency": {
+                        "type": "string",
+                        "enum": [
+                          "KRW",
+                          "USD"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "dateTime",
+                      "baseCurrency",
+                      "quoteCurrency"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "pages": {
+                    "type": "integer",
+                    "enum": [
+                      1
+                    ]
+                  }
+                },
+                "required": [
+                  "endpoint",
+                  "query",
+                  "pages"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "kind",
+              "parameters"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "market-capture"
+                ]
+              },
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "endpoint": {
+                    "type": "string",
+                    "enum": [
+                      "calendar-kr"
+                    ]
+                  },
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date",
+                            "maxLength": 10
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "date"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "pages": {
+                    "type": "integer",
+                    "enum": [
+                      1
+                    ]
+                  }
+                },
+                "required": [
+                  "endpoint",
+                  "query",
+                  "pages"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "kind",
+              "parameters"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "market-capture"
+                ]
+              },
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "endpoint": {
+                    "type": "string",
+                    "enum": [
+                      "calendar-us"
+                    ]
+                  },
+                  "query": {
+                    "type": "object",
+                    "properties": {
+                      "date": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date",
+                            "maxLength": 10
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "date"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "pages": {
+                    "type": "integer",
+                    "enum": [
+                      1
+                    ]
+                  }
+                },
+                "required": [
+                  "endpoint",
+                  "query",
+                  "pages"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "kind",
+              "parameters"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "account-sync"
+                ]
+              },
+              "parameters": {
+                "type": "object",
+                "properties": {
+                  "account_seq": {
+                    "type": "string",
+                    "pattern": "^[1-9][0-9]{0,18}$"
+                  }
+                },
+                "required": [
+                  "account_seq"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "kind",
+              "parameters"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "maxItems": 10
+    },
+    "source_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "pattern": "^https://",
+            "maxLength": 4096
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 300
+          },
+          "claim": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "source_published_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "url",
+          "title",
+          "claim",
+          "source_published_at"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 30
+    },
+    "schema_version": {
+      "type": "integer",
+      "enum": [
+        2
+      ]
+    },
+    "capital_proposal": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "snapshot_id": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "alternatives": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "key": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "rationale": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000
+                  },
+                  "legs": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "action": {
+                          "type": "string",
+                          "enum": [
+                            "buy",
+                            "add",
+                            "hold",
+                            "trim",
+                            "sell"
+                          ]
+                        },
+                        "symbol": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$"
+                        },
+                        "market": {
+                          "type": "string",
+                          "enum": [
+                            "KR",
+                            "US"
+                          ]
+                        },
+                        "currency": {
+                          "type": "string",
+                          "enum": [
+                            "KRW",
+                            "USD"
+                          ]
+                        },
+                        "quantity": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "price": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "fee_bps": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "fixed_fee": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "tax_bps": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                              "maxLength": 64
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "rationale": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2000
+                        },
+                        "sizing_rationale": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2000
+                        },
+                        "price_rationale": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2000
+                        },
+                        "cost_rationale": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 2000
+                        },
+                        "evidence_ids": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[0-9a-f]{64}$"
+                          },
+                          "maxItems": 100
+                        },
+                        "capture_ids": {
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[0-9a-f]{64}$"
+                          },
+                          "maxItems": 100
+                        }
+                      },
+                      "required": [
+                        "action",
+                        "symbol",
+                        "market",
+                        "currency",
+                        "quantity",
+                        "price",
+                        "fee_bps",
+                        "fixed_fee",
+                        "tax_bps",
+                        "rationale",
+                        "sizing_rationale",
+                        "price_rationale",
+                        "cost_rationale",
+                        "evidence_ids",
+                        "capture_ids"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "minItems": 1,
+                    "maxItems": 20
+                  }
+                },
+                "required": [
+                  "key",
+                  "label",
+                  "rationale",
+                  "legs"
+                ],
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "maxItems": 5
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "alternatives"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "null"
+        }
+      ]
+    }
+  },
+  "required": [
+    "summary",
+    "rationale",
+    "opportunities",
+    "opposing_evidence",
+    "uncertainties",
+    "alternatives",
+    "review_after",
+    "review_conditions",
+    "research_requests",
+    "source_findings",
+    "schema_version",
+    "capital_proposal"
+  ],
+  "additionalProperties": false
+}

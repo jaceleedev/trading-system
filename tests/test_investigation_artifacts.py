@@ -92,7 +92,10 @@ def investigation_source(tmp_path, monkeypatch):
         now=NOW,
     )
     # Exercise the production freezing path without constructing a DB-backed service.
+    from functools import partial
+
     service = object.__new__(InvestigationService)
+    service._freeze = partial(service._freeze, schema_version=1)
     service.workspace, service.synthetic = workspace, True
     request = {
         "purpose": "Synthetic artifact backup",

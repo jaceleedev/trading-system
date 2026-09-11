@@ -1692,6 +1692,29 @@
         "title": "CapitalPlanSummary",
         "type": "object"
       },
+      "CapitalProposal": {
+        "additionalProperties": false,
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/ProposedAlternative"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "alternatives"
+        ],
+        "title": "CapitalProposal",
+        "type": "object"
+      },
       "CapitalReservations": {
         "additionalProperties": false,
         "properties": {
@@ -3021,6 +3044,105 @@
         "title": "HypothesisRecord",
         "type": "object"
       },
+      "IncompleteAlternative": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "missing_fields": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing Fields",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "missing_fields"
+        ],
+        "title": "IncompleteAlternative",
+        "type": "object"
+      },
+      "InvestigationCapitalContext": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "anyOf": [
+              {
+                "pattern": "^[1-9][0-9]{0,18}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Seq"
+          },
+          "expected_pool_revisions": {
+            "patternProperties": {
+              "^[0-9a-f]{64}$": {
+                "minimum": 0.0,
+                "type": "integer"
+              }
+            },
+            "title": "Expected Pool Revisions",
+            "type": "object"
+          },
+          "funding": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/CapitalFunding"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Funding"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "pools": {
+            "items": {
+              "$ref": "#/components/schemas/FundingPool"
+            },
+            "title": "Pools",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "available",
+              "unconfigured",
+              "inconsistent"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "account_seq",
+          "mode",
+          "funding",
+          "expected_pool_revisions",
+          "pools"
+        ],
+        "title": "InvestigationCapitalContext",
+        "type": "object"
+      },
       "InvestigationCondition": {
         "additionalProperties": false,
         "properties": {
@@ -3356,6 +3478,112 @@
         "title": "InvestigationOutput",
         "type": "object"
       },
+      "InvestigationOutputV2": {
+        "additionalProperties": false,
+        "properties": {
+          "alternatives": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "capital_proposal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapitalProposal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "opportunities": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationOpportunity"
+            },
+            "title": "Opportunities",
+            "type": "array"
+          },
+          "opposing_evidence": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Opposing Evidence",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "research_requests": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "title": "Research Requests",
+            "type": "array"
+          },
+          "review_after": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Review After"
+          },
+          "review_conditions": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationCondition"
+            },
+            "title": "Review Conditions",
+            "type": "array"
+          },
+          "schema_version": {
+            "const": 2,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "source_findings": {
+            "items": {
+              "$ref": "#/components/schemas/InvestigationSourceFinding"
+            },
+            "title": "Source Findings",
+            "type": "array"
+          },
+          "summary": {
+            "title": "Summary",
+            "type": "string"
+          },
+          "uncertainties": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Uncertainties",
+            "type": "array"
+          }
+        },
+        "required": [
+          "summary",
+          "rationale",
+          "opportunities",
+          "opposing_evidence",
+          "uncertainties",
+          "alternatives",
+          "review_after",
+          "review_conditions",
+          "research_requests",
+          "source_findings",
+          "schema_version",
+          "capital_proposal"
+        ],
+        "title": "InvestigationOutputV2",
+        "type": "object"
+      },
       "InvestigationPause": {
         "additionalProperties": false,
         "properties": {
@@ -3405,9 +3633,13 @@
                 "$ref": "#/components/schemas/InvestigationOutput"
               },
               {
+                "$ref": "#/components/schemas/InvestigationOutputV2"
+              },
+              {
                 "type": "null"
               }
-            ]
+            ],
+            "title": "Latest Output"
           },
           "research_jobs": {
             "items": {
@@ -7205,6 +7437,32 @@
         "title": "ProfitLoss",
         "type": "object"
       },
+      "ProposalCompleteness": {
+        "additionalProperties": false,
+        "properties": {
+          "complete_alternative_keys": {
+            "items": {
+              "pattern": "^[A-Za-z0-9_-]{1,64}$",
+              "type": "string"
+            },
+            "title": "Complete Alternative Keys",
+            "type": "array"
+          },
+          "incomplete_alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/IncompleteAlternative"
+            },
+            "title": "Incomplete Alternatives",
+            "type": "array"
+          }
+        },
+        "required": [
+          "complete_alternative_keys",
+          "incomplete_alternatives"
+        ],
+        "title": "ProposalCompleteness",
+        "type": "object"
+      },
       "ProposedAction": {
         "additionalProperties": false,
         "properties": {
@@ -7285,6 +7543,192 @@
           "rationale"
         ],
         "title": "ProposedAction",
+        "type": "object"
+      },
+      "ProposedAlternative": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "legs": {
+            "items": {
+              "$ref": "#/components/schemas/ProposedLeg"
+            },
+            "title": "Legs",
+            "type": "array"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "rationale",
+          "legs"
+        ],
+        "title": "ProposedAlternative",
+        "type": "object"
+      },
+      "ProposedLeg": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "enum": [
+              "buy",
+              "add",
+              "hold",
+              "trim",
+              "sell"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "capture_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Capture Ids",
+            "type": "array"
+          },
+          "cost_rationale": {
+            "title": "Cost Rationale",
+            "type": "string"
+          },
+          "currency": {
+            "enum": [
+              "KRW",
+              "USD"
+            ],
+            "title": "Currency",
+            "type": "string"
+          },
+          "evidence_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Evidence Ids",
+            "type": "array"
+          },
+          "fee_bps": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fee Bps"
+          },
+          "fixed_fee": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fixed Fee"
+          },
+          "market": {
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "title": "Market",
+            "type": "string"
+          },
+          "price": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price"
+          },
+          "price_rationale": {
+            "title": "Price Rationale",
+            "type": "string"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "rationale": {
+            "title": "Rationale",
+            "type": "string"
+          },
+          "sizing_rationale": {
+            "title": "Sizing Rationale",
+            "type": "string"
+          },
+          "symbol": {
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$",
+            "title": "Symbol",
+            "type": "string"
+          },
+          "tax_bps": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "pattern": "^[0-9]+(?:\\.[0-9]+)?$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tax Bps"
+          }
+        },
+        "required": [
+          "action",
+          "symbol",
+          "market",
+          "currency",
+          "quantity",
+          "price",
+          "fee_bps",
+          "fixed_fee",
+          "tax_bps",
+          "rationale",
+          "sizing_rationale",
+          "price_rationale",
+          "cost_rationale",
+          "evidence_ids",
+          "capture_ids"
+        ],
+        "title": "ProposedLeg",
         "type": "object"
       },
       "ReconciliationBuyingPower": {
@@ -8722,6 +9166,497 @@
           "sizing_validated"
         ],
         "title": "UnselectedFreshness",
+        "type": "object"
+      },
+      "WorkflowCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "alternative_id": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Alternative Id",
+            "type": "string"
+          },
+          "investigation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Investigation Id",
+            "type": "string"
+          },
+          "investigation_revision": {
+            "minimum": 1.0,
+            "title": "Investigation Revision",
+            "type": "integer"
+          },
+          "request_key": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "investigation_id",
+          "investigation_revision",
+          "alternative_id",
+          "request_key"
+        ],
+        "title": "WorkflowCreate",
+        "type": "object"
+      },
+      "WorkflowList": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowView"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "omitted_count": {
+            "title": "Omitted Count",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total_count",
+          "omitted_count"
+        ],
+        "title": "WorkflowList",
+        "type": "object"
+      },
+      "WorkflowMutation": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "request_key": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_key",
+          "expected_revision"
+        ],
+        "title": "WorkflowMutation",
+        "type": "object"
+      },
+      "WorkflowObserve": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "request_key": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Key",
+            "type": "string"
+          },
+          "scan_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Scan Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_key",
+          "expected_revision",
+          "scan_id"
+        ],
+        "title": "WorkflowObserve",
+        "type": "object"
+      },
+      "WorkflowProposal": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "anyOf": [
+              {
+                "pattern": "^[1-9][0-9]{0,18}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Seq"
+          },
+          "capital_context": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InvestigationCapitalContext"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "capital_proposal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapitalProposal"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "completeness": {
+            "$ref": "#/components/schemas/ProposalCompleteness"
+          },
+          "input_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Id",
+            "type": "string"
+          },
+          "investigation_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Investigation Id",
+            "type": "string"
+          },
+          "investigation_revision": {
+            "title": "Investigation Revision",
+            "type": "integer"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "orders_enabled": {
+            "const": false,
+            "title": "Orders Enabled",
+            "type": "boolean"
+          },
+          "output_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Output Id",
+            "type": "string"
+          },
+          "run_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          }
+        },
+        "required": [
+          "investigation_id",
+          "investigation_revision",
+          "input_id",
+          "output_id",
+          "run_id",
+          "snapshot_id",
+          "account_seq",
+          "mode",
+          "capital_proposal",
+          "completeness",
+          "capital_context",
+          "orders_enabled"
+        ],
+        "title": "WorkflowProposal",
+        "type": "object"
+      },
+      "WorkflowReconcile": {
+        "additionalProperties": false,
+        "properties": {
+          "after_scan_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "After Scan Id",
+            "type": "string"
+          },
+          "after_snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "After Snapshot Id",
+            "type": "string"
+          },
+          "before_scan_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Before Scan Id"
+          },
+          "expected_revision": {
+            "minimum": 1.0,
+            "title": "Expected Revision",
+            "type": "integer"
+          },
+          "request_key": {
+            "pattern": "^[a-zA-Z0-9_-]{1,100}$",
+            "title": "Request Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "request_key",
+          "expected_revision",
+          "after_snapshot_id",
+          "before_scan_id",
+          "after_scan_id"
+        ],
+        "title": "WorkflowReconcile",
+        "type": "object"
+      },
+      "WorkflowStep": {
+        "additionalProperties": false,
+        "properties": {
+          "attempt_count": {
+            "title": "Attempt Count",
+            "type": "integer"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Code"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "input": {
+            "additionalProperties": true,
+            "title": "Input",
+            "type": "object"
+          },
+          "kind": {
+            "enum": [
+              "funding_refresh",
+              "capital_plan",
+              "reservation",
+              "order_intent",
+              "order_observation",
+              "reconciliation"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "lease_expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lease Expires At"
+          },
+          "request_key": {
+            "title": "Request Key",
+            "type": "string"
+          },
+          "request_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Request Sha256",
+            "type": "string"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "sequence": {
+            "title": "Sequence",
+            "type": "integer"
+          },
+          "state": {
+            "enum": [
+              "prepared",
+              "running",
+              "succeeded",
+              "needs_check"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "workflow_id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Workflow Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "workflow_id",
+          "sequence",
+          "kind",
+          "input",
+          "request_key",
+          "request_sha256",
+          "state",
+          "attempt_count",
+          "lease_expires_at",
+          "result",
+          "error_code",
+          "created_at",
+          "updated_at",
+          "completed_at"
+        ],
+        "title": "WorkflowStep",
+        "type": "object"
+      },
+      "WorkflowView": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "pattern": "^[1-9][0-9]{0,18}$",
+            "title": "Account Seq",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "execution_ready": {
+            "const": false,
+            "title": "Execution Ready",
+            "type": "boolean"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "orders_enabled": {
+            "const": false,
+            "title": "Orders Enabled",
+            "type": "boolean"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "seed": {
+            "additionalProperties": true,
+            "title": "Seed",
+            "type": "object"
+          },
+          "stage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stage"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "paused",
+              "attention",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/WorkflowStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "account_seq",
+          "mode",
+          "seed",
+          "revision",
+          "status",
+          "stage",
+          "steps",
+          "created_at",
+          "updated_at",
+          "orders_enabled",
+          "execution_ready"
+        ],
+        "title": "WorkflowView",
         "type": "object"
       }
     }
@@ -13325,6 +14260,964 @@
           }
         },
         "summary": "Research Record"
+      }
+    },
+    "/api/v1/workflows": {
+      "get": {
+        "operationId": "list_workflows",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowList"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "List Workflows"
+      },
+      "post": {
+        "operationId": "create_workflow",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Create Workflow"
+      }
+    },
+    "/api/v1/workflows/proposal/{id}": {
+      "get": {
+        "operationId": "get_workflow_proposal",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowProposal"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Workflow Proposal"
+      }
+    },
+    "/api/v1/workflows/{id}": {
+      "get": {
+        "operationId": "get_workflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Get Workflow"
+      }
+    },
+    "/api/v1/workflows/{id}/advance": {
+      "post": {
+        "operationId": "advance_workflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowMutation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Advance Workflow"
+      }
+    },
+    "/api/v1/workflows/{id}/observe": {
+      "post": {
+        "operationId": "observe_workflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowObserve"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Observe Workflow"
+      }
+    },
+    "/api/v1/workflows/{id}/pause": {
+      "post": {
+        "operationId": "pause_workflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowMutation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Pause Workflow"
+      }
+    },
+    "/api/v1/workflows/{id}/reconcile": {
+      "post": {
+        "operationId": "reconcile_workflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowReconcile"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Reconcile Workflow"
+      }
+    },
+    "/api/v1/workflows/{id}/recover": {
+      "post": {
+        "operationId": "recover_workflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowMutation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Recover Workflow"
+      }
+    },
+    "/api/v1/workflows/{id}/resume": {
+      "post": {
+        "operationId": "resume_workflow",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+              "title": "Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkflowMutation"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkflowView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        },
+        "summary": "Resume Workflow"
       }
     }
   }

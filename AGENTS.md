@@ -53,6 +53,10 @@ Feature 24 adds prepared create/modify/cancel operations, protected capital rese
 single-dispatch synthetic response checks and explicit recovery; see `docs/ORDER_MANAGEMENT.md`.
 No production adapter can transmit. An acknowledged response establishes an ID link, not a fill.
 Preserve ambiguous delivery and its allocation across restarts; never automatically resend it.
+Feature 25 adds source-bound V2 capital proposals and durable local operation workflows; see
+`docs/AI_OPERATION_WORKFLOW.md`. Preserve V1 artifacts and schema hashes. Frozen operator
+budgets cannot be increased by model output. Resume original idempotent local effects after
+checking sources; never turn recovery into order submission or automatic allocation release.
 
 The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate

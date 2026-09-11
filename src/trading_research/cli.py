@@ -43,6 +43,9 @@ def main() -> int:
     from trading_research.broker_cli import add_broker_parser
 
     add_broker_parser(sub)
+    from trading_research.workflow_cli import add_workflow_parser
+
+    add_workflow_parser(sub)
     from trading_research.order_cli import add_order_parser
 
     add_order_parser(sub)
@@ -141,6 +144,10 @@ def main() -> int:
                 from trading_research.broker_cli import handle_broker
 
                 print(json.dumps(handle_broker(args), ensure_ascii=False, indent=2))
+            elif args.command == "workflows":
+                from trading_research.workflow_cli import handle_workflows
+
+                print(json.dumps(handle_workflows(args), ensure_ascii=False, indent=2))
             elif args.command == "orders":
                 from trading_research.order_cli import handle_orders
 

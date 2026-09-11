@@ -25,6 +25,8 @@ worker는 [작업 실행 안내](docs/JOBS.md)를 따른다. [Codex 조사](docs
 따로 비교하고 조회 범위·출처 미연결·비용 정정을 보존한다.
 [주문 의도 관리](docs/ORDER_MANAGEMENT.md)는 계획·배정과 생성·정정·취소 요청을 연결하고
 별도 합성 어댑터에서 응답 유실·상태 확인을 검증한다. 실제 전송을 켜는 설정은 없다.
+[AI 운용 흐름](docs/AI_OPERATION_WORKFLOW.md)은 완료 조사 제안을 기존 사용자 예산·계산·
+배정·비활성 주문 의도·후속 대조에 연결하고 중단된 로컬 처리의 원래 입력을 복구한다.
 [시장 관측](docs/MARKET_OBSERVATIONS.md)은 저장한 분봉·일봉의 시점별 수정 이력과
 근거 사건을 웹 차트·CLI·MCP에서 같은 자료로 읽는다.
 [새 웹 작업실 안내](docs/WEB_WORKBENCH.md)를 따른다.

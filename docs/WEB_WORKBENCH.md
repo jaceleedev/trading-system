@@ -157,3 +157,7 @@ PostgreSQL 통합 테스트는 `127.0.0.1:55432/trading`만 사용한다. 브라
 관련 구현 근거: [SvelteKit 정적 어댑터](https://svelte.dev/docs/kit/adapter-static),
 [FastAPI 클라이언트 생성](https://fastapi.tiangolo.com/advanced/generate-clients/),
 [TanStack Svelte Query](https://tanstack.com/query/latest/docs/framework/svelte/overview).
+
+25번의 [AI 운용 흐름](AI_OPERATION_WORKFLOW.md)은 조사에 고정된 계좌·예산과 V2 수량·
+가격·비용 대안을 표시하고 단계별 처리·중단 복구·후속 관측 대조를 연결한다. 실제 주문
+전송은 비활성이고, 완료 상태도 실제 거래 성공이나 자금 배정 해제를 의미하지 않는다.
