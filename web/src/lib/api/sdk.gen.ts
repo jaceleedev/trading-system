@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CancelJobData, CancelJobErrors, CancelJobResponses, CreateCapitalPlanData, CreateCapitalPlanErrors, CreateCapitalPlanResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, GetCapitalPlanData, GetCapitalPlanErrors, GetCapitalPlanResponses, GetContextData, GetContextErrors, GetContextResponses, GetFundingData, GetFundingErrors, GetFundingResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListCapitalPlansData, ListCapitalPlansErrors, ListCapitalPlansResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, PreviewCapitalPlanData, PreviewCapitalPlanErrors, PreviewCapitalPlanResponses, RefreshFundingData, RefreshFundingErrors, RefreshFundingResponses, ReleaseFundingReservationData, ReleaseFundingReservationErrors, ReleaseFundingReservationResponses, ReserveCapitalPlanData, ReserveCapitalPlanErrors, ReserveCapitalPlanResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses } from './types.gen';
+import type { AdvancePaperBookData, AdvancePaperBookErrors, AdvancePaperBookResponses, CancelJobData, CancelJobErrors, CancelJobResponses, CancelPaperIntentData, CancelPaperIntentErrors, CancelPaperIntentResponses, CreateCapitalPlanData, CreateCapitalPlanErrors, CreateCapitalPlanResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, CreatePaperBookData, CreatePaperBookErrors, CreatePaperBookResponses, GetCapitalPlanData, GetCapitalPlanErrors, GetCapitalPlanResponses, GetContextData, GetContextErrors, GetContextResponses, GetFundingData, GetFundingErrors, GetFundingResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetPaperBookData, GetPaperBookErrors, GetPaperBookResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListCapitalPlansData, ListCapitalPlansErrors, ListCapitalPlansResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, ListPaperBooksData, ListPaperBooksErrors, ListPaperBooksResponses, ListPaperEventsData, ListPaperEventsErrors, ListPaperEventsResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, PreviewCapitalPlanData, PreviewCapitalPlanErrors, PreviewCapitalPlanResponses, RefreshFundingData, RefreshFundingErrors, RefreshFundingResponses, ReleaseFundingReservationData, ReleaseFundingReservationErrors, ReleaseFundingReservationResponses, ReserveCapitalPlanData, ReserveCapitalPlanErrors, ReserveCapitalPlanResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses, SubmitPaperIntentData, SubmitPaperIntentErrors, SubmitPaperIntentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -189,6 +189,69 @@ export const listMarketCaptures = <ThrowOnError extends boolean = false>(options
  */
 export const getMarketView = <ThrowOnError extends boolean = false>(options: Options<GetMarketViewData, ThrowOnError>): RequestResult<GetMarketViewResponses, GetMarketViewErrors, ThrowOnError> => (options.client ?? client).post<GetMarketViewResponses, GetMarketViewErrors, ThrowOnError>({
     url: '/api/v1/market/view',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Paper Books
+ */
+export const listPaperBooks = <ThrowOnError extends boolean = false>(options?: Options<ListPaperBooksData, ThrowOnError>): RequestResult<ListPaperBooksResponses, ListPaperBooksErrors, ThrowOnError> => (options?.client ?? client).get<ListPaperBooksResponses, ListPaperBooksErrors, ThrowOnError>({ url: '/api/v1/paper/books', ...options });
+
+/**
+ * Create Paper Book
+ */
+export const createPaperBook = <ThrowOnError extends boolean = false>(options: Options<CreatePaperBookData, ThrowOnError>): RequestResult<CreatePaperBookResponses, CreatePaperBookErrors, ThrowOnError> => (options.client ?? client).post<CreatePaperBookResponses, CreatePaperBookErrors, ThrowOnError>({
+    url: '/api/v1/paper/books',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Paper Book
+ */
+export const getPaperBook = <ThrowOnError extends boolean = false>(options: Options<GetPaperBookData, ThrowOnError>): RequestResult<GetPaperBookResponses, GetPaperBookErrors, ThrowOnError> => (options.client ?? client).get<GetPaperBookResponses, GetPaperBookErrors, ThrowOnError>({ url: '/api/v1/paper/books/{id}', ...options });
+
+/**
+ * Advance Paper Book
+ */
+export const advancePaperBook = <ThrowOnError extends boolean = false>(options: Options<AdvancePaperBookData, ThrowOnError>): RequestResult<AdvancePaperBookResponses, AdvancePaperBookErrors, ThrowOnError> => (options.client ?? client).post<AdvancePaperBookResponses, AdvancePaperBookErrors, ThrowOnError>({
+    url: '/api/v1/paper/books/{id}/advance',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Paper Events
+ */
+export const listPaperEvents = <ThrowOnError extends boolean = false>(options: Options<ListPaperEventsData, ThrowOnError>): RequestResult<ListPaperEventsResponses, ListPaperEventsErrors, ThrowOnError> => (options.client ?? client).get<ListPaperEventsResponses, ListPaperEventsErrors, ThrowOnError>({ url: '/api/v1/paper/books/{id}/events', ...options });
+
+/**
+ * Submit Paper Intent
+ */
+export const submitPaperIntent = <ThrowOnError extends boolean = false>(options: Options<SubmitPaperIntentData, ThrowOnError>): RequestResult<SubmitPaperIntentResponses, SubmitPaperIntentErrors, ThrowOnError> => (options.client ?? client).post<SubmitPaperIntentResponses, SubmitPaperIntentErrors, ThrowOnError>({
+    url: '/api/v1/paper/books/{id}/intents',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cancel Paper Intent
+ */
+export const cancelPaperIntent = <ThrowOnError extends boolean = false>(options: Options<CancelPaperIntentData, ThrowOnError>): RequestResult<CancelPaperIntentResponses, CancelPaperIntentErrors, ThrowOnError> => (options.client ?? client).post<CancelPaperIntentResponses, CancelPaperIntentErrors, ThrowOnError>({
+    url: '/api/v1/paper/books/{id}/intents/{intent_id}/cancel',
     ...options,
     headers: {
         'Content-Type': 'application/json',

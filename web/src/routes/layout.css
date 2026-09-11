@@ -229,6 +229,66 @@ select {
   margin-top: 20px;
   padding: 22px;
 }
+.paper-create {
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+}
+.paper-create > summary {
+  font-weight: 600;
+  color: #35445f;
+}
+.paper-create > p {
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+.paper-check {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center;
+  gap: 7px;
+}
+.paper-pending {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  overflow-wrap: anywhere;
+}
+.paper-panel select[multiple] {
+  min-height: 124px;
+}
+.paper-panel .capital-form > * {
+  min-width: 0;
+}
+.paper-panel .capital-result > p {
+  margin-top: 6px;
+}
+.paper-subheading {
+  margin-top: 22px;
+}
+.paper-intent {
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 16px;
+  margin-top: 16px;
+  overflow-wrap: anywhere;
+}
+.paper-intent-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.paper-panel .capital-result .table-container {
+  max-width: 100%;
+}
+.paper-panel td small {
+  display: block;
+  margin-top: 3px;
+  color: #687890;
+}
 .capital-panel {
   margin-top: 20px;
   padding: 22px;

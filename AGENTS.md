@@ -41,7 +41,10 @@ adds schema-pinned candle observations, revisions, cited events, and charts; see
 execution, revision fencing, adaptive read requests, and review conditions; see
 `docs/INVESTIGATIONS.md`. Feature 21 adds capital alternatives and current local allocations
 with exact amounts and immutable source validation; see `docs/CAPITAL_PLANS.md`. Broker order
-submission remains future work and must stay disabled.
+submission remains future work and must stay disabled. Feature 22 adds separate prospective
+paper books, frozen selected alternatives and execution assumptions, local capture receipts,
+partial fills, costs and native-currency valuation; see `docs/PAPER_EXECUTION.md`. Never write
+paper results into broker holdings or claim paper valuation is actual profit or decision attribution.
 
 The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate
