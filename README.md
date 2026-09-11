@@ -17,6 +17,8 @@ SvelteKit 웹 작업실과 FastAPI는 저장된 계좌·판단·근거를 연결
 기존 Streamlit 추천·백테스트 화면도 사용할 수 있다. PostgreSQL 작업 기록과 Python
 worker는 [작업 실행 안내](docs/JOBS.md)를 따른다. [Codex 조사](docs/INVESTIGATIONS.md)는
 고정 입력과 실제 프로세스 기록, 새로운 관측에 따른 후속 조사·중지를 연결한다.
+[자금 계획](docs/CAPITAL_PLANS.md)은 판단·조사에 수량·비용 가정을 연결하고 선택한
+대안의 로컬 자원 배정을 관리한다. 실제 주문은 전송하지 않는다.
 [시장 관측](docs/MARKET_OBSERVATIONS.md)은 저장한 분봉·일봉의 시점별 수정 이력과
 근거 사건을 웹 차트·CLI·MCP에서 같은 자료로 읽는다.
 [새 웹 작업실 안내](docs/WEB_WORKBENCH.md)를 따른다.

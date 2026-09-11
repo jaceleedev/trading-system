@@ -163,6 +163,553 @@ export type CandleRevision = {
 };
 
 /**
+ * CapitalAlternative
+ */
+export type CapitalAlternative = {
+    /**
+     * Key
+     */
+    key: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Legs
+     */
+    legs: Array<CapitalLeg>;
+    /**
+     * Rationale
+     */
+    rationale: string;
+};
+
+/**
+ * CapitalAlternativeCalculation
+ */
+export type CapitalAlternativeCalculation = {
+    /**
+     * Blockers
+     */
+    blockers: Array<string>;
+    /**
+     * Cash Requirements
+     */
+    cash_requirements: Array<CashReservation>;
+    /**
+     * Eligibility
+     */
+    eligibility: 'eligible' | 'blocked' | 'unknown';
+    /**
+     * Estimated Sale Proceeds
+     */
+    estimated_sale_proceeds: Array<CashReservation>;
+    /**
+     * Holding Requirements
+     */
+    holding_requirements: Array<HoldingReservation>;
+    /**
+     * Holdings
+     */
+    holdings: Array<CapitalHoldingProjection>;
+    /**
+     * Key
+     */
+    key: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Legs
+     */
+    legs: Array<CapitalLegCalculation>;
+    /**
+     * Rationale
+     */
+    rationale: string;
+    /**
+     * Unknown Cash Currencies
+     */
+    unknown_cash_currencies: Array<'KRW' | 'USD'>;
+    /**
+     * Unknown Sale Proceeds Currencies
+     */
+    unknown_sale_proceeds_currencies: Array<'KRW' | 'USD'>;
+};
+
+/**
+ * CapitalCalculation
+ */
+export type CapitalCalculation = {
+    /**
+     * Alternatives
+     */
+    alternatives: Array<CapitalAlternativeCalculation>;
+    /**
+     * Arithmetic Precision
+     */
+    arithmetic_precision: 256;
+    /**
+     * Arithmetic Rounding
+     */
+    arithmetic_rounding: 'ROUND_HALF_EVEN';
+    /**
+     * Assumptions
+     */
+    assumptions: Array<string>;
+    /**
+     * Cash Capacity
+     */
+    cash_capacity: Array<CapitalCashCapacity>;
+    /**
+     * Execution Ready
+     */
+    execution_ready: false;
+    /**
+     * Local Reservations Known
+     */
+    local_reservations_known: boolean;
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Warnings
+     */
+    warnings: Array<string>;
+};
+
+/**
+ * CapitalCashCapacity
+ */
+export type CapitalCashCapacity = {
+    /**
+     * Available Amount
+     */
+    available_amount: string | null;
+    /**
+     * Capacity Before Reservations
+     */
+    capacity_before_reservations: string | null;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Existing Reserved Amount
+     */
+    existing_reserved_amount: string | null;
+    /**
+     * Observed Buying Power
+     */
+    observed_buying_power: string | null;
+    /**
+     * Operator Limit
+     */
+    operator_limit: string | null;
+    /**
+     * Operator Reserve
+     */
+    operator_reserve: string | null;
+};
+
+/**
+ * CapitalFunding
+ */
+export type CapitalFunding = {
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Limit Amount
+     */
+    limit_amount: string;
+    /**
+     * Reserve Amount
+     */
+    reserve_amount: string;
+};
+
+/**
+ * CapitalHoldingProjection
+ */
+export type CapitalHoldingProjection = {
+    /**
+     * Available Quantity
+     */
+    available_quantity: string | null;
+    /**
+     * Average Price Reason
+     */
+    average_price_reason: string | null;
+    /**
+     * Average Price Rounded
+     */
+    average_price_rounded: boolean;
+    /**
+     * Average Purchase Price After
+     */
+    average_purchase_price_after: string | null;
+    /**
+     * Average Purchase Price Before
+     */
+    average_purchase_price_before: string | null;
+    /**
+     * Buy Quantity
+     */
+    buy_quantity: string;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Existing Reserved Quantity
+     */
+    existing_reserved_quantity: string | null;
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Observed Quantity
+     */
+    observed_quantity: string;
+    /**
+     * Projected Quantity
+     */
+    projected_quantity: string;
+    /**
+     * Sell Quantity
+     */
+    sell_quantity: string;
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
+ * CapitalLeg
+ */
+export type CapitalLeg = {
+    /**
+     * Action
+     */
+    action: 'buy' | 'add' | 'hold' | 'trim' | 'sell';
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Fee Bps
+     */
+    fee_bps: string;
+    /**
+     * Fixed Fee
+     */
+    fixed_fee: string;
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Price
+     */
+    price: string | null;
+    /**
+     * Quantity
+     */
+    quantity: string;
+    /**
+     * Rationale
+     */
+    rationale: string;
+    /**
+     * Symbol
+     */
+    symbol: string;
+    /**
+     * Tax Bps
+     */
+    tax_bps: string;
+};
+
+/**
+ * CapitalLegCalculation
+ */
+export type CapitalLegCalculation = {
+    /**
+     * Action
+     */
+    action: 'buy' | 'add' | 'hold' | 'trim' | 'sell';
+    /**
+     * Blockers
+     */
+    blockers: Array<string>;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Estimated Fee
+     */
+    estimated_fee: string | null;
+    /**
+     * Estimated Sale Proceeds
+     */
+    estimated_sale_proceeds: string | null;
+    /**
+     * Estimated Tax
+     */
+    estimated_tax: string | null;
+    /**
+     * Index
+     */
+    index: number;
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Notional
+     */
+    notional: string | null;
+    /**
+     * Price
+     */
+    price: string | null;
+    /**
+     * Quantity
+     */
+    quantity: string;
+    /**
+     * Required Cash
+     */
+    required_cash: string | null;
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
+ * CapitalPlanCreate
+ */
+export type CapitalPlanCreate = {
+    /**
+     * Alternatives
+     */
+    alternatives: Array<CapitalAlternative>;
+    /**
+     * Funding
+     */
+    funding: Array<CapitalFunding>;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+    source: CapitalSource;
+};
+
+/**
+ * CapitalPlanList
+ */
+export type CapitalPlanList = {
+    /**
+     * Items
+     */
+    items: Array<CapitalPlanSummary>;
+    /**
+     * Omitted Count
+     */
+    omitted_count: number;
+    /**
+     * Total Count
+     */
+    total_count: number;
+};
+
+/**
+ * CapitalPlanRecord
+ */
+export type CapitalPlanRecord = {
+    calculation: CapitalCalculation;
+    /**
+     * Kind
+     */
+    kind: 'capital_plan';
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    request: CapitalPlanRequest;
+    reservations: CapitalReservations;
+    /**
+     * Schema Version
+     */
+    schema_version: 1;
+    snapshot: AccountSnapshot;
+    source_context: CapitalSourceContext;
+};
+
+/**
+ * CapitalPlanRequest
+ */
+export type CapitalPlanRequest = {
+    /**
+     * Alternatives
+     */
+    alternatives: Array<CapitalAlternative>;
+    /**
+     * Funding
+     */
+    funding: Array<CapitalFunding>;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+    source: CapitalSource;
+};
+
+/**
+ * CapitalPlanReserve
+ */
+export type CapitalPlanReserve = {
+    /**
+     * Alternative Id
+     */
+    alternative_id: string;
+    /**
+     * Expected Pool Revisions
+     */
+    expected_pool_revisions: {
+        [key: string]: unknown | number;
+    };
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * CapitalPlanResponse
+ */
+export type CapitalPlanResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    record: CapitalPlanRecord;
+};
+
+/**
+ * CapitalPlanSummary
+ */
+export type CapitalPlanSummary = {
+    /**
+     * Alternative Count
+     */
+    alternative_count: number;
+    /**
+     * Eligible Count
+     */
+    eligible_count: number;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+    source: CapitalSource;
+};
+
+/**
+ * CapitalReservations
+ */
+export type CapitalReservations = {
+    /**
+     * Cash
+     */
+    cash: Array<CashReservation>;
+    /**
+     * Holdings
+     */
+    holdings: Array<HoldingReservation>;
+    /**
+     * Known
+     */
+    known: boolean;
+};
+
+/**
+ * CapitalSource
+ */
+export type CapitalSource = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: 'decision' | 'investigation_output';
+};
+
+/**
+ * CapitalSourceContext
+ */
+export type CapitalSourceContext = {
+    /**
+     * Account Seq
+     */
+    account_seq: string | null;
+    /**
+     * Account Snapshot Id
+     */
+    account_snapshot_id: string | null;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: 'decision' | 'investigation_output';
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+};
+
+/**
  * CashBalances
  */
 export type CashBalances = {
@@ -174,6 +721,20 @@ export type CashBalances = {
      * Usd
      */
     USD: null;
+};
+
+/**
+ * CashReservation
+ */
+export type CashReservation = {
+    /**
+     * Amount
+     */
+    amount: string;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
 };
 
 /**
@@ -414,6 +975,213 @@ export type EvidenceRecord = {
 };
 
 /**
+ * FundingMutation
+ */
+export type FundingMutation = {
+    funding: FundingState;
+    reservation: FundingReservation;
+};
+
+/**
+ * FundingPool
+ */
+export type FundingPool = {
+    /**
+     * Available
+     */
+    available: string | null;
+    /**
+     * Basis
+     */
+    basis?: {
+        [key: string]: unknown;
+    } | null;
+    /**
+     * Capacity
+     */
+    capacity: string | null;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: 'cash' | 'holding';
+    /**
+     * Market
+     */
+    market: 'KR' | 'US' | null;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Observed At
+     */
+    observed_at: string;
+    /**
+     * Overallocated
+     */
+    overallocated: boolean | null;
+    /**
+     * Reserved
+     */
+    reserved: string;
+    /**
+     * Revision
+     */
+    revision: number;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+    /**
+     * Symbol
+     */
+    symbol: string | null;
+};
+
+/**
+ * FundingRefresh
+ */
+export type FundingRefresh = {
+    /**
+     * Expected Pool Revisions
+     */
+    expected_pool_revisions: {
+        [key: string]: unknown | number;
+    };
+    /**
+     * Funding
+     */
+    funding: Array<CapitalFunding>;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+};
+
+/**
+ * FundingRequirements
+ */
+export type FundingRequirements = {
+    /**
+     * Cash
+     */
+    cash: Array<CashReservation>;
+    /**
+     * Holdings
+     */
+    holdings: Array<HoldingReservation>;
+};
+
+/**
+ * FundingReservation
+ */
+export type FundingReservation = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Alternative Id
+     */
+    alternative_id: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Execution Ready
+     */
+    execution_ready: false;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Plan Id
+     */
+    plan_id: string;
+    /**
+     * Pool Revisions
+     */
+    pool_revisions: {
+        [key: string]: unknown | number;
+    };
+    /**
+     * Released At
+     */
+    released_at: string | null;
+    /**
+     * Replaced By
+     */
+    replaced_by: string | null;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    requirements: FundingRequirements;
+    /**
+     * Snapshot Ids
+     */
+    snapshot_ids: Array<string>;
+    /**
+     * Status
+     */
+    status: 'active' | 'released' | 'replaced';
+};
+
+/**
+ * FundingState
+ */
+export type FundingState = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Execution Ready
+     */
+    execution_ready: false;
+    /**
+     * Expected Pool Revisions
+     */
+    expected_pool_revisions: {
+        [key: string]: unknown | number;
+    };
+    /**
+     * Omitted Reservation Count
+     */
+    omitted_reservation_count: number;
+    /**
+     * Pools
+     */
+    pools: Array<FundingPool>;
+    /**
+     * Provider
+     */
+    provider: 'toss';
+    /**
+     * Reservations
+     */
+    reservations: Array<FundingReservation>;
+};
+
+/**
  * HealthResponse
  */
 export type HealthResponse = {
@@ -471,6 +1239,28 @@ export type Holding = {
      */
     name: string;
     profitLoss: ProfitLoss;
+    /**
+     * Quantity
+     */
+    quantity: string;
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
+ * HoldingReservation
+ */
+export type HoldingReservation = {
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
     /**
      * Quantity
      */
@@ -2070,6 +2860,266 @@ export type ListAccountSnapshotsResponses = {
 
 export type ListAccountSnapshotsResponse = ListAccountSnapshotsResponses[keyof ListAccountSnapshotsResponses];
 
+export type ListCapitalPlansData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/capital-plans';
+};
+
+export type ListCapitalPlansErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListCapitalPlansError = ListCapitalPlansErrors[keyof ListCapitalPlansErrors];
+
+export type ListCapitalPlansResponses = {
+    /**
+     * Successful Response
+     */
+    200: CapitalPlanList;
+};
+
+export type ListCapitalPlansResponse = ListCapitalPlansResponses[keyof ListCapitalPlansResponses];
+
+export type CreateCapitalPlanData = {
+    body: CapitalPlanCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/capital-plans';
+};
+
+export type CreateCapitalPlanErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CreateCapitalPlanError = CreateCapitalPlanErrors[keyof CreateCapitalPlanErrors];
+
+export type CreateCapitalPlanResponses = {
+    /**
+     * Successful Response
+     */
+    200: CapitalPlanResponse;
+};
+
+export type CreateCapitalPlanResponse = CreateCapitalPlanResponses[keyof CreateCapitalPlanResponses];
+
+export type PreviewCapitalPlanData = {
+    body: CapitalPlanRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/capital-plans/preview';
+};
+
+export type PreviewCapitalPlanErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type PreviewCapitalPlanError = PreviewCapitalPlanErrors[keyof PreviewCapitalPlanErrors];
+
+export type PreviewCapitalPlanResponses = {
+    /**
+     * Successful Response
+     */
+    200: CapitalPlanRecord;
+};
+
+export type PreviewCapitalPlanResponse = PreviewCapitalPlanResponses[keyof PreviewCapitalPlanResponses];
+
+export type GetCapitalPlanData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/capital-plans/{id}';
+};
+
+export type GetCapitalPlanErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetCapitalPlanError = GetCapitalPlanErrors[keyof GetCapitalPlanErrors];
+
+export type GetCapitalPlanResponses = {
+    /**
+     * Successful Response
+     */
+    200: CapitalPlanResponse;
+};
+
+export type GetCapitalPlanResponse = GetCapitalPlanResponses[keyof GetCapitalPlanResponses];
+
+export type ReserveCapitalPlanData = {
+    body: CapitalPlanReserve;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/capital-plans/{id}/reserve';
+};
+
+export type ReserveCapitalPlanErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ReserveCapitalPlanError = ReserveCapitalPlanErrors[keyof ReserveCapitalPlanErrors];
+
+export type ReserveCapitalPlanResponses = {
+    /**
+     * Successful Response
+     */
+    200: FundingMutation;
+};
+
+export type ReserveCapitalPlanResponse = ReserveCapitalPlanResponses[keyof ReserveCapitalPlanResponses];
+
 export type GetContextData = {
     body?: never;
     path?: never;
@@ -2123,6 +3173,167 @@ export type GetContextResponses = {
 };
 
 export type GetContextResponse = GetContextResponses[keyof GetContextResponses];
+
+export type GetFundingData = {
+    body?: never;
+    path?: never;
+    query: {
+        /**
+         * Account Seq
+         */
+        account_seq: string;
+        /**
+         * Snapshot Id
+         */
+        snapshot_id?: string | null;
+    };
+    url: '/api/v1/funding';
+};
+
+export type GetFundingErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetFundingError = GetFundingErrors[keyof GetFundingErrors];
+
+export type GetFundingResponses = {
+    /**
+     * Successful Response
+     */
+    200: FundingState;
+};
+
+export type GetFundingResponse = GetFundingResponses[keyof GetFundingResponses];
+
+export type RefreshFundingData = {
+    body: FundingRefresh;
+    path?: never;
+    query?: never;
+    url: '/api/v1/funding/refresh';
+};
+
+export type RefreshFundingErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type RefreshFundingError = RefreshFundingErrors[keyof RefreshFundingErrors];
+
+export type RefreshFundingResponses = {
+    /**
+     * Successful Response
+     */
+    200: FundingState;
+};
+
+export type RefreshFundingResponse = RefreshFundingResponses[keyof RefreshFundingResponses];
+
+export type ReleaseFundingReservationData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/funding/reservations/{id}/release';
+};
+
+export type ReleaseFundingReservationErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ReleaseFundingReservationError = ReleaseFundingReservationErrors[keyof ReleaseFundingReservationErrors];
+
+export type ReleaseFundingReservationResponses = {
+    /**
+     * Successful Response
+     */
+    200: FundingMutation;
+};
+
+export type ReleaseFundingReservationResponse = ReleaseFundingReservationResponses[keyof ReleaseFundingReservationResponses];
 
 export type HealthData = {
     body?: never;

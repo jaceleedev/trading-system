@@ -410,6 +410,13 @@ def test_openapi_is_offline_typed_and_matches_export(client):
         "/api/v1/investigations/{id}",
         "/api/v1/investigations/{id}/revisions",
         "/api/v1/investigations/{id}/pause",
+        "/api/v1/capital-plans/preview",
+        "/api/v1/capital-plans",
+        "/api/v1/capital-plans/{id}",
+        "/api/v1/capital-plans/{id}/reserve",
+        "/api/v1/funding",
+        "/api/v1/funding/refresh",
+        "/api/v1/funding/reservations/{id}/release",
     }
 
 

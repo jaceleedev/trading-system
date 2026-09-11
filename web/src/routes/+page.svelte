@@ -8,6 +8,7 @@
   import JobsPanel from '$lib/components/JobsPanel.svelte';
   import MarketPanel from '$lib/components/MarketPanel.svelte';
   import InvestigationsPanel from '$lib/components/InvestigationsPanel.svelte';
+  import CapitalPanel from '$lib/components/CapitalPanel.svelte';
   import { fetchContext, fetchHealth, fetchRecord, fetchSnapshots } from '$lib/queries';
   import { formatTime } from '$lib/format';
 
@@ -168,6 +169,15 @@
     jobsEnabled={health.isSuccess && health.data.jobs_enabled}
     synthetic={health.isSuccess && health.data.synthetic}
     {selectedSnapshot}
+    knownRecords={context?.records ?? []}
+    onselect={selectRecord}
+  />
+  <CapitalPanel
+    ready={health.isSuccess && !health.isFetching}
+    jobsEnabled={health.isSuccess && health.data.jobs_enabled}
+    synthetic={health.isSuccess && health.data.synthetic}
+    {selectedSnapshot}
+    {context}
     knownRecords={context?.records ?? []}
     onselect={selectRecord}
   />

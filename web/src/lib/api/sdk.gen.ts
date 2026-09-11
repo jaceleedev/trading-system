@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CancelJobData, CancelJobErrors, CancelJobResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, GetContextData, GetContextErrors, GetContextResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses } from './types.gen';
+import type { CancelJobData, CancelJobErrors, CancelJobResponses, CreateCapitalPlanData, CreateCapitalPlanErrors, CreateCapitalPlanResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, GetCapitalPlanData, GetCapitalPlanErrors, GetCapitalPlanResponses, GetContextData, GetContextErrors, GetContextResponses, GetFundingData, GetFundingErrors, GetFundingResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListCapitalPlansData, ListCapitalPlansErrors, ListCapitalPlansResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, PreviewCapitalPlanData, PreviewCapitalPlanErrors, PreviewCapitalPlanResponses, RefreshFundingData, RefreshFundingErrors, RefreshFundingResponses, ReleaseFundingReservationData, ReleaseFundingReservationErrors, ReleaseFundingReservationResponses, ReserveCapitalPlanData, ReserveCapitalPlanErrors, ReserveCapitalPlanResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -24,9 +24,77 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 export const listAccountSnapshots = <ThrowOnError extends boolean = false>(options?: Options<ListAccountSnapshotsData, ThrowOnError>): RequestResult<ListAccountSnapshotsResponses, ListAccountSnapshotsErrors, ThrowOnError> => (options?.client ?? client).get<ListAccountSnapshotsResponses, ListAccountSnapshotsErrors, ThrowOnError>({ url: '/api/v1/account-snapshots', ...options });
 
 /**
+ * List Capital Plans
+ */
+export const listCapitalPlans = <ThrowOnError extends boolean = false>(options?: Options<ListCapitalPlansData, ThrowOnError>): RequestResult<ListCapitalPlansResponses, ListCapitalPlansErrors, ThrowOnError> => (options?.client ?? client).get<ListCapitalPlansResponses, ListCapitalPlansErrors, ThrowOnError>({ url: '/api/v1/capital-plans', ...options });
+
+/**
+ * Create Capital Plan
+ */
+export const createCapitalPlan = <ThrowOnError extends boolean = false>(options: Options<CreateCapitalPlanData, ThrowOnError>): RequestResult<CreateCapitalPlanResponses, CreateCapitalPlanErrors, ThrowOnError> => (options.client ?? client).post<CreateCapitalPlanResponses, CreateCapitalPlanErrors, ThrowOnError>({
+    url: '/api/v1/capital-plans',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Preview Capital Plan
+ */
+export const previewCapitalPlan = <ThrowOnError extends boolean = false>(options: Options<PreviewCapitalPlanData, ThrowOnError>): RequestResult<PreviewCapitalPlanResponses, PreviewCapitalPlanErrors, ThrowOnError> => (options.client ?? client).post<PreviewCapitalPlanResponses, PreviewCapitalPlanErrors, ThrowOnError>({
+    url: '/api/v1/capital-plans/preview',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Capital Plan
+ */
+export const getCapitalPlan = <ThrowOnError extends boolean = false>(options: Options<GetCapitalPlanData, ThrowOnError>): RequestResult<GetCapitalPlanResponses, GetCapitalPlanErrors, ThrowOnError> => (options.client ?? client).get<GetCapitalPlanResponses, GetCapitalPlanErrors, ThrowOnError>({ url: '/api/v1/capital-plans/{id}', ...options });
+
+/**
+ * Reserve Capital Plan
+ */
+export const reserveCapitalPlan = <ThrowOnError extends boolean = false>(options: Options<ReserveCapitalPlanData, ThrowOnError>): RequestResult<ReserveCapitalPlanResponses, ReserveCapitalPlanErrors, ThrowOnError> => (options.client ?? client).post<ReserveCapitalPlanResponses, ReserveCapitalPlanErrors, ThrowOnError>({
+    url: '/api/v1/capital-plans/{id}/reserve',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
  * Context
  */
 export const getContext = <ThrowOnError extends boolean = false>(options?: Options<GetContextData, ThrowOnError>): RequestResult<GetContextResponses, GetContextErrors, ThrowOnError> => (options?.client ?? client).get<GetContextResponses, GetContextErrors, ThrowOnError>({ url: '/api/v1/context', ...options });
+
+/**
+ * Get Funding
+ */
+export const getFunding = <ThrowOnError extends boolean = false>(options: Options<GetFundingData, ThrowOnError>): RequestResult<GetFundingResponses, GetFundingErrors, ThrowOnError> => (options.client ?? client).get<GetFundingResponses, GetFundingErrors, ThrowOnError>({ url: '/api/v1/funding', ...options });
+
+/**
+ * Refresh Funding
+ */
+export const refreshFunding = <ThrowOnError extends boolean = false>(options: Options<RefreshFundingData, ThrowOnError>): RequestResult<RefreshFundingResponses, RefreshFundingErrors, ThrowOnError> => (options.client ?? client).post<RefreshFundingResponses, RefreshFundingErrors, ThrowOnError>({
+    url: '/api/v1/funding/refresh',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Release Funding Reservation
+ */
+export const releaseFundingReservation = <ThrowOnError extends boolean = false>(options: Options<ReleaseFundingReservationData, ThrowOnError>): RequestResult<ReleaseFundingReservationResponses, ReleaseFundingReservationErrors, ThrowOnError> => (options.client ?? client).post<ReleaseFundingReservationResponses, ReleaseFundingReservationErrors, ThrowOnError>({ url: '/api/v1/funding/reservations/{id}/release', ...options });
 
 /**
  * Health
