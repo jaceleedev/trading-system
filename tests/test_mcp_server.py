@@ -36,6 +36,8 @@ TOOL_NAMES = {
     "list_broker_accounts",
     "capture_market",
     "read_market_capture",
+    "market_observation_catalog",
+    "market_observation_view",
     "auth_status",
 }
 

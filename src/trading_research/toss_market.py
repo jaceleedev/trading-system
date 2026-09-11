@@ -13,6 +13,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from trading_research.data import calendar_date, timestamp
 from trading_research.errors import DataError
+from trading_research.market_observations import RESPONSE_CONTRACT_SHA256
 from trading_research.serialization import fingerprint
 
 CONTRACT = json.loads(Path(__file__).with_name("toss_contract.json").read_text())
@@ -169,7 +170,7 @@ class TossMarketClient:
             raise DataError("Market API response contains invalid JSON") from None
         if not isinstance(payload, dict) or "error" in payload or "result" not in payload:
             raise DataError("Market API success envelope is missing; response body omitted")
-        return {
+        envelope = {
             "provider": "toss",
             "endpoint": endpoint,
             "query": params,
@@ -177,6 +178,9 @@ class TossMarketClient:
             "response": payload,
             "contract_sha256": CONTRACT_SHA256,
         }
+        if endpoint == "/api/v1/candles":
+            envelope["response_contract_sha256"] = RESPONSE_CONTRACT_SHA256
+        return envelope
 
     def capture_pages(self, endpoint: str, query: dict, *, max_pages: int = 1):
         if type(max_pages) is not int or not 1 <= max_pages <= 50:

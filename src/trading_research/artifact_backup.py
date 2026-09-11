@@ -115,7 +115,7 @@ def _new_destination(path):
 def _source_inventory(source):
     statuses, selected = {}, []
     with _directory(source, private=False) as base:
-        # Read research first. Its published account dependencies ordinarily already exist.
+        # Research dependencies in accounts and captures ordinarily already exist when published.
         for store in ("research", "accounts", "captures"):
             try:
                 info = os.stat(store, dir_fd=base, follow_symlinks=False)
@@ -155,7 +155,12 @@ def _validated_bytes(root, store, identity):
     if object_bytes(value) != raw:
         raise DataError("Artifact content is not canonical JSON")
     if store == "research":
-        checked = read_record(root / store, identity, account_root=root / "accounts")
+        checked = read_record(
+            root / store,
+            identity,
+            account_root=root / "accounts",
+            capture_root=root / "captures",
+        )
     elif value.get("kind") == "toss_account_snapshot":
         checked = validate_snapshot(value)
     elif value.get("kind") == "toss_account_observation":

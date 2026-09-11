@@ -1,0 +1,128 @@
+{
+  "provider": "toss",
+  "version": "1.2.15",
+  "source": "https://openapi.tossinvest.com/openapi-docs/latest/openapi.json",
+  "retrieved_date": "2026-09-10",
+  "source_sha256": "ebaf20df342270274a5f6f5ad3a3d3d67b0ce02f30977da84606f3654924103e",
+  "endpoint": "/api/v1/candles",
+  "response_schema": {
+    "allOf": [
+      {
+        "$ref": "#/components/schemas/ApiResponse"
+      },
+      {
+        "type": "object",
+        "properties": {
+          "result": {
+            "$ref": "#/components/schemas/CandlePageResponse"
+          }
+        }
+      }
+    ]
+  },
+  "components": {
+    "schemas": {
+      "ApiResponse": {
+        "type": "object",
+        "description": "성공 응답 envelope. 200 응답에 사용됩니다.\n각 엔드포인트의 성공 응답 스키마는 `allOf` 로 본 스키마를 상속하며 `result` 를 구체 타입으로 specialize 합니다.\n실패 응답은 별도의 `ErrorResponse` 스키마를 사용합니다 (4xx/5xx). `result` 와 `error` 는 동시에 나타나지 않습니다.\n",
+        "required": [
+          "result"
+        ],
+        "properties": {
+          "result": {
+            "description": "성공 응답의 페이로드. 엔드포인트별 타입이 다르며, 각 엔드포인트 스펙에서 `allOf` 로 구체 타입을 명시합니다.\n"
+          }
+        }
+      },
+      "Candle": {
+        "type": "object",
+        "required": [
+          "timestamp",
+          "openPrice",
+          "highPrice",
+          "lowPrice",
+          "closePrice",
+          "volume",
+          "currency"
+        ],
+        "properties": {
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "봉 기준 시각\n- `1m`: 봉 종료 시각. 해당 봉은 `[timestamp - 1분, timestamp)` 구간의 체결을 집계합니다.\n- `1d`: 해당 거래일 (시각은 현지 자정 고정)\n",
+            "example": "2026-03-25T09:00:00+09:00"
+          },
+          "openPrice": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "시가",
+            "example": "71600"
+          },
+          "highPrice": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "고가",
+            "example": "72300"
+          },
+          "lowPrice": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "저가",
+            "example": "71500"
+          },
+          "closePrice": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "종가",
+            "example": "72000"
+          },
+          "volume": {
+            "type": "string",
+            "format": "decimal",
+            "maxLength": 30,
+            "description": "거래량",
+            "example": "3521000"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/Currency"
+          }
+        }
+      },
+      "CandlePageResponse": {
+        "type": "object",
+        "required": [
+          "candles"
+        ],
+        "properties": {
+          "candles": {
+            "type": "array",
+            "description": "캔들 목록. 최신순(`timestamp` 내림차순) 정렬 — 배열 첫 요소가 가장 최근 봉, 마지막 요소가 가장 오래된 봉입니다.",
+            "items": {
+              "$ref": "#/components/schemas/Candle"
+            }
+          },
+          "nextBefore": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time",
+            "description": "다음 페이지 조회 시 `before` 쿼리 파라미터에 그대로 전달. 마지막 페이지면 null."
+          }
+        }
+      },
+      "Currency": {
+        "type": "string",
+        "enum": [
+          "KRW",
+          "USD"
+        ],
+        "description": "통화 코드.\n- KRW: 한국 원화\n- USD: 미국 달러\n\n클라이언트는 unknown enum 값을 허용하도록 구현해야 합니다.\n"
+      }
+    }
+  }
+}

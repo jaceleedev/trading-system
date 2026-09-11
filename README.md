@@ -16,6 +16,8 @@ Codex에서 직접 사용할 수 있다.
 SvelteKit 웹 작업실과 FastAPI는 저장된 계좌·판단·근거를 연결해 읽는다.
 기존 Streamlit 추천·백테스트 화면도 사용할 수 있다. PostgreSQL 작업 기록과 Python
 worker는 [작업 실행 안내](docs/JOBS.md)를 따른다. 지속적인 AI 실행은 후속 작업이다.
+[시장 관측](docs/MARKET_OBSERVATIONS.md)은 저장한 분봉·일봉의 시점별 수정 이력과
+근거 사건을 웹 차트·CLI·MCP에서 같은 자료로 읽는다.
 [새 웹 작업실 안내](docs/WEB_WORKBENCH.md)를 따른다.
 
 ## 웹 투자 작업실

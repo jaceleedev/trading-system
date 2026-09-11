@@ -190,6 +190,72 @@
         "title": "BuyingPower",
         "type": "object"
       },
+      "CandleRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Capture Ids",
+            "type": "array"
+          },
+          "close": {
+            "format": "decimal",
+            "title": "Close",
+            "type": "string"
+          },
+          "high": {
+            "format": "decimal",
+            "title": "High",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_observed_at": {
+            "format": "date-time",
+            "title": "Last Observed At",
+            "type": "string"
+          },
+          "low": {
+            "format": "decimal",
+            "title": "Low",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "open": {
+            "format": "decimal",
+            "title": "Open",
+            "type": "string"
+          },
+          "volume": {
+            "format": "decimal",
+            "title": "Volume",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "observed_at",
+          "last_observed_at",
+          "capture_ids",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume"
+        ],
+        "title": "CandleRevision",
+        "type": "object"
+      },
       "CashBalances": {
         "additionalProperties": false,
         "properties": {
@@ -516,7 +582,10 @@
             "type": "string"
           },
           "store": {
-            "const": "account",
+            "enum": [
+              "account",
+              "market_capture"
+            ],
             "title": "Store",
             "type": "string"
           }
@@ -555,6 +624,16 @@
               }
             ],
             "title": "Excerpt"
+          },
+          "market_event": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarketEvent"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "retrieved_at": {
             "format": "date-time",
@@ -1366,6 +1445,376 @@
         "title": "JobView",
         "type": "object"
       },
+      "MarketCaptureSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "adjusted": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Adjusted"
+          },
+          "candle_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Candle Count"
+          },
+          "capture_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Capture Id",
+            "type": "string"
+          },
+          "currencies": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Currencies",
+            "type": "array"
+          },
+          "endpoint": {
+            "title": "Endpoint",
+            "type": "string"
+          },
+          "interval": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interval"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          },
+          "response_contract_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Response Contract Sha256"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "supported",
+              "unsupported"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "symbol": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Symbol"
+          }
+        },
+        "required": [
+          "capture_id",
+          "endpoint",
+          "symbol",
+          "interval",
+          "adjusted",
+          "currencies",
+          "retrieved_at",
+          "candle_count",
+          "status",
+          "reason",
+          "response_contract_sha256"
+        ],
+        "title": "MarketCaptureSummary",
+        "type": "object"
+      },
+      "MarketCatalog": {
+        "additionalProperties": false,
+        "properties": {
+          "invalid_count": {
+            "title": "Invalid Count",
+            "type": "integer"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MarketCaptureSummary"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "supported_count": {
+            "title": "Supported Count",
+            "type": "integer"
+          },
+          "total_count": {
+            "title": "Total Count",
+            "type": "integer"
+          },
+          "truncated_count": {
+            "title": "Truncated Count",
+            "type": "integer"
+          },
+          "unsupported_count": {
+            "title": "Unsupported Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total_count",
+          "supported_count",
+          "unsupported_count",
+          "invalid_count",
+          "truncated_count"
+        ],
+        "title": "MarketCatalog",
+        "type": "object"
+      },
+      "MarketEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "event_kind": {
+            "enum": [
+              "price",
+              "earnings",
+              "filing",
+              "news",
+              "macro",
+              "other"
+            ],
+            "title": "Event Kind",
+            "type": "string"
+          },
+          "market": {
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "title": "Market",
+            "type": "string"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symbol",
+          "market",
+          "event_kind",
+          "occurred_at"
+        ],
+        "title": "MarketEvent",
+        "type": "object"
+      },
+      "MarketEvidenceEvent": {
+        "additionalProperties": false,
+        "properties": {
+          "claim": {
+            "title": "Claim",
+            "type": "string"
+          },
+          "event_kind": {
+            "enum": [
+              "price",
+              "earnings",
+              "filing",
+              "news",
+              "macro",
+              "other"
+            ],
+            "title": "Event Kind",
+            "type": "string"
+          },
+          "market": {
+            "enum": [
+              "KR",
+              "US"
+            ],
+            "title": "Market",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "occurred_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "record_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Record Id",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "retrieved_at": {
+            "format": "date-time",
+            "title": "Retrieved At",
+            "type": "string"
+          },
+          "source_locator": {
+            "title": "Source Locator",
+            "type": "string"
+          },
+          "source_published_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Published At"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          },
+          "verification": {
+            "enum": [
+              "user_supplied",
+              "provider_capture",
+              "unverified"
+            ],
+            "title": "Verification",
+            "type": "string"
+          }
+        },
+        "required": [
+          "record_id",
+          "symbol",
+          "market",
+          "event_kind",
+          "occurred_at",
+          "source_published_at",
+          "retrieved_at",
+          "recorded_at",
+          "claim",
+          "mode",
+          "source_locator",
+          "verification"
+        ],
+        "title": "MarketEvidenceEvent",
+        "type": "object"
+      },
+      "MarketSeries": {
+        "additionalProperties": false,
+        "properties": {
+          "adjusted": {
+            "title": "Adjusted",
+            "type": "boolean"
+          },
+          "currency": {
+            "title": "Currency",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "interval": {
+            "enum": [
+              "1m",
+              "1d"
+            ],
+            "title": "Interval",
+            "type": "string"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/ObservedCandle"
+            },
+            "title": "Points",
+            "type": "array"
+          },
+          "provider": {
+            "const": "toss",
+            "title": "Provider",
+            "type": "string"
+          },
+          "symbol": {
+            "title": "Symbol",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "provider",
+          "symbol",
+          "currency",
+          "interval",
+          "adjusted",
+          "points"
+        ],
+        "title": "MarketSeries",
+        "type": "object"
+      },
       "MarketValue": {
         "additionalProperties": false,
         "properties": {
@@ -1391,6 +1840,300 @@
           "amountAfterCost"
         ],
         "title": "MarketValue",
+        "type": "object"
+      },
+      "MarketView": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "format": "date-time",
+            "title": "As Of",
+            "type": "string"
+          },
+          "event_count": {
+            "title": "Event Count",
+            "type": "integer"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/MarketEvidenceEvent"
+            },
+            "title": "Events",
+            "type": "array"
+          },
+          "excluded_future_capture_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Excluded Future Capture Ids",
+            "type": "array"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "historical_reproducibility": {
+            "const": false,
+            "title": "Historical Reproducibility",
+            "type": "boolean"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "const": "market_observation_view",
+            "title": "Kind",
+            "type": "string"
+          },
+          "omitted_event_count": {
+            "title": "Omitted Event Count",
+            "type": "integer"
+          },
+          "orders_enabled": {
+            "const": false,
+            "title": "Orders Enabled",
+            "type": "boolean"
+          },
+          "response_contract_sha256": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Response Contract Sha256",
+            "type": "string"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/MarketSeries"
+            },
+            "title": "Series",
+            "type": "array"
+          },
+          "source_capture_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Source Capture Ids",
+            "type": "array"
+          },
+          "total_point_count": {
+            "title": "Total Point Count",
+            "type": "integer"
+          },
+          "truncated_point_count": {
+            "title": "Truncated Point Count",
+            "type": "integer"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "kind",
+          "id",
+          "as_of",
+          "generated_at",
+          "source_capture_ids",
+          "excluded_future_capture_ids",
+          "response_contract_sha256",
+          "series",
+          "total_point_count",
+          "truncated_point_count",
+          "historical_reproducibility",
+          "orders_enabled",
+          "warnings",
+          "events",
+          "event_count",
+          "omitted_event_count"
+        ],
+        "title": "MarketView",
+        "type": "object"
+      },
+      "MarketViewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "As Of"
+          },
+          "capture_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Capture Ids",
+            "type": "array"
+          },
+          "max_events": {
+            "default": 200,
+            "maximum": 200.0,
+            "minimum": 0.0,
+            "title": "Max Events",
+            "type": "integer"
+          },
+          "max_points": {
+            "default": 1000,
+            "maximum": 2000.0,
+            "minimum": 1.0,
+            "title": "Max Points",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "capture_ids"
+        ],
+        "title": "MarketViewRequest",
+        "type": "object"
+      },
+      "ObservedCandle": {
+        "additionalProperties": false,
+        "properties": {
+          "capture_ids": {
+            "items": {
+              "pattern": "^[0-9a-f]{64}$",
+              "type": "string"
+            },
+            "title": "Capture Ids",
+            "type": "array"
+          },
+          "close": {
+            "format": "decimal",
+            "title": "Close",
+            "type": "string"
+          },
+          "finality": {
+            "const": "unknown",
+            "title": "Finality",
+            "type": "string"
+          },
+          "high": {
+            "format": "decimal",
+            "title": "High",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "last_observed_at": {
+            "format": "date-time",
+            "title": "Last Observed At",
+            "type": "string"
+          },
+          "low": {
+            "format": "decimal",
+            "title": "Low",
+            "type": "string"
+          },
+          "observed_at": {
+            "format": "date-time",
+            "title": "Observed At",
+            "type": "string"
+          },
+          "open": {
+            "format": "decimal",
+            "title": "Open",
+            "type": "string"
+          },
+          "period_end": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period End"
+          },
+          "period_start": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Start"
+          },
+          "revision_count": {
+            "title": "Revision Count",
+            "type": "integer"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/CandleRevision"
+            },
+            "title": "Revisions",
+            "type": "array"
+          },
+          "session_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Session Date"
+          },
+          "source_timestamp": {
+            "format": "date-time",
+            "title": "Source Timestamp",
+            "type": "string"
+          },
+          "volume": {
+            "format": "decimal",
+            "title": "Volume",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "observed_at",
+          "last_observed_at",
+          "capture_ids",
+          "open",
+          "high",
+          "low",
+          "close",
+          "volume",
+          "source_timestamp",
+          "period_start",
+          "period_end",
+          "session_date",
+          "revision_count",
+          "finality",
+          "revisions"
+        ],
+        "title": "ObservedCandle",
         "type": "object"
       },
       "OmittedReference": {
@@ -3024,6 +3767,166 @@
           }
         },
         "summary": "Cancel Job"
+      }
+    },
+    "/api/v1/market/catalog": {
+      "get": {
+        "operationId": "list_market_captures",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketCatalog"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Market Captures"
+      }
+    },
+    "/api/v1/market/view": {
+      "post": {
+        "operationId": "get_market_view",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarketViewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarketView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Market View"
       }
     },
     "/api/v1/research/{id}": {

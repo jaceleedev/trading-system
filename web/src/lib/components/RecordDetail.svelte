@@ -10,6 +10,7 @@
     recordTitle,
   } from '$lib/research';
   import { formatDecimal, formatTime, safeSourceUrl, shortId } from '$lib/format';
+  import { eventLabels } from '$lib/market';
 
   let {
     item,
@@ -45,7 +46,7 @@
   );
   const verificationLabels = {
     user_supplied: '사용자 제공',
-    provider_capture: '저장된 계좌 관측 연결',
+    provider_capture: '저장된 공급자 관측 연결',
     unverified: '독립 검증 미완료',
   };
 </script>
@@ -116,6 +117,20 @@
           <h3>관측한 근거</h3>
           <p>{record.payload.claim}</p>
         </section>
+        {#if record.payload.market_event}<section class="detail-section">
+            <h3>연결된 시장 사건</h3>
+            <dl class="metadata-list">
+              <dt>기록된 종목</dt>
+              <dd>{record.payload.market_event.symbol} / {record.payload.market_event.market}</dd>
+              <dt>사건 종류</dt>
+              <dd>{eventLabels[record.payload.market_event.event_kind]}</dd>
+              <dt>발생 시각</dt>
+              <dd title={record.payload.market_event.occurred_at ?? ''}>
+                {formatTime(record.payload.market_event.occurred_at)}
+              </dd>
+            </dl>
+            <p class="muted">작성된 사건 연결이며 주문·체결 기록이 아닙니다.</p>
+          </section>{/if}
         {#if record.payload.excerpt}<section class="detail-section">
             <h3>출처 발췌</h3>
             <blockquote>{record.payload.excerpt}</blockquote>
@@ -205,9 +220,16 @@
           </section>{/if}
       {:else if record.kind === 'evidence' && record.payload.artifact}
         <section>
-          <h3>연결된 계좌 원자료</h3>
+          <h3>
+            {record.payload.artifact.store === 'market_capture'
+              ? '연결된 시장 원자료'
+              : '연결된 계좌 원자료'}
+          </h3>
           <p class="identifier">{shortId(record.payload.artifact.id)}</p>
-          {#if knownSnapshotIds.includes(record.payload.artifact.id)}<button
+          {#if record.payload.artifact.store === 'market_capture'}<p class="muted">
+              검증된 시장 수집 파일에 연결된 근거입니다.
+            </p>
+          {:else if knownSnapshotIds.includes(record.payload.artifact.id)}<button
               class="text-button"
               onclick={() => onSnapshot(record.payload.artifact!.id)}>이 계좌 관측 보기</button
             >{:else}<p class="muted">개별 계좌 관측 원문에 연결된 근거입니다.</p>{/if}

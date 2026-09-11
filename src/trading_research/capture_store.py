@@ -32,6 +32,7 @@ ALLOWED_ENDPOINTS = frozenset(
 _ENVELOPE_KEYS = frozenset(
     {"provider", "endpoint", "query", "retrieved_at", "response", "contract_sha256"}
 )
+_OPTIONAL_ENVELOPE_KEYS = frozenset({"response_contract_sha256"})
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 _FILENAME = re.compile(r"([0-9a-f]{64})\.json")
 
@@ -55,7 +56,10 @@ def _json_value(value, depth=0):
 
 
 def _checked_envelope(envelope: dict) -> dict:
-    if type(envelope) is not dict or set(envelope) != _ENVELOPE_KEYS:
+    if (
+        type(envelope) is not dict
+        or not _ENVELOPE_KEYS <= set(envelope) <= _ENVELOPE_KEYS | _OPTIONAL_ENVELOPE_KEYS
+    ):
         raise DataError("Capture envelope fields do not match the public market format")
     if envelope["provider"] != "toss":
         raise DataError("Capture provider is not supported")
@@ -70,6 +74,14 @@ def _checked_envelope(envelope: dict) -> dict:
     contract_hash = envelope["contract_sha256"]
     if type(contract_hash) is not str or _SHA256.fullmatch(contract_hash) is None:
         raise DataError("Capture contract hash must be a lowercase SHA-256 digest")
+    if "response_contract_sha256" in envelope:
+        response_hash = envelope["response_contract_sha256"]
+        if (
+            endpoint != "/api/v1/candles"
+            or type(response_hash) is not str
+            or _SHA256.fullmatch(response_hash) is None
+        ):
+            raise DataError("Capture response contract requires a candle schema SHA-256 digest")
     retrieved = envelope["retrieved_at"]
     if isinstance(retrieved, str):
         try:

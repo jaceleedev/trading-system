@@ -120,6 +120,7 @@ def build_context(
     root,
     *,
     account_root=Path("var/accounts"),
+    capture_root=None,
     snapshot_id=None,
     now=None,
     max_records=50,
@@ -137,7 +138,7 @@ def build_context(
     if type(max_account_age_seconds) is not int or not 1 <= max_account_age_seconds <= 86400:
         raise DataError("Context account freshness limit must be 1 through 86400 seconds")
     instant = _instant(datetime.now(UTC) if now is None else now() if callable(now) else now)
-    indexed = list_records(root, account_root=account_root)
+    indexed = list_records(root, account_root=account_root, capture_root=capture_root)
     ordered = sorted(indexed, key=lambda item: (_instant(item["recorded_at"]), item["id"]))
     records = {}
     future_ids = []
@@ -145,7 +146,9 @@ def build_context(
         if _instant(item["recorded_at"]) > instant:
             future_ids.append(item["id"])
             continue
-        records[item["id"]] = read_record(root, item["id"], account_root=account_root)
+        records[item["id"]] = read_record(
+            root, item["id"], account_root=account_root, capture_root=capture_root
+        )
     included_ids = list(records)[-max_records:]
     included = set(included_ids)
     omitted_ids = list(records)[: max(0, len(records) - max_records)]
@@ -178,6 +181,9 @@ def build_context(
             "not independently verified facts.",
             "System recorded_at is local ingestion time; "
             "imported publication dates do not backdate knowledge.",
+            "Market event occurrence is declared separately from publication, retrieval, "
+            "and recording; null means unknown. Capture hashes establish local integrity, "
+            "not source truth, event verification, or finalized candles.",
             "Prospective, retrospective, and synthetic records retain their original labels; "
             "retrospective and synthetic work is not live performance evidence.",
             "Decision branches coexist. No branch is automatically selected as the best "

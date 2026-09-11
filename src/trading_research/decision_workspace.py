@@ -11,6 +11,7 @@ from decimal import Decimal
 from pathlib import Path
 from urllib.parse import urlsplit
 
+from trading_research.capture_store import read_capture
 from trading_research.errors import DataError
 from trading_research.private_store import (
     OBJECT_ID,
@@ -108,8 +109,11 @@ def _account(account_root, identity, deadline, *, snapshot_only=False):
 
 
 class _Reader:
-    def __init__(self, root, account_root):
+    def __init__(self, root, account_root, capture_root=None):
         self.root, self.account_root = Path(root), Path(account_root)
+        self.capture_root = (
+            self.account_root.parent / "captures" if capture_root is None else Path(capture_root)
+        )
         self.cache, self.active = {}, set()
 
     def read(self, identity):
@@ -165,7 +169,7 @@ class _Reader:
                 "claim",
                 "verification",
             },
-            {"excerpt", "artifact"},
+            {"excerpt", "artifact", "market_event"},
             "evidence",
         )
         _choice(payload["source_kind"], {"web", "document", "provider", "user"}, "source kind")
@@ -199,23 +203,44 @@ class _Reader:
         if payload["source_published_at"] is not None:
             if _instant(payload["source_published_at"]) > retrieved:
                 raise DataError("Research claimed publication is later than retrieval")
+        if "market_event" in payload:
+            event = payload["market_event"]
+            _fields(event, {"symbol", "market", "event_kind", "occurred_at"}, label="market event")
+            if type(event["symbol"]) is not str or _SYMBOL.fullmatch(event["symbol"]) is None:
+                raise DataError("Research market event symbol is invalid")
+            _choice(event["market"], {"KR", "US"}, "market event market")
+            _choice(
+                event["event_kind"],
+                {"price", "earnings", "filing", "news", "macro", "other"},
+                "market event kind",
+            )
+            if event["occurred_at"] is not None and _instant(event["occurred_at"]) > retrieved:
+                raise DataError("Research market event occurrence is later than retrieval")
         if "artifact" in payload:
             artifact = payload["artifact"]
             _fields(artifact, {"store", "id"}, label="evidence artifact")
-            if artifact["store"] != "account" or payload["source_kind"] != "provider":
-                raise DataError("Research artifacts support account provider objects only")
-            source = _account(self.account_root, artifact["id"], retrieved)
-            locator = (
-                "toss:account_snapshot"
-                if source["kind"] == "toss_account_snapshot"
-                else "toss:" + source["endpoint"]
-            )
+            _choice(artifact["store"], {"account", "market_capture"}, "artifact store")
+            if payload["source_kind"] != "provider":
+                raise DataError("Research artifacts require a provider source")
+            if artifact["store"] == "account":
+                source = _account(self.account_root, artifact["id"], retrieved)
+                locator = (
+                    "toss:account_snapshot"
+                    if source["kind"] == "toss_account_snapshot"
+                    else "toss:" + source["endpoint"]
+                )
+            else:
+                _identity(artifact["id"])
+                source = read_capture(self.capture_root / (artifact["id"] + ".json"))
+                if _instant(source["retrieved_at"]) > retrieved:
+                    raise DataError("Research market capture was observed after evidence retrieval")
+                locator = "toss:" + source["endpoint"]
             if payload["source_locator"] != locator:
                 raise DataError("Research provider source locator does not match its artifact")
         if payload["verification"] == "provider_capture" and (
             payload["source_kind"] != "provider" or "artifact" not in payload
         ):
-            raise DataError("Provider capture verification requires a validated account artifact")
+            raise DataError("Provider capture verification requires a validated provider artifact")
 
     def hypothesis(self, envelope):
         payload = envelope["payload"]
@@ -350,8 +375,13 @@ def _action(action):
             raise DataError("Research proposed sizing is outside its valid range")
 
 
-def record(root, document, *, account_root=_DEFAULT_ACCOUNT_ROOT, now=None):
-    """Validate and append a system-stamped record; never invoke a model or order API."""
+def record(root, document, *, account_root=_DEFAULT_ACCOUNT_ROOT, capture_root=None, now=None):
+    """Append a system-stamped record; artifact integrity is not source truth or candle finality.
+
+    A missing ``capture_root`` uses the accounts store's sibling ``captures`` directory.
+    Market event occurrence is declared metadata, distinct from publication and retrieval;
+    unknown occurrence remains null and future scheduled events are not occurrences.
+    """
     object_bytes(document)
     _fields(document, _INPUT_KEYS, label="input")
     instant = datetime.now(UTC) if now is None else (now() if callable(now) else now)
@@ -365,20 +395,20 @@ def record(root, document, *, account_root=_DEFAULT_ACCOUNT_ROOT, now=None):
         if type(payload) is not dict or {"status", "sizing_validated"} & set(payload):
             raise DataError("Research decision status and sizing validation are system supplied")
         payload.update(status="proposed", sizing_validated=False)
-    _Reader(root, account_root).validate(envelope)
+    _Reader(root, account_root, capture_root).validate(envelope)
     return {"id": put_object(Path(root), envelope), "record": envelope}
 
 
-def read_record(root, identity, *, account_root=_DEFAULT_ACCOUNT_ROOT):
+def read_record(root, identity, *, account_root=_DEFAULT_ACCOUNT_ROOT, capture_root=None):
     """Revalidate the full immutable lineage at its recorded time, not today's clock."""
-    return _Reader(root, account_root).read(identity)
+    return _Reader(root, account_root, capture_root).read(identity)
 
 
-def list_records(root, kind=None, *, account_root=_DEFAULT_ACCOUNT_ROOT):
+def list_records(root, kind=None, *, account_root=_DEFAULT_ACCOUNT_ROOT, capture_root=None):
     """List validated records; corrupt dependencies never disappear behind a filter."""
     if kind is not None:
         _choice(kind, KINDS, "kind filter")
-    reader = _Reader(root, account_root)
+    reader = _Reader(root, account_root, capture_root)
     result = []
     for identity in list_objects(Path(root)):
         envelope = reader.read(identity)

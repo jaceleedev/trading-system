@@ -113,6 +113,29 @@ def replace_manifest(root, value):
     (root / "manifest.json").write_bytes(object_bytes(value))
 
 
+def add_market_evidence(root):
+    capture_path = next((root / "captures").iterdir())
+    return record(
+        root / "research",
+        {
+            "kind": "evidence",
+            "mode": "synthetic",
+            "author": AUTHOR,
+            "payload": {
+                "source_kind": "provider",
+                "source_locator": "toss:/api/v1/market-calendar/KR",
+                "retrieved_at": NOW.isoformat(),
+                "source_published_at": None,
+                "claim": "Synthetic calendar reference; not verified market facts",
+                "verification": "provider_capture",
+                "artifact": {"store": "market_capture", "id": capture_path.stem},
+            },
+        },
+        account_root=root / "accounts",
+        now=NOW,
+    )
+
+
 def test_create_restore_preserves_private_independent_bytes_and_provenance(source, tmp_path):
     original = files(source)
     backup, restored = tmp_path / "backup", tmp_path / "restored"
@@ -333,6 +356,48 @@ def test_missing_cross_store_source_is_refused_even_if_manifest_membership_match
         if entry["store"] == "accounts":
             (backup / "accounts" / (entry["id"] + ".json")).unlink()
     document["objects"] = [entry for entry in document["objects"] if entry["store"] != "accounts"]
+    replace_manifest(backup, document)
+    with pytest.raises(DataError):
+        verify_backup(backup)
+    with pytest.raises(DataError):
+        restore_backup(backup, tmp_path / "restored")
+    assert not (tmp_path / "restored").exists()
+
+
+def test_market_evidence_capture_lineage_survives_independent_restore(source, tmp_path):
+    saved = add_market_evidence(source)
+    backup, restored = tmp_path / "backup", tmp_path / "restored"
+    original = files(source)
+    assert create_backup(source, backup)["reference_checks_passed"] is True
+    assert verify_backup(backup)["reference_checks_passed"] is True
+    assert restore_backup(backup, restored)["restored_comparison_passed"] is True
+    assert files(source) == files(backup) == files(restored) == original
+    assert (
+        read_record(restored / "research", saved["id"], account_root=restored / "accounts")
+        == saved["record"]
+    )
+    capture_id = saved["record"]["payload"]["artifact"]["id"]
+    assert (source / "captures" / f"{capture_id}.json").stat().st_ino != (
+        restored / "captures" / f"{capture_id}.json"
+    ).stat().st_ino
+
+
+@pytest.mark.parametrize("stage", ["source", "backup"])
+def test_missing_research_capture_dependency_is_refused_with_consistent_inventory(
+    source, tmp_path, stage
+):
+    add_market_evidence(source)
+    backup = tmp_path / "backup"
+    if stage == "source":
+        next((source / "captures").iterdir()).unlink()
+        with pytest.raises(DataError):
+            create_backup(source, backup)
+        assert not (backup / "manifest.json").exists()
+        return
+    create_backup(source, backup)
+    next((backup / "captures").iterdir()).unlink()
+    document = manifest(backup)
+    document["objects"] = [entry for entry in document["objects"] if entry["store"] != "captures"]
     replace_manifest(backup, document)
     with pytest.raises(DataError):
         verify_backup(backup)
