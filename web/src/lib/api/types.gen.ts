@@ -2656,6 +2656,56 @@ export type OpenOrder = {
 };
 
 /**
+ * OrderCancel
+ */
+export type OrderCancel = {
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Leg Index
+     */
+    leg_index: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * OrderEventView
+ */
+export type OrderEventView = {
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Operation Id
+     */
+    operation_id: string | null;
+    /**
+     * Payload
+     */
+    payload: {
+        [key: string]: unknown;
+    };
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Sequence
+     */
+    sequence: number;
+};
+
+/**
  * OrderExecution
  */
 export type OrderExecution = {
@@ -2687,6 +2737,340 @@ export type OrderExecution = {
      * Tax
      */
     tax: string | null;
+};
+
+/**
+ * OrderIntentCreate
+ */
+export type OrderIntentCreate = {
+    /**
+     * Alternative Id
+     */
+    alternative_id: string;
+    /**
+     * Plan Id
+     */
+    plan_id: string;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Reservation Id
+     */
+    reservation_id: string;
+};
+
+/**
+ * OrderIntentList
+ */
+export type OrderIntentList = {
+    /**
+     * Items
+     */
+    items: Array<OrderIntentView>;
+    /**
+     * Omitted Count
+     */
+    omitted_count: number;
+    /**
+     * Total Count
+     */
+    total_count: number;
+};
+
+/**
+ * OrderIntentView
+ */
+export type OrderIntentView = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Alternative Id
+     */
+    alternative_id: string;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Event Omitted Count
+     */
+    event_omitted_count: number;
+    /**
+     * Event Total Count
+     */
+    event_total_count: number;
+    /**
+     * Events
+     */
+    events: Array<OrderEventView>;
+    /**
+     * Execution Ready
+     */
+    execution_ready: false;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Legs
+     */
+    legs: Array<OrderLegView>;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Operations
+     */
+    operations: Array<OrderOperationView>;
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Plan Id
+     */
+    plan_id: string;
+    /**
+     * Reservation Held
+     */
+    reservation_held: boolean;
+    /**
+     * Reservation Id
+     */
+    reservation_id: string;
+    /**
+     * Revision
+     */
+    revision: number;
+    /**
+     * Status
+     */
+    status: 'active' | 'aborted';
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * OrderLegView
+ */
+export type OrderLegView = {
+    /**
+     * Broker Order Ids
+     */
+    broker_order_ids: Array<string>;
+    /**
+     * Index
+     */
+    index: number;
+    leg: CapitalLeg;
+    observation: OrderObservation | null;
+    /**
+     * Observation State
+     */
+    observation_state: 'unobserved' | 'open' | 'partially_filled' | 'terminal' | 'unresolved';
+    prepared: PreparedOrder | null;
+};
+
+/**
+ * OrderModify
+ */
+export type OrderModify = {
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Leg Index
+     */
+    leg_index: number;
+    /**
+     * Price
+     */
+    price: string;
+    /**
+     * Quantity
+     */
+    quantity?: string | null;
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * OrderMutation
+ */
+export type OrderMutation = {
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
+ * OrderObservation
+ */
+export type OrderObservation = {
+    /**
+     * Observed At
+     */
+    observed_at: string;
+    order: OpenOrder;
+    /**
+     * Scan Id
+     */
+    scan_id: string;
+};
+
+/**
+ * OrderObserve
+ */
+export type OrderObserve = {
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Scan Id
+     */
+    scan_id: string;
+};
+
+/**
+ * OrderOperationView
+ */
+export type OrderOperationView = {
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Intent Id
+     */
+    intent_id: string;
+    /**
+     * Kind
+     */
+    kind: 'create' | 'modify' | 'cancel';
+    /**
+     * Leg Index
+     */
+    leg_index: number;
+    outcome: OrderOutcome | null;
+    prepared: PreparedOrder;
+    /**
+     * State
+     */
+    state: 'prepared' | 'dispatching' | 'acknowledged' | 'rejected' | 'ambiguous' | 'aborted';
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * OrderOutcome
+ */
+export type OrderOutcome = {
+    /**
+     * Client Order Id
+     */
+    client_order_id: string | null;
+    /**
+     * Error Code
+     */
+    error_code: string | null;
+    /**
+     * Http Status
+     */
+    http_status: number | null;
+    /**
+     * Order Id
+     */
+    order_id: string | null;
+    /**
+     * Original Order Id
+     */
+    original_order_id: string | null;
+    /**
+     * Request Sha256
+     */
+    request_sha256: string;
+    /**
+     * Source Authenticity
+     */
+    source_authenticity: false;
+    /**
+     * Status
+     */
+    status: 'acknowledged' | 'rejected' | 'ambiguous';
+    /**
+     * Synthetic
+     */
+    synthetic: true;
+    /**
+     * Synthetic Dispatched
+     */
+    synthetic_dispatched: boolean;
+    /**
+     * Transmitted
+     */
+    transmitted: false;
+};
+
+/**
+ * OrderSimulate
+ */
+export type OrderSimulate = {
+    /**
+     * Expected Revision
+     */
+    expected_revision: number;
+    /**
+     * Request Key
+     */
+    request_key: string;
+    /**
+     * Scenario
+     */
+    scenario: 'accept' | 'reject' | 'response_lost' | 'before_send_failure';
+};
+
+/**
+ * OrderValidation
+ */
+export type OrderValidation = {
+    /**
+     * Execution Ready
+     */
+    execution_ready: false;
+    /**
+     * Source Authenticity
+     */
+    source_authenticity: false;
+    /**
+     * Unverified Checks
+     */
+    unverified_checks: Array<string>;
 };
 
 /**
@@ -3404,6 +3788,61 @@ export type PaperValuation = {
      * Unrealized Pnl
      */
     unrealized_pnl: string | null;
+};
+
+/**
+ * PreparedOrder
+ */
+export type PreparedOrder = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Body
+     */
+    body: {
+        [key: string]: string | boolean;
+    };
+    /**
+     * Contract Sha256
+     */
+    contract_sha256: string;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Market
+     */
+    market: 'KR' | 'US';
+    /**
+     * Method
+     */
+    method: 'POST';
+    /**
+     * Operation
+     */
+    operation: 'create' | 'modify' | 'cancel';
+    /**
+     * Path Parameters
+     */
+    path_parameters: {
+        [key: string]: string;
+    };
+    /**
+     * Request Sha256
+     */
+    request_sha256: string;
+    /**
+     * Route Template
+     */
+    route_template: string;
+    /**
+     * Transmission Enabled
+     */
+    transmission_enabled: false;
+    validation: OrderValidation;
 };
 
 /**
@@ -5525,6 +5964,455 @@ export type GetMarketViewResponses = {
 };
 
 export type GetMarketViewResponse = GetMarketViewResponses[keyof GetMarketViewResponses];
+
+export type ListOrderIntentsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/order-intents';
+};
+
+export type ListOrderIntentsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListOrderIntentsError = ListOrderIntentsErrors[keyof ListOrderIntentsErrors];
+
+export type ListOrderIntentsResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderIntentList;
+};
+
+export type ListOrderIntentsResponse = ListOrderIntentsResponses[keyof ListOrderIntentsResponses];
+
+export type CreateOrderIntentData = {
+    body: OrderIntentCreate;
+    path?: never;
+    query?: never;
+    url: '/api/v1/order-intents';
+};
+
+export type CreateOrderIntentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CreateOrderIntentError = CreateOrderIntentErrors[keyof CreateOrderIntentErrors];
+
+export type CreateOrderIntentResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderIntentView;
+};
+
+export type CreateOrderIntentResponse = CreateOrderIntentResponses[keyof CreateOrderIntentResponses];
+
+export type GetOrderIntentData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/order-intents/{id}';
+};
+
+export type GetOrderIntentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetOrderIntentError = GetOrderIntentErrors[keyof GetOrderIntentErrors];
+
+export type GetOrderIntentResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderIntentView;
+};
+
+export type GetOrderIntentResponse = GetOrderIntentResponses[keyof GetOrderIntentResponses];
+
+export type AbortOrderIntentData = {
+    body: OrderMutation;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/order-intents/{id}/abort';
+};
+
+export type AbortOrderIntentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type AbortOrderIntentError = AbortOrderIntentErrors[keyof AbortOrderIntentErrors];
+
+export type AbortOrderIntentResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderIntentView;
+};
+
+export type AbortOrderIntentResponse = AbortOrderIntentResponses[keyof AbortOrderIntentResponses];
+
+export type CancelOrderIntentData = {
+    body: OrderCancel;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/order-intents/{id}/cancel';
+};
+
+export type CancelOrderIntentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CancelOrderIntentError = CancelOrderIntentErrors[keyof CancelOrderIntentErrors];
+
+export type CancelOrderIntentResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderIntentView;
+};
+
+export type CancelOrderIntentResponse = CancelOrderIntentResponses[keyof CancelOrderIntentResponses];
+
+export type ModifyOrderIntentData = {
+    body: OrderModify;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/order-intents/{id}/modify';
+};
+
+export type ModifyOrderIntentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ModifyOrderIntentError = ModifyOrderIntentErrors[keyof ModifyOrderIntentErrors];
+
+export type ModifyOrderIntentResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderIntentView;
+};
+
+export type ModifyOrderIntentResponse = ModifyOrderIntentResponses[keyof ModifyOrderIntentResponses];
+
+export type ObserveOrderIntentData = {
+    body: OrderObserve;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/order-intents/{id}/observe';
+};
+
+export type ObserveOrderIntentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ObserveOrderIntentError = ObserveOrderIntentErrors[keyof ObserveOrderIntentErrors];
+
+export type ObserveOrderIntentResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderIntentView;
+};
+
+export type ObserveOrderIntentResponse = ObserveOrderIntentResponses[keyof ObserveOrderIntentResponses];
+
+export type SimulateOrderOperationData = {
+    body: OrderSimulate;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+        /**
+         * Operation Id
+         */
+        operation_id: string;
+    };
+    query?: never;
+    url: '/api/v1/order-intents/{id}/operations/{operation_id}/simulate';
+};
+
+export type SimulateOrderOperationErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type SimulateOrderOperationError = SimulateOrderOperationErrors[keyof SimulateOrderOperationErrors];
+
+export type SimulateOrderOperationResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderIntentView;
+};
+
+export type SimulateOrderOperationResponse = SimulateOrderOperationResponses[keyof SimulateOrderOperationResponses];
+
+export type RecoverOrderIntentData = {
+    body: OrderMutation;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/order-intents/{id}/recover';
+};
+
+export type RecoverOrderIntentErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type RecoverOrderIntentError = RecoverOrderIntentErrors[keyof RecoverOrderIntentErrors];
+
+export type RecoverOrderIntentResponses = {
+    /**
+     * Successful Response
+     */
+    200: OrderIntentView;
+};
+
+export type RecoverOrderIntentResponse = RecoverOrderIntentResponses[keyof RecoverOrderIntentResponses];
 
 export type ListPaperBooksData = {
     body?: never;

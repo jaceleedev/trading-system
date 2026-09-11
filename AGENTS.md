@@ -41,7 +41,7 @@ adds schema-pinned candle observations, revisions, cited events, and charts; see
 execution, revision fencing, adaptive read requests, and review conditions; see
 `docs/INVESTIGATIONS.md`. Feature 21 adds capital alternatives and current local allocations
 with exact amounts and immutable source validation; see `docs/CAPITAL_PLANS.md`. Broker order
-submission remains future work and must stay disabled. Feature 22 adds separate prospective
+transmission must stay disabled. Feature 22 adds separate prospective
 paper books, frozen selected alternatives and execution assumptions, local capture receipts,
 partial fills, costs and native-currency valuation; see `docs/PAPER_EXECUTION.md`. Never write
 paper results into broker holdings or claim paper valuation is actual profit or decision attribution.
@@ -49,6 +49,10 @@ Feature 23 adds bounded read-only broker scans and immutable cumulative observat
 see `docs/BROKER_RECONCILIATION.md`. First-seen cumulative executions are baselines. No individual
 fill IDs, order lineage, or trading origin are available from the pinned GET contract. Preserve
 unattributed origin, non-atomic timing, incomplete coverage, and unknown values.
+Feature 24 adds prepared create/modify/cancel operations, protected capital reservations,
+single-dispatch synthetic response checks and explicit recovery; see `docs/ORDER_MANAGEMENT.md`.
+No production adapter can transmit. An acknowledged response establishes an ID link, not a fill.
+Preserve ambiguous delivery and its allocation across restarts; never automatically resend it.
 
 The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate

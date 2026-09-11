@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AdvancePaperBookData, AdvancePaperBookErrors, AdvancePaperBookResponses, CancelJobData, CancelJobErrors, CancelJobResponses, CancelPaperIntentData, CancelPaperIntentErrors, CancelPaperIntentResponses, CreateCapitalPlanData, CreateCapitalPlanErrors, CreateCapitalPlanResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, CreatePaperBookData, CreatePaperBookErrors, CreatePaperBookResponses, GetBrokerScanData, GetBrokerScanErrors, GetBrokerScanResponses, GetCapitalPlanData, GetCapitalPlanErrors, GetCapitalPlanResponses, GetContextData, GetContextErrors, GetContextResponses, GetFundingData, GetFundingErrors, GetFundingResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetPaperBookData, GetPaperBookErrors, GetPaperBookResponses, GetReconciliationData, GetReconciliationErrors, GetReconciliationResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListBrokerScansData, ListBrokerScansErrors, ListBrokerScansResponses, ListCapitalPlansData, ListCapitalPlansErrors, ListCapitalPlansResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, ListPaperBooksData, ListPaperBooksErrors, ListPaperBooksResponses, ListPaperEventsData, ListPaperEventsErrors, ListPaperEventsResponses, ListReconciliationsData, ListReconciliationsErrors, ListReconciliationsResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, PreviewCapitalPlanData, PreviewCapitalPlanErrors, PreviewCapitalPlanResponses, PreviewReconciliationData, PreviewReconciliationErrors, PreviewReconciliationResponses, RefreshFundingData, RefreshFundingErrors, RefreshFundingResponses, ReleaseFundingReservationData, ReleaseFundingReservationErrors, ReleaseFundingReservationResponses, ReserveCapitalPlanData, ReserveCapitalPlanErrors, ReserveCapitalPlanResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SaveReconciliationData, SaveReconciliationErrors, SaveReconciliationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses, SubmitPaperIntentData, SubmitPaperIntentErrors, SubmitPaperIntentResponses } from './types.gen';
+import type { AbortOrderIntentData, AbortOrderIntentErrors, AbortOrderIntentResponses, AdvancePaperBookData, AdvancePaperBookErrors, AdvancePaperBookResponses, CancelJobData, CancelJobErrors, CancelJobResponses, CancelOrderIntentData, CancelOrderIntentErrors, CancelOrderIntentResponses, CancelPaperIntentData, CancelPaperIntentErrors, CancelPaperIntentResponses, CreateCapitalPlanData, CreateCapitalPlanErrors, CreateCapitalPlanResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, CreateOrderIntentData, CreateOrderIntentErrors, CreateOrderIntentResponses, CreatePaperBookData, CreatePaperBookErrors, CreatePaperBookResponses, GetBrokerScanData, GetBrokerScanErrors, GetBrokerScanResponses, GetCapitalPlanData, GetCapitalPlanErrors, GetCapitalPlanResponses, GetContextData, GetContextErrors, GetContextResponses, GetFundingData, GetFundingErrors, GetFundingResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetOrderIntentData, GetOrderIntentErrors, GetOrderIntentResponses, GetPaperBookData, GetPaperBookErrors, GetPaperBookResponses, GetReconciliationData, GetReconciliationErrors, GetReconciliationResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListBrokerScansData, ListBrokerScansErrors, ListBrokerScansResponses, ListCapitalPlansData, ListCapitalPlansErrors, ListCapitalPlansResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, ListOrderIntentsData, ListOrderIntentsErrors, ListOrderIntentsResponses, ListPaperBooksData, ListPaperBooksErrors, ListPaperBooksResponses, ListPaperEventsData, ListPaperEventsErrors, ListPaperEventsResponses, ListReconciliationsData, ListReconciliationsErrors, ListReconciliationsResponses, ModifyOrderIntentData, ModifyOrderIntentErrors, ModifyOrderIntentResponses, ObserveOrderIntentData, ObserveOrderIntentErrors, ObserveOrderIntentResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, PreviewCapitalPlanData, PreviewCapitalPlanErrors, PreviewCapitalPlanResponses, PreviewReconciliationData, PreviewReconciliationErrors, PreviewReconciliationResponses, RecoverOrderIntentData, RecoverOrderIntentErrors, RecoverOrderIntentResponses, RefreshFundingData, RefreshFundingErrors, RefreshFundingResponses, ReleaseFundingReservationData, ReleaseFundingReservationErrors, ReleaseFundingReservationResponses, ReserveCapitalPlanData, ReserveCapitalPlanErrors, ReserveCapitalPlanResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SaveReconciliationData, SaveReconciliationErrors, SaveReconciliationResponses, SimulateOrderOperationData, SimulateOrderOperationErrors, SimulateOrderOperationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses, SubmitPaperIntentData, SubmitPaperIntentErrors, SubmitPaperIntentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -199,6 +199,100 @@ export const listMarketCaptures = <ThrowOnError extends boolean = false>(options
  */
 export const getMarketView = <ThrowOnError extends boolean = false>(options: Options<GetMarketViewData, ThrowOnError>): RequestResult<GetMarketViewResponses, GetMarketViewErrors, ThrowOnError> => (options.client ?? client).post<GetMarketViewResponses, GetMarketViewErrors, ThrowOnError>({
     url: '/api/v1/market/view',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List Order Intents
+ */
+export const listOrderIntents = <ThrowOnError extends boolean = false>(options?: Options<ListOrderIntentsData, ThrowOnError>): RequestResult<ListOrderIntentsResponses, ListOrderIntentsErrors, ThrowOnError> => (options?.client ?? client).get<ListOrderIntentsResponses, ListOrderIntentsErrors, ThrowOnError>({ url: '/api/v1/order-intents', ...options });
+
+/**
+ * Create Order Intent
+ */
+export const createOrderIntent = <ThrowOnError extends boolean = false>(options: Options<CreateOrderIntentData, ThrowOnError>): RequestResult<CreateOrderIntentResponses, CreateOrderIntentErrors, ThrowOnError> => (options.client ?? client).post<CreateOrderIntentResponses, CreateOrderIntentErrors, ThrowOnError>({
+    url: '/api/v1/order-intents',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Order Intent
+ */
+export const getOrderIntent = <ThrowOnError extends boolean = false>(options: Options<GetOrderIntentData, ThrowOnError>): RequestResult<GetOrderIntentResponses, GetOrderIntentErrors, ThrowOnError> => (options.client ?? client).get<GetOrderIntentResponses, GetOrderIntentErrors, ThrowOnError>({ url: '/api/v1/order-intents/{id}', ...options });
+
+/**
+ * Abort Order Intent
+ */
+export const abortOrderIntent = <ThrowOnError extends boolean = false>(options: Options<AbortOrderIntentData, ThrowOnError>): RequestResult<AbortOrderIntentResponses, AbortOrderIntentErrors, ThrowOnError> => (options.client ?? client).post<AbortOrderIntentResponses, AbortOrderIntentErrors, ThrowOnError>({
+    url: '/api/v1/order-intents/{id}/abort',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Cancel Order Intent
+ */
+export const cancelOrderIntent = <ThrowOnError extends boolean = false>(options: Options<CancelOrderIntentData, ThrowOnError>): RequestResult<CancelOrderIntentResponses, CancelOrderIntentErrors, ThrowOnError> => (options.client ?? client).post<CancelOrderIntentResponses, CancelOrderIntentErrors, ThrowOnError>({
+    url: '/api/v1/order-intents/{id}/cancel',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Modify Order Intent
+ */
+export const modifyOrderIntent = <ThrowOnError extends boolean = false>(options: Options<ModifyOrderIntentData, ThrowOnError>): RequestResult<ModifyOrderIntentResponses, ModifyOrderIntentErrors, ThrowOnError> => (options.client ?? client).post<ModifyOrderIntentResponses, ModifyOrderIntentErrors, ThrowOnError>({
+    url: '/api/v1/order-intents/{id}/modify',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Observe Order Intent
+ */
+export const observeOrderIntent = <ThrowOnError extends boolean = false>(options: Options<ObserveOrderIntentData, ThrowOnError>): RequestResult<ObserveOrderIntentResponses, ObserveOrderIntentErrors, ThrowOnError> => (options.client ?? client).post<ObserveOrderIntentResponses, ObserveOrderIntentErrors, ThrowOnError>({
+    url: '/api/v1/order-intents/{id}/observe',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Simulate Order Operation
+ */
+export const simulateOrderOperation = <ThrowOnError extends boolean = false>(options: Options<SimulateOrderOperationData, ThrowOnError>): RequestResult<SimulateOrderOperationResponses, SimulateOrderOperationErrors, ThrowOnError> => (options.client ?? client).post<SimulateOrderOperationResponses, SimulateOrderOperationErrors, ThrowOnError>({
+    url: '/api/v1/order-intents/{id}/operations/{operation_id}/simulate',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Recover Order Intent
+ */
+export const recoverOrderIntent = <ThrowOnError extends boolean = false>(options: Options<RecoverOrderIntentData, ThrowOnError>): RequestResult<RecoverOrderIntentResponses, RecoverOrderIntentErrors, ThrowOnError> => (options.client ?? client).post<RecoverOrderIntentResponses, RecoverOrderIntentErrors, ThrowOnError>({
+    url: '/api/v1/order-intents/{id}/recover',
     ...options,
     headers: {
         'Content-Type': 'application/json',
