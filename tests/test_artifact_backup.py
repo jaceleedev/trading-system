@@ -147,7 +147,12 @@ def test_create_restore_preserves_private_independent_bytes_and_provenance(sourc
     assert result["restored_comparison_passed"] is True
     assert result["manifest_sha256"] == created["manifest_sha256"]
     assert checked["object_count"] == 4
-    assert checked["store_counts"] == {"accounts": 1, "captures": 1, "research": 2}
+    assert checked["store_counts"] == {
+        "accounts": 1,
+        "captures": 1,
+        "research": 2,
+        "investigations": 0,
+    }
     assert checked["reference_checks_passed"] is True
     assert files(source) == files(backup) == files(restored) == original
     assert (backup / "manifest.json").read_bytes() == (restored / "manifest.json").read_bytes()
@@ -159,7 +164,9 @@ def test_create_restore_preserves_private_independent_bytes_and_provenance(sourc
     for root in (backup, restored):
         assert root.stat().st_mode & 0o777 == 0o700
         assert all(
-            (root / store).stat().st_mode & 0o777 == 0o700 for store in artifact_backup.STORES
+            (root / store).stat().st_mode & 0o777 == 0o700
+            for store in artifact_backup.STORES
+            if (root / store).exists()
         )
     for path in (restored / "research").iterdir():
         envelope = read_record(restored / "research", path.stem, account_root=restored / "accounts")
@@ -179,7 +186,10 @@ def test_allowlist_excludes_nonstores_and_unrelated_regular_files(source, tmp_pa
     (source / "captures" / ".capture-incomplete.tmp").write_text("never-copy-this-test-string")
     backup = tmp_path / "backup"
     result = create_backup(source, backup)
-    assert set(path.name for path in backup.iterdir()) == {*artifact_backup.STORES, "manifest.json"}
+    assert set(path.name for path in backup.iterdir()) == {
+        *artifact_backup.LEGACY_STORES,
+        "manifest.json",
+    }
     assert result["source_stores"]["research"]["excluded_regular_files"] == 1
     assert result["source_stores"]["captures"]["excluded_regular_files"] == 1
     assert "never-copy-this-test-string" not in json.dumps(manifest(backup))
@@ -205,7 +215,12 @@ def test_deep_market_capture_preserves_its_existing_contract_on_backup_and_resto
 
     assert created["status"] == checked["status"] == result["status"] == "passed"
     assert result["restored_comparison_passed"] is True
-    assert checked["store_counts"] == {"accounts": 1, "captures": 2, "research": 2}
+    assert checked["store_counts"] == {
+        "accounts": 1,
+        "captures": 2,
+        "research": 2,
+        "investigations": 0,
+    }
     assert files(source) == files(backup) == files(restored) == original
     assert read_capture(restored / "captures" / path.name) == capture
 
@@ -247,6 +262,24 @@ def test_absent_stores_are_explicit_and_stay_absent_on_restore(tmp_path):
     )
     restore_backup(backup, restored)
     assert set(path.name for path in restored.iterdir()) == {"manifest.json"}
+
+
+def test_v1_three_store_manifest_restore_preserves_original_bytes_and_identity(source, tmp_path):
+    backup, restored = tmp_path / "backup", tmp_path / "restored"
+    create_backup(source, backup, now=NOW)
+    legacy = manifest(backup)
+    legacy["schema_version"] = 1
+    del legacy["source_stores"]["investigations"]
+    replace_manifest(backup, legacy)
+    original = (backup / "manifest.json").read_bytes()
+    identity = hashlib.sha256(original).hexdigest()
+    checked = verify_backup(backup)
+    assert checked["manifest_sha256"] == identity
+    assert set(checked["store_counts"]) == set(artifact_backup.LEGACY_STORES)
+    assert restore_backup(backup, restored)["manifest_sha256"] == identity
+    assert (backup / "manifest.json").read_bytes() == original
+    assert (restored / "manifest.json").read_bytes() == original
+    assert not (restored / "investigations").exists()
 
 
 @pytest.mark.parametrize("operation", ["create", "restore"])

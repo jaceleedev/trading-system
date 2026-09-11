@@ -406,6 +406,10 @@ def test_openapi_is_offline_typed_and_matches_export(client):
         "/api/v1/jobs",
         "/api/v1/jobs/{id}",
         "/api/v1/jobs/{id}/cancel",
+        "/api/v1/investigations",
+        "/api/v1/investigations/{id}",
+        "/api/v1/investigations/{id}/revisions",
+        "/api/v1/investigations/{id}/pause",
     }
 
 

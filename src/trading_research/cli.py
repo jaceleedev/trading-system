@@ -31,6 +31,9 @@ def main() -> int:
     from trading_research.market_cli import add_market_parser
 
     add_market_parser(sub)
+    from trading_research.investigation_cli import add_investigations_parser
+
+    add_investigations_parser(sub)
     sub.add_parser("doctor", help="Read-only runtime and database connectivity check")
     sub.add_parser("db-upgrade", help="Apply schema migrations to the configured research database")
     demo = sub.add_parser("demo-data", help="Generate clearly marked synthetic fixtures")
@@ -110,6 +113,10 @@ def main() -> int:
                 from trading_research.market_cli import handle_market
 
                 print(json.dumps(handle_market(args), ensure_ascii=False, indent=2))
+            elif args.command == "investigations":
+                from trading_research.investigation_cli import handle_investigations
+
+                print(json.dumps(handle_investigations(args), ensure_ascii=False, indent=2))
             elif args.command == "db-upgrade":
                 from alembic import command
                 from alembic.config import Config

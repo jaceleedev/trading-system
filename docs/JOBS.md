@@ -46,6 +46,10 @@ URL·출력 경로를 작업 입력으로 받지 않는다. 입력은 `--paramet
 | `account-sync` | 명시적 `account_seq`(양의 십진 문자열) | 기존 토스 클라이언트가 저장한 새 계좌 관측의 ID |
 | `market-capture` | 기존 `endpoint` 별칭·`query`·`pages` | 허용된 시장 GET 원응답의 ID |
 
+기능 20의 내부 `investigation-run`은 [조사 서비스](INVESTIGATIONS.md)만 접수한다.
+일반 작업 API·CLI에 임의로 제출할 수 없다. `--allow-codex` worker에서 Codex를 실행하고
+현재 조사 버전과 실행 임대가 모두 유효할 때 결과를 채택한다.
+
 계좌 순번은 계좌 목록에서 명시적으로 선택한다. 자격증명·토큰은 JSON이나 명령 인수에
 넣지 않는다. 수집에는 기존 자격증명 해석기를 사용한다. 수집 작업을 실행하려면 worker에
 `--allow-network`를 지정한다. 기본 worker는 수집 작업을 대기열에 남기고 저장 자료

@@ -15,7 +15,8 @@ Codex에서 직접 사용할 수 있다.
 역할·도입 범위·후속 구현 순서는 [기술 스택 결정](docs/TECH_STACK.md)에 정리했다.
 SvelteKit 웹 작업실과 FastAPI는 저장된 계좌·판단·근거를 연결해 읽는다.
 기존 Streamlit 추천·백테스트 화면도 사용할 수 있다. PostgreSQL 작업 기록과 Python
-worker는 [작업 실행 안내](docs/JOBS.md)를 따른다. 지속적인 AI 실행은 후속 작업이다.
+worker는 [작업 실행 안내](docs/JOBS.md)를 따른다. [Codex 조사](docs/INVESTIGATIONS.md)는
+고정 입력과 실제 프로세스 기록, 새로운 관측에 따른 후속 조사·중지를 연결한다.
 [시장 관측](docs/MARKET_OBSERVATIONS.md)은 저장한 분봉·일봉의 시점별 수정 이력과
 근거 사건을 웹 차트·CLI·MCP에서 같은 자료로 읽는다.
 [새 웹 작업실 안내](docs/WEB_WORKBENCH.md)를 따른다.
@@ -85,7 +86,7 @@ TRADING_TEST_DB=1 uv run pytest
 설정한다. API 원응답 보존과 추천용 데이터 검증을 구분한다. 주문 기능은 없다.
 [계좌 조회 안내](docs/TOSS_ACCOUNT.md)의 `trading toss-account`로 계좌를 명시적으로 선택해
 보유 주식·매수 가능 금액·수수료·진행 중 주문을 조회하고 비공개 로컬 스냅샷을 저장한다.
-[개인 자료 백업](docs/ARTIFACT_BACKUP.md)으로 계좌·연구·시장 수집 객체를 별도로 보존하고
+[개인 자료 백업](docs/ARTIFACT_BACKUP.md)으로 계좌·연구·시장 수집·Codex 조사 객체를 보존하고
 새 디렉터리에서 복원을 검증한다. PostgreSQL 백업과 대상이 다르다.
 
 ## 추천 생성

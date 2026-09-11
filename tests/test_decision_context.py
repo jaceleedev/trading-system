@@ -134,6 +134,31 @@ def test_empty_context_is_offline_and_has_no_model_or_execution_claim(tmp_path, 
     assert "untrusted data" in " ".join(result["trust_instructions"])
 
 
+def test_mode_filter_is_applied_before_recent_record_limit(tmp_path):
+    real = decision(tmp_path / "records", instant=NOW, mode="prospective")
+    decision(tmp_path / "records", instant=NOW + timedelta(seconds=1), mode="synthetic")
+    historical = decision(
+        tmp_path / "records", instant=NOW + timedelta(seconds=2), mode="retrospective"
+    )
+    view = build_context(
+        tmp_path / "records", now=NOW + timedelta(seconds=5), modes=["prospective"], max_records=1
+    )
+    assert [item["id"] for item in view["records"]] == [real]
+    combined = build_context(
+        tmp_path / "records",
+        now=NOW + timedelta(seconds=5),
+        modes=["prospective", "retrospective"],
+        max_records=1,
+    )
+    assert [item["id"] for item in combined["records"]] == [historical]
+
+
+@pytest.mark.parametrize("modes", [[], "prospective", ["live"], [None]])
+def test_invalid_mode_filter_is_rejected(tmp_path, modes):
+    with pytest.raises(DataError, match="mode filter"):
+        build_context(tmp_path, modes=modes)
+
+
 @pytest.mark.parametrize("explicit", [False, True])
 def test_context_keeps_market_evidence_references_and_distinct_times(tmp_path, explicit):
     from trading_research.capture_store import write_capture

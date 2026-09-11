@@ -10,10 +10,12 @@ from pathlib import Path
 from trading_research.capture_store import MAX_CAPTURE_BYTES, read_capture
 from trading_research.decision_workspace import read_record
 from trading_research.errors import DataError
+from trading_research.investigation_artifacts import read_artifact
 from trading_research.private_store import MAX_OBJECT_BYTES, OBJECT_ID, object_bytes, parse_json
 from trading_research.toss_account import validate_observation, validate_snapshot
 
-STORES = ("accounts", "captures", "research")
+LEGACY_STORES = ("accounts", "captures", "research")
+STORES = (*LEGACY_STORES, "investigations")
 MAX_OBJECTS = 10000
 MAX_TOTAL_BYTES = 2 * 1024 * 1024 * 1024
 MAX_MANIFEST_BYTES = 4 * 1024 * 1024
@@ -115,8 +117,8 @@ def _new_destination(path):
 def _source_inventory(source):
     statuses, selected = {}, []
     with _directory(source, private=False) as base:
-        # Research dependencies in accounts and captures ordinarily already exist when published.
-        for store in ("research", "accounts", "captures"):
+        # Published investigation inputs depend on previously stored research and sources.
+        for store in ("investigations", "research", "accounts", "captures"):
             try:
                 info = os.stat(store, dir_fd=base, follow_symlinks=False)
             except FileNotFoundError:
@@ -154,7 +156,15 @@ def _validated_bytes(root, store, identity):
     value = parse_json(raw)
     if object_bytes(value) != raw:
         raise DataError("Artifact content is not canonical JSON")
-    if store == "research":
+    if store == "investigations":
+        checked = read_artifact(
+            root / store,
+            identity,
+            account_root=root / "accounts",
+            research_root=root / "research",
+            capture_root=root / "captures",
+        )
+    elif store == "research":
         checked = read_record(
             root / store,
             identity,
@@ -174,18 +184,19 @@ def _validated_bytes(root, store, identity):
 
 def _check_objects(root, manifest, *, strict_membership=True):
     entries = manifest["objects"]
+    stores = tuple(manifest["source_stores"])
     by_store = {
         store: {item["id"] + ".json" for item in entries if item["store"] == store}
-        for store in STORES
+        for store in stores
     }
     if strict_membership:
         with _directory(root) as base:
-            expected = {store for store in STORES if manifest["source_stores"][store]["present"]}
+            expected = {store for store in stores if manifest["source_stores"][store]["present"]}
             # A manifest exists only after all copied objects have already been validated.
             expected.add(MANIFEST_NAME)
             if set(os.listdir(base)) != expected:
                 raise DataError("Artifact backup directory differs from its manifest")
-        for store in STORES:
+        for store in stores:
             if manifest["source_stores"][store]["present"]:
                 with _directory(root / store) as directory:
                     if set(os.listdir(directory)) != by_store[store]:
@@ -198,7 +209,7 @@ def _check_objects(root, manifest, *, strict_membership=True):
 
 def _copy_objects(source, destination, statuses, entries):
     with _directory(destination) as base:
-        for store in STORES:
+        for store in statuses:
             if statuses[store]["present"]:
                 os.mkdir(store, 0o700, dir_fd=base)
         os.fsync(base)
@@ -218,7 +229,7 @@ def _validate_manifest(value):
     if set(value) != _MANIFEST_KEYS or (
         value["kind"] != "private_artifact_backup"
         or type(value["schema_version"]) is not int
-        or value["schema_version"] != 1
+        or value["schema_version"] not in (1, 2)
         or value["consistency"] != CONSISTENCY
         or value["credentials_included"] is not False
         or value["database_included"] is not False
@@ -233,7 +244,8 @@ def _validate_manifest(value):
     except ValueError:
         raise DataError("Artifact backup manifest time is invalid") from None
     statuses = value["source_stores"]
-    if type(statuses) is not dict or set(statuses) != set(STORES):
+    stores = LEGACY_STORES if value["schema_version"] == 1 else STORES
+    if type(statuses) is not dict or set(statuses) != set(stores):
         raise DataError("Artifact backup manifest stores are invalid")
     for status in statuses.values():
         if (
@@ -254,7 +266,7 @@ def _validate_manifest(value):
             type(item) is not dict
             or set(item) != {"store", "id", "bytes"}
             or type(item["store"]) is not str
-            or item["store"] not in STORES
+            or item["store"] not in stores
             or type(item["id"]) is not str
             or OBJECT_ID.fullmatch(item["id"]) is None
             or type(item["bytes"]) is not int
@@ -290,7 +302,8 @@ def _report(manifest, raw):
         "object_count": len(manifest["objects"]),
         "total_bytes": sum(item["bytes"] for item in manifest["objects"]),
         "store_counts": {
-            store: sum(item["store"] == store for item in manifest["objects"]) for store in STORES
+            store: sum(item["store"] == store for item in manifest["objects"])
+            for store in manifest["source_stores"]
         },
         "source_stores": manifest["source_stores"],
         "object_identity_checks_passed": True,
@@ -322,7 +335,7 @@ def create_backup(source: Path, destination: Path, *, now=None) -> dict:
         objects = _copy_objects(source, destination, statuses, selected)
         manifest = {
             "kind": "private_artifact_backup",
-            "schema_version": 1,
+            "schema_version": 2,
             "created_at": _now(now),
             "consistency": CONSISTENCY,
             "source_stores": statuses,

@@ -152,3 +152,56 @@ class JobAttemptRow(Base):
     heartbeat_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     error_code: Mapped[str | None] = mapped_column(String(64))
+
+
+class InvestigationRow(Base):
+    __tablename__ = "investigations"
+    __table_args__ = (
+        UniqueConstraint("workspace_key", "request_key", name="uq_investigations_request"),
+        CheckConstraint("current_revision >= 1", name="ck_investigations_revision"),
+        CheckConstraint("status IN ('active','paused')", name="ck_investigations_status"),
+        CheckConstraint(
+            "latest_completed_revision IS NULL OR "
+            "latest_completed_revision BETWEEN 1 AND current_revision",
+            name="ck_investigations_completed",
+        ),
+        Index("ix_investigations_due", "workspace_key", "next_review_at"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    workspace_key: Mapped[str] = mapped_column(String(64))
+    request_key: Mapped[str] = mapped_column(String(128))
+    request_sha256: Mapped[str] = mapped_column(String(64))
+    current_revision: Mapped[int] = mapped_column(Integer)
+    status: Mapped[str] = mapped_column(String(16))
+    active_job_id: Mapped[str | None] = mapped_column(ForeignKey("jobs.id"))
+    latest_completed_revision: Mapped[int | None] = mapped_column(Integer)
+    latest_result: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    next_review_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    event_conditions: Mapped[list] = mapped_column(JSONB)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class InvestigationRevisionRow(Base):
+    __tablename__ = "investigation_revisions"
+    __table_args__ = (
+        UniqueConstraint(
+            "investigation_id", "request_key", name="uq_investigation_revision_request"
+        ),
+        UniqueConstraint("job_id", name="uq_investigation_revision_job"),
+        CheckConstraint("number >= 1", name="ck_investigation_revision_number"),
+    )
+    investigation_id: Mapped[str] = mapped_column(
+        ForeignKey("investigations.id", ondelete="CASCADE"), primary_key=True
+    )
+    number: Mapped[int] = mapped_column(Integer, primary_key=True)
+    workspace_key: Mapped[str] = mapped_column(String(64))
+    request_key: Mapped[str] = mapped_column(String(128))
+    request_sha256: Mapped[str] = mapped_column(String(64))
+    trigger_kind: Mapped[str] = mapped_column(String(32))
+    input_sha256: Mapped[str] = mapped_column(String(64))
+    context_input: Mapped[dict] = mapped_column(JSONB)
+    job_id: Mapped[str] = mapped_column(ForeignKey("jobs.id"))
+    result: Mapped[dict | None] = mapped_column(JSONB(none_as_null=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
