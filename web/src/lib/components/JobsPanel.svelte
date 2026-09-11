@@ -68,6 +68,7 @@
     'research-context': '저장 자료 검증',
     'account-sync': '계좌 관측 수집',
     'market-capture': '시장 자료 수집',
+    'broker-sync': '브로커 주문 관측 수집',
   };
 
   async function refreshJobs() {

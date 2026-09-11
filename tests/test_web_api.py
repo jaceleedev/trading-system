@@ -423,6 +423,11 @@ def test_openapi_is_offline_typed_and_matches_export(client):
         "/api/v1/paper/books/{id}/advance",
         "/api/v1/paper/books/{id}/intents/{intent_id}/cancel",
         "/api/v1/paper/books/{id}/events",
+        "/api/v1/broker/scans",
+        "/api/v1/broker/scans/{id}",
+        "/api/v1/reconciliations",
+        "/api/v1/reconciliations/preview",
+        "/api/v1/reconciliations/{id}",
     }
 
 

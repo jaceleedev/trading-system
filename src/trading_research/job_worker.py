@@ -20,8 +20,8 @@ from urllib.request import ProxyHandler, build_opener
 
 from trading_research.errors import DataError
 
-KINDS = ("research-context", "account-sync", "market-capture")
-NETWORK_KINDS = frozenset({"account-sync", "market-capture"})
+KINDS = ("research-context", "account-sync", "market-capture", "broker-sync")
+NETWORK_KINDS = frozenset({"account-sync", "market-capture", "broker-sync"})
 _OBJECT_ID = re.compile(r"[0-9a-f]{64}")
 
 
@@ -51,6 +51,10 @@ def validate_parameters(kind, parameters):
         ):
             raise DataError("Account sync requires an explicit positive signed64 decimal string")
         return {"account_seq": sequence}
+    if kind == "broker-sync":
+        from trading_research.toss_broker import validate_scan_request
+
+        return validate_scan_request(parameters)
     from trading_research.toss_market import ENDPOINT_ALIASES, validate_query
 
     if set(parameters) - {"endpoint", "query", "pages"} or not {
@@ -314,10 +318,36 @@ def _market_capture(workspace, job, guard):
     return {"artifacts": artifacts, "orders_enabled": False}
 
 
+def _broker_sync(workspace, job, guard):
+    from trading_research import toss_broker
+    from trading_research.broker_artifacts import collect_scan
+
+    parameters = validate_parameters("broker-sync", job["parameters"])
+    if parameters["mode"] != "prospective":
+        raise DataError("Synthetic broker collection requires a separate fixture client")
+    guard.checkpoint()
+    root = _store_root(workspace, "broker-observations", create=True)
+    client = toss_broker.TossBrokerClient(
+        _access_token(guard),
+        opener=_GuardedOpener(guard, toss_broker._NoRedirect),
+        sleep=guard.wait,
+    )
+    result = collect_scan(root, client, parameters, checkpoint=guard.checkpoint)
+    guard.checkpoint()
+    return {
+        "scan_id": result["id"],
+        "coverage_complete": result["record"]["coverage"]["complete"],
+        "stop_reason": result["record"]["coverage"]["stop_reason"],
+        "artifacts": [{"store": "broker-observations", "id": result["id"]}],
+        "orders_enabled": False,
+    }
+
+
 HANDLERS = {
     "research-context": _research_context,
     "account-sync": _account_sync,
     "market-capture": _market_capture,
+    "broker-sync": _broker_sync,
 }
 
 

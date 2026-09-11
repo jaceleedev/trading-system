@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { AdvancePaperBookData, AdvancePaperBookErrors, AdvancePaperBookResponses, CancelJobData, CancelJobErrors, CancelJobResponses, CancelPaperIntentData, CancelPaperIntentErrors, CancelPaperIntentResponses, CreateCapitalPlanData, CreateCapitalPlanErrors, CreateCapitalPlanResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, CreatePaperBookData, CreatePaperBookErrors, CreatePaperBookResponses, GetCapitalPlanData, GetCapitalPlanErrors, GetCapitalPlanResponses, GetContextData, GetContextErrors, GetContextResponses, GetFundingData, GetFundingErrors, GetFundingResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetPaperBookData, GetPaperBookErrors, GetPaperBookResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListCapitalPlansData, ListCapitalPlansErrors, ListCapitalPlansResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, ListPaperBooksData, ListPaperBooksErrors, ListPaperBooksResponses, ListPaperEventsData, ListPaperEventsErrors, ListPaperEventsResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, PreviewCapitalPlanData, PreviewCapitalPlanErrors, PreviewCapitalPlanResponses, RefreshFundingData, RefreshFundingErrors, RefreshFundingResponses, ReleaseFundingReservationData, ReleaseFundingReservationErrors, ReleaseFundingReservationResponses, ReserveCapitalPlanData, ReserveCapitalPlanErrors, ReserveCapitalPlanResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses, SubmitPaperIntentData, SubmitPaperIntentErrors, SubmitPaperIntentResponses } from './types.gen';
+import type { AdvancePaperBookData, AdvancePaperBookErrors, AdvancePaperBookResponses, CancelJobData, CancelJobErrors, CancelJobResponses, CancelPaperIntentData, CancelPaperIntentErrors, CancelPaperIntentResponses, CreateCapitalPlanData, CreateCapitalPlanErrors, CreateCapitalPlanResponses, CreateInvestigationData, CreateInvestigationErrors, CreateInvestigationResponses, CreatePaperBookData, CreatePaperBookErrors, CreatePaperBookResponses, GetBrokerScanData, GetBrokerScanErrors, GetBrokerScanResponses, GetCapitalPlanData, GetCapitalPlanErrors, GetCapitalPlanResponses, GetContextData, GetContextErrors, GetContextResponses, GetFundingData, GetFundingErrors, GetFundingResponses, GetInvestigationData, GetInvestigationErrors, GetInvestigationResponses, GetJobData, GetJobErrors, GetJobResponses, GetMarketViewData, GetMarketViewErrors, GetMarketViewResponses, GetPaperBookData, GetPaperBookErrors, GetPaperBookResponses, GetReconciliationData, GetReconciliationErrors, GetReconciliationResponses, GetResearchData, GetResearchErrors, GetResearchResponses, HealthData, HealthErrors, HealthResponses, JobServiceStatusData, JobServiceStatusErrors, JobServiceStatusResponses, ListAccountSnapshotsData, ListAccountSnapshotsErrors, ListAccountSnapshotsResponses, ListBrokerScansData, ListBrokerScansErrors, ListBrokerScansResponses, ListCapitalPlansData, ListCapitalPlansErrors, ListCapitalPlansResponses, ListInvestigationsData, ListInvestigationsErrors, ListInvestigationsResponses, ListJobsData, ListJobsErrors, ListJobsResponses, ListMarketCapturesData, ListMarketCapturesErrors, ListMarketCapturesResponses, ListPaperBooksData, ListPaperBooksErrors, ListPaperBooksResponses, ListPaperEventsData, ListPaperEventsErrors, ListPaperEventsResponses, ListReconciliationsData, ListReconciliationsErrors, ListReconciliationsResponses, PauseInvestigationData, PauseInvestigationErrors, PauseInvestigationResponses, PreviewCapitalPlanData, PreviewCapitalPlanErrors, PreviewCapitalPlanResponses, PreviewReconciliationData, PreviewReconciliationErrors, PreviewReconciliationResponses, RefreshFundingData, RefreshFundingErrors, RefreshFundingResponses, ReleaseFundingReservationData, ReleaseFundingReservationErrors, ReleaseFundingReservationResponses, ReserveCapitalPlanData, ReserveCapitalPlanErrors, ReserveCapitalPlanResponses, ReviseInvestigationData, ReviseInvestigationErrors, ReviseInvestigationResponses, SaveReconciliationData, SaveReconciliationErrors, SaveReconciliationResponses, SubmitJobData, SubmitJobErrors, SubmitJobResponses, SubmitPaperIntentData, SubmitPaperIntentErrors, SubmitPaperIntentResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -22,6 +22,16 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
  * Snapshots
  */
 export const listAccountSnapshots = <ThrowOnError extends boolean = false>(options?: Options<ListAccountSnapshotsData, ThrowOnError>): RequestResult<ListAccountSnapshotsResponses, ListAccountSnapshotsErrors, ThrowOnError> => (options?.client ?? client).get<ListAccountSnapshotsResponses, ListAccountSnapshotsErrors, ThrowOnError>({ url: '/api/v1/account-snapshots', ...options });
+
+/**
+ * List Broker Scans
+ */
+export const listBrokerScans = <ThrowOnError extends boolean = false>(options?: Options<ListBrokerScansData, ThrowOnError>): RequestResult<ListBrokerScansResponses, ListBrokerScansErrors, ThrowOnError> => (options?.client ?? client).get<ListBrokerScansResponses, ListBrokerScansErrors, ThrowOnError>({ url: '/api/v1/broker/scans', ...options });
+
+/**
+ * Get Broker Scan
+ */
+export const getBrokerScan = <ThrowOnError extends boolean = false>(options: Options<GetBrokerScanData, ThrowOnError>): RequestResult<GetBrokerScanResponses, GetBrokerScanErrors, ThrowOnError> => (options.client ?? client).get<GetBrokerScanResponses, GetBrokerScanErrors, ThrowOnError>({ url: '/api/v1/broker/scans/{id}', ...options });
 
 /**
  * List Capital Plans
@@ -258,6 +268,40 @@ export const cancelPaperIntent = <ThrowOnError extends boolean = false>(options:
         ...options.headers
     }
 });
+
+/**
+ * List Reconciliations
+ */
+export const listReconciliations = <ThrowOnError extends boolean = false>(options?: Options<ListReconciliationsData, ThrowOnError>): RequestResult<ListReconciliationsResponses, ListReconciliationsErrors, ThrowOnError> => (options?.client ?? client).get<ListReconciliationsResponses, ListReconciliationsErrors, ThrowOnError>({ url: '/api/v1/reconciliations', ...options });
+
+/**
+ * Save Reconciliation
+ */
+export const saveReconciliation = <ThrowOnError extends boolean = false>(options: Options<SaveReconciliationData, ThrowOnError>): RequestResult<SaveReconciliationResponses, SaveReconciliationErrors, ThrowOnError> => (options.client ?? client).post<SaveReconciliationResponses, SaveReconciliationErrors, ThrowOnError>({
+    url: '/api/v1/reconciliations',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Preview Reconciliation
+ */
+export const previewReconciliation = <ThrowOnError extends boolean = false>(options: Options<PreviewReconciliationData, ThrowOnError>): RequestResult<PreviewReconciliationResponses, PreviewReconciliationErrors, ThrowOnError> => (options.client ?? client).post<PreviewReconciliationResponses, PreviewReconciliationErrors, ThrowOnError>({
+    url: '/api/v1/reconciliations/preview',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Reconciliation
+ */
+export const getReconciliation = <ThrowOnError extends boolean = false>(options: Options<GetReconciliationData, ThrowOnError>): RequestResult<GetReconciliationResponses, GetReconciliationErrors, ThrowOnError> => (options.client ?? client).get<GetReconciliationResponses, GetReconciliationErrors, ThrowOnError>({ url: '/api/v1/reconciliations/{id}', ...options });
 
 /**
  * Research Record

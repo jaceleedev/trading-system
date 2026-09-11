@@ -153,6 +153,7 @@ def test_worker_explicit_network_enables_only_the_allowlisted_handlers(store, tm
         "research-context",
         "account-sync",
         "market-capture",
+        "broker-sync",
     ]
 
 

@@ -61,12 +61,12 @@ def planned(investigation_source, request):
     return base, ids, plan
 
 
-def test_v3_capital_graph_restore_preserves_all_bytes_and_recalculates(planned, tmp_path):
+def test_current_capital_graph_restore_preserves_all_bytes_and_recalculates(planned, tmp_path):
     source, _, plan = planned
     original = files(source)
     backup, restored = tmp_path / "backup", tmp_path / "restored"
     created = create_backup(source, backup, now=NOW)
-    assert manifest(backup)["schema_version"] == 3
+    assert manifest(backup)["schema_version"] == 4
     assert created["store_counts"]["capital-plans"] == 1
     assert created["database_included"] is False and created["credentials_included"] is False
     assert created["reference_checks_passed"] is True
@@ -88,6 +88,8 @@ def test_v2_with_investigation_records_preserves_manifest_identity_and_metadata(
     old = manifest(backup)
     old["schema_version"] = 2
     del old["source_stores"]["capital-plans"]
+    del old["source_stores"]["broker-observations"]
+    del old["source_stores"]["reconciliations"]
     old["objects"] = [item for item in old["objects"] if item["store"] != "capital-plans"]
     shutil.rmtree(backup / "capital-plans")
     replace_manifest(backup, old)
@@ -100,6 +102,25 @@ def test_v2_with_investigation_records_preserves_manifest_identity_and_metadata(
     assert (restored / "manifest.json").read_bytes() == before
     assert get_object(restored / "investigations", ids["run"])["execution"] == metadata
     assert not (restored / "capital-plans").exists()
+
+
+def test_v3_capital_backup_preserves_original_manifest_identity(planned, tmp_path):
+    source, _, plan = planned
+    backup, restored = tmp_path / "legacy-backup", tmp_path / "legacy-restored"
+    create_backup(source, backup, now=NOW)
+    old = manifest(backup)
+    old["schema_version"] = 3
+    del old["source_stores"]["broker-observations"]
+    del old["source_stores"]["reconciliations"]
+    replace_manifest(backup, old)
+    original = (backup / "manifest.json").read_bytes()
+    identity = hashlib.sha256(original).hexdigest()
+    assert verify_backup(backup)["manifest_sha256"] == identity
+    assert restore_backup(backup, restored)["manifest_sha256"] == identity
+    assert (restored / "manifest.json").read_bytes() == original
+    assert read_plan_from_stores(restored, plan["id"]) == plan["record"]
+    assert not (restored / "broker-observations").exists()
+    assert not (restored / "reconciliations").exists()
 
 
 @pytest.mark.parametrize("dependency", ["account", "research", "capture", "investigation_input"])

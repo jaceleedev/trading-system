@@ -107,6 +107,246 @@ export type AccountSnapshotsResponse = {
 };
 
 /**
+ * BrokerCoverage
+ */
+export type BrokerCoverage = {
+    /**
+     * All Order Types
+     */
+    all_order_types: false;
+    /**
+     * Atomic Account Instant
+     */
+    atomic_account_instant: false;
+    /**
+     * Closed Complete
+     */
+    closed_complete: boolean;
+    /**
+     * Closed Pages
+     */
+    closed_pages: number;
+    /**
+     * Complete
+     */
+    complete: boolean;
+    /**
+     * Date Basis
+     */
+    date_basis: 'orderedAt_KST';
+    /**
+     * Details Complete
+     */
+    details_complete: boolean;
+    /**
+     * Individual Fills
+     */
+    individual_fills: false;
+    /**
+     * Open Complete
+     */
+    open_complete: boolean;
+    /**
+     * Order Lineage
+     */
+    order_lineage: false;
+    /**
+     * Ordered At From
+     */
+    ordered_at_from: string | null;
+    /**
+     * Ordered At To
+     */
+    ordered_at_to: string | null;
+    /**
+     * Source Authenticity
+     */
+    source_authenticity: false;
+    /**
+     * Stop Reason
+     */
+    stop_reason: 'page_limit' | 'cursor_cycle' | 'request_failed' | 'ambiguous_pages' | null;
+    /**
+     * Unresolved Detail Ids
+     */
+    unresolved_detail_ids: Array<string>;
+};
+
+/**
+ * BrokerObservedOrder
+ */
+export type BrokerObservedOrder = {
+    /**
+     * Observation Id
+     */
+    observation_id: string;
+    order: OpenOrder;
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Retrieved At
+     */
+    retrieved_at: string;
+    /**
+     * Source Group
+     */
+    source_group: 'OPEN' | 'CLOSED' | 'DETAIL';
+};
+
+/**
+ * BrokerScanList
+ */
+export type BrokerScanList = {
+    /**
+     * Invalid Count
+     */
+    invalid_count: number;
+    /**
+     * Items
+     */
+    items: Array<BrokerScanSummary>;
+    /**
+     * Omitted Count
+     */
+    omitted_count: number;
+    /**
+     * Total Count
+     */
+    total_count: number;
+};
+
+/**
+ * BrokerScanRequest
+ */
+export type BrokerScanRequest = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Detail Order Ids
+     */
+    detail_order_ids: Array<string>;
+    /**
+     * From Date
+     */
+    from_date: string | null;
+    /**
+     * Max Pages
+     */
+    max_pages: number;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Page Size
+     */
+    page_size: number;
+    /**
+     * Symbol
+     */
+    symbol: string | null;
+    /**
+     * To Date
+     */
+    to_date: string | null;
+};
+
+/**
+ * BrokerScanSummary
+ */
+export type BrokerScanSummary = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Collection Completed At
+     */
+    collection_completed_at: string;
+    /**
+     * Collection Started At
+     */
+    collection_started_at: string;
+    coverage: BrokerCoverage;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Observations Count
+     */
+    observations_count: number;
+    /**
+     * Orders Count
+     */
+    orders_count: number;
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+};
+
+/**
+ * BrokerScanView
+ */
+export type BrokerScanView = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * Collection Completed At
+     */
+    collection_completed_at: string;
+    /**
+     * Collection Started At
+     */
+    collection_started_at: string;
+    coverage: BrokerCoverage;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Kind
+     */
+    kind: 'broker_scan';
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Observation Ids
+     */
+    observation_ids: Array<string>;
+    /**
+     * Orders
+     */
+    orders: Array<BrokerObservedOrder>;
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    request: BrokerScanRequest;
+    /**
+     * Schema Version
+     */
+    schema_version: 1;
+    /**
+     * Warnings
+     */
+    warnings: Array<string>;
+};
+
+/**
  * BuyingPower
  */
 export type BuyingPower = {
@@ -1873,7 +2113,7 @@ export type JobSubmission = {
     /**
      * Kind
      */
-    kind: 'research-context' | 'account-sync' | 'market-capture';
+    kind: 'research-context' | 'account-sync' | 'market-capture' | 'broker-sync';
     /**
      * Max Attempts
      */
@@ -3219,6 +3459,506 @@ export type ProposedAction = {
 };
 
 /**
+ * ReconciliationBuyingPower
+ */
+export type ReconciliationBuyingPower = {
+    /**
+     * After Amount
+     */
+    after_amount: string | null;
+    /**
+     * Before Amount
+     */
+    before_amount: string | null;
+    /**
+     * Currency
+     */
+    currency: 'KRW' | 'USD';
+    /**
+     * Delta
+     */
+    delta: string | null;
+    /**
+     * Semantics
+     */
+    semantics: 'buying_capacity_not_cash';
+};
+
+/**
+ * ReconciliationCounts
+ */
+export type ReconciliationCounts = {
+    /**
+     * Absent Orders
+     */
+    absent_orders: number;
+    /**
+     * Baseline Orders
+     */
+    baseline_orders: number;
+    /**
+     * Changed Holdings
+     */
+    changed_holdings: number;
+    /**
+     * Changed Orders
+     */
+    changed_orders: number;
+    /**
+     * Conflicted Orders
+     */
+    conflicted_orders: number;
+    /**
+     * Holdings
+     */
+    holdings: number;
+    /**
+     * Orders
+     */
+    orders: number;
+    /**
+     * Unchanged Orders
+     */
+    unchanged_orders: number;
+    /**
+     * Unknown Holding Deltas
+     */
+    unknown_holding_deltas: number;
+};
+
+/**
+ * ReconciliationCoverage
+ */
+export type ReconciliationCoverage = {
+    /**
+     * After Account
+     */
+    after_account: {
+        [key: string]: unknown;
+    };
+    /**
+     * After Scan
+     */
+    after_scan: {
+        [key: string]: unknown;
+    };
+    /**
+     * All Account Orders
+     */
+    all_account_orders: false;
+    /**
+     * Atomic Account Instant
+     */
+    atomic_account_instant: false;
+    /**
+     * Before Account
+     */
+    before_account: {
+        [key: string]: unknown;
+    };
+    /**
+     * Before Scan
+     */
+    before_scan: {
+        [key: string]: unknown;
+    } | null;
+    /**
+     * Comparison Time Alignment
+     */
+    comparison_time_alignment: 'non_atomic';
+    /**
+     * Holdings Absence Implies Zero
+     */
+    holdings_absence_implies_zero: false;
+    /**
+     * Individual Fills Available
+     */
+    individual_fills_available: false;
+    /**
+     * Order Lineage Known
+     */
+    order_lineage_known: false;
+    /**
+     * Source Authenticity Verified
+     */
+    source_authenticity_verified: false;
+};
+
+/**
+ * ReconciliationExecutionDelta
+ */
+export type ReconciliationExecutionDelta = {
+    /**
+     * Commission
+     */
+    commission: string | null;
+    /**
+     * Filled Amount
+     */
+    filled_amount: string | null;
+    /**
+     * Filled Quantity
+     */
+    filled_quantity: string | null;
+    /**
+     * Tax
+     */
+    tax: string | null;
+};
+
+/**
+ * ReconciliationHolding
+ */
+export type ReconciliationHolding = {
+    /**
+     * Absence Zero Assumed
+     */
+    absence_zero_assumed: false;
+    /**
+     * After Currency
+     */
+    after_currency: string | null;
+    /**
+     * After Present
+     */
+    after_present: boolean;
+    /**
+     * After Quantity
+     */
+    after_quantity: string | null;
+    /**
+     * Before Currency
+     */
+    before_currency: string | null;
+    /**
+     * Before Present
+     */
+    before_present: boolean;
+    /**
+     * Before Quantity
+     */
+    before_quantity: string | null;
+    /**
+     * Classification
+     */
+    classification: 'unchanged' | 'quantity_changed' | 'appeared' | 'disappeared' | 'currency_conflict';
+    /**
+     * Market
+     */
+    market: string;
+    /**
+     * Quantity Delta
+     */
+    quantity_delta: string | null;
+    /**
+     * Symbol
+     */
+    symbol: string;
+};
+
+/**
+ * ReconciliationList
+ */
+export type ReconciliationList = {
+    /**
+     * Invalid Count
+     */
+    invalid_count: number;
+    /**
+     * Items
+     */
+    items: Array<ReconciliationSummary>;
+    /**
+     * Omitted Count
+     */
+    omitted_count: number;
+    /**
+     * Total Count
+     */
+    total_count: number;
+};
+
+/**
+ * ReconciliationOrder
+ */
+export type ReconciliationOrder = {
+    after: ReconciliationOrderVersion | null;
+    /**
+     * After Conflict Observation Ids
+     */
+    after_conflict_observation_ids: Array<string>;
+    before: ReconciliationOrderVersion | null;
+    /**
+     * Before Conflict Observation Ids
+     */
+    before_conflict_observation_ids: Array<string>;
+    /**
+     * Classification
+     */
+    classification: Array<'unchanged' | 'baseline_only' | 'absent_from_selected_scope' | 'identity_conflict' | 'observation_conflict' | 'temporal_conflict' | 'cumulative_increase' | 'cumulative_regression' | 'financial_revision' | 'execution_information_changed' | 'status_only' | 'order_terms_changed' | 'metadata_changed'>;
+    deltas: ReconciliationExecutionDelta;
+    /**
+     * Individual Fills Available
+     */
+    individual_fills_available: false;
+    /**
+     * Lineage Known
+     */
+    lineage_known: false;
+    /**
+     * Order Id
+     */
+    order_id: string;
+    /**
+     * Order Key
+     */
+    order_key: string;
+    /**
+     * Origin
+     */
+    origin: 'unattributed';
+};
+
+/**
+ * ReconciliationOrderVersion
+ */
+export type ReconciliationOrderVersion = {
+    /**
+     * Groups Seen
+     */
+    groups_seen: Array<'OPEN' | 'CLOSED' | 'DETAIL'>;
+    /**
+     * Observation Ids
+     */
+    observation_ids: Array<string>;
+    /**
+     * Observed At
+     */
+    observed_at: string;
+    order: OpenOrder;
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+};
+
+/**
+ * ReconciliationRecord
+ */
+export type ReconciliationRecord = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * As Of
+     */
+    as_of: string;
+    /**
+     * Buying Power
+     */
+    buying_power: Array<ReconciliationBuyingPower>;
+    counts: ReconciliationCounts;
+    coverage: ReconciliationCoverage;
+    /**
+     * Holdings
+     */
+    holdings: Array<ReconciliationHolding>;
+    /**
+     * Individual Fills Created
+     */
+    individual_fills_created: false;
+    /**
+     * Kind
+     */
+    kind: 'broker_reconciliation';
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic' | 'retrospective';
+    /**
+     * Orders
+     */
+    orders: Array<ReconciliationOrder>;
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Pnl Computed
+     */
+    pnl_computed: false;
+    request: ReconciliationRequest;
+    /**
+     * Schema Version
+     */
+    schema_version: 1;
+    sources: ReconciliationSources;
+    /**
+     * Warnings
+     */
+    warnings: Array<string>;
+};
+
+/**
+ * ReconciliationRequest
+ */
+export type ReconciliationRequest = {
+    /**
+     * After Scan Id
+     */
+    after_scan_id: string;
+    /**
+     * After Snapshot Id
+     */
+    after_snapshot_id: string;
+    /**
+     * As Of
+     */
+    as_of?: string | null;
+    /**
+     * Before Scan Id
+     */
+    before_scan_id?: string | null;
+    /**
+     * Before Snapshot Id
+     */
+    before_snapshot_id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic' | 'retrospective';
+};
+
+/**
+ * ReconciliationResponse
+ */
+export type ReconciliationResponse = {
+    /**
+     * Id
+     */
+    id: string;
+    record: ReconciliationRecord;
+};
+
+/**
+ * ReconciliationScanSource
+ */
+export type ReconciliationScanSource = {
+    /**
+     * Collection Completed At
+     */
+    collection_completed_at: string;
+    /**
+     * Collection Started At
+     */
+    collection_started_at: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Observation Ids
+     */
+    observation_ids: Array<string>;
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Request
+     */
+    request: {
+        [key: string]: unknown;
+    };
+};
+
+/**
+ * ReconciliationSnapshotSource
+ */
+export type ReconciliationSnapshotSource = {
+    /**
+     * Buying Power Observed At
+     */
+    buying_power_observed_at: {
+        [key: string]: string;
+    };
+    /**
+     * Collection Completed At
+     */
+    collection_completed_at: string;
+    /**
+     * Collection Started At
+     */
+    collection_started_at: string;
+    /**
+     * Contract Sha256
+     */
+    contract_sha256: string;
+    /**
+     * Holdings Observed At
+     */
+    holdings_observed_at: string;
+    /**
+     * Id
+     */
+    id: string;
+};
+
+/**
+ * ReconciliationSources
+ */
+export type ReconciliationSources = {
+    after_scan: ReconciliationScanSource;
+    after_snapshot: ReconciliationSnapshotSource;
+    before_scan: ReconciliationScanSource | null;
+    before_snapshot: ReconciliationSnapshotSource;
+};
+
+/**
+ * ReconciliationSummary
+ */
+export type ReconciliationSummary = {
+    /**
+     * Account Seq
+     */
+    account_seq: string;
+    /**
+     * After Scan Id
+     */
+    after_scan_id: string;
+    /**
+     * After Snapshot Id
+     */
+    after_snapshot_id: string;
+    /**
+     * As Of
+     */
+    as_of: string;
+    /**
+     * Before Scan Id
+     */
+    before_scan_id: string | null;
+    /**
+     * Before Snapshot Id
+     */
+    before_snapshot_id: string;
+    counts: ReconciliationCounts;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic' | 'retrospective';
+};
+
+/**
  * ResearchAuthor
  */
 export type ResearchAuthor = {
@@ -3541,6 +4281,118 @@ export type ListAccountSnapshotsResponses = {
 };
 
 export type ListAccountSnapshotsResponse = ListAccountSnapshotsResponses[keyof ListAccountSnapshotsResponses];
+
+export type ListBrokerScansData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Account Seq
+         */
+        account_seq?: string | null;
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/broker/scans';
+};
+
+export type ListBrokerScansErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListBrokerScansError = ListBrokerScansErrors[keyof ListBrokerScansErrors];
+
+export type ListBrokerScansResponses = {
+    /**
+     * Successful Response
+     */
+    200: BrokerScanList;
+};
+
+export type ListBrokerScansResponse = ListBrokerScansResponses[keyof ListBrokerScansResponses];
+
+export type GetBrokerScanData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/broker/scans/{id}';
+};
+
+export type GetBrokerScanErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetBrokerScanError = GetBrokerScanErrors[keyof GetBrokerScanErrors];
+
+export type GetBrokerScanResponses = {
+    /**
+     * Successful Response
+     */
+    200: BrokerScanView;
+};
+
+export type GetBrokerScanResponse = GetBrokerScanResponses[keyof GetBrokerScanResponses];
 
 export type ListCapitalPlansData = {
     body?: never;
@@ -5059,6 +5911,212 @@ export type CancelPaperIntentResponses = {
 };
 
 export type CancelPaperIntentResponse = CancelPaperIntentResponses[keyof CancelPaperIntentResponses];
+
+export type ListReconciliationsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Limit
+         */
+        limit?: number;
+    };
+    url: '/api/v1/reconciliations';
+};
+
+export type ListReconciliationsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type ListReconciliationsError = ListReconciliationsErrors[keyof ListReconciliationsErrors];
+
+export type ListReconciliationsResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReconciliationList;
+};
+
+export type ListReconciliationsResponse = ListReconciliationsResponses[keyof ListReconciliationsResponses];
+
+export type SaveReconciliationData = {
+    body: ReconciliationRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/reconciliations';
+};
+
+export type SaveReconciliationErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type SaveReconciliationError = SaveReconciliationErrors[keyof SaveReconciliationErrors];
+
+export type SaveReconciliationResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReconciliationResponse;
+};
+
+export type SaveReconciliationResponse = SaveReconciliationResponses[keyof SaveReconciliationResponses];
+
+export type PreviewReconciliationData = {
+    body: ReconciliationRequest;
+    path?: never;
+    query?: never;
+    url: '/api/v1/reconciliations/preview';
+};
+
+export type PreviewReconciliationErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type PreviewReconciliationError = PreviewReconciliationErrors[keyof PreviewReconciliationErrors];
+
+export type PreviewReconciliationResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReconciliationResponse;
+};
+
+export type PreviewReconciliationResponse = PreviewReconciliationResponses[keyof PreviewReconciliationResponses];
+
+export type GetReconciliationData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/reconciliations/{id}';
+};
+
+export type GetReconciliationErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetReconciliationError = GetReconciliationErrors[keyof GetReconciliationErrors];
+
+export type GetReconciliationResponses = {
+    /**
+     * Successful Response
+     */
+    200: ReconciliationResponse;
+};
+
+export type GetReconciliationResponse = GetReconciliationResponses[keyof GetReconciliationResponses];
 
 export type GetResearchData = {
     body?: never;

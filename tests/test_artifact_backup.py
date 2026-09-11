@@ -153,6 +153,8 @@ def test_create_restore_preserves_private_independent_bytes_and_provenance(sourc
         "research": 2,
         "investigations": 0,
         "capital-plans": 0,
+        "broker-observations": 0,
+        "reconciliations": 0,
     }
     assert checked["reference_checks_passed"] is True
     assert files(source) == files(backup) == files(restored) == original
@@ -222,6 +224,8 @@ def test_deep_market_capture_preserves_its_existing_contract_on_backup_and_resto
         "research": 2,
         "investigations": 0,
         "capital-plans": 0,
+        "broker-observations": 0,
+        "reconciliations": 0,
     }
     assert files(source) == files(backup) == files(restored) == original
     assert read_capture(restored / "captures" / path.name) == capture
@@ -273,6 +277,8 @@ def test_v1_three_store_manifest_restore_preserves_original_bytes_and_identity(s
     legacy["schema_version"] = 1
     del legacy["source_stores"]["investigations"]
     del legacy["source_stores"]["capital-plans"]
+    del legacy["source_stores"]["broker-observations"]
+    del legacy["source_stores"]["reconciliations"]
     replace_manifest(backup, legacy)
     original = (backup / "manifest.json").read_bytes()
     identity = hashlib.sha256(original).hexdigest()
@@ -292,6 +298,8 @@ def test_v2_four_store_manifest_restore_preserves_original_bytes_and_identity(so
     legacy = manifest(backup)
     legacy["schema_version"] = 2
     del legacy["source_stores"]["capital-plans"]
+    del legacy["source_stores"]["broker-observations"]
+    del legacy["source_stores"]["reconciliations"]
     replace_manifest(backup, legacy)
     original = (backup / "manifest.json").read_bytes()
     identity = hashlib.sha256(original).hexdigest()

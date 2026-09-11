@@ -56,7 +56,7 @@ class JobServiceStatus(APIModel):
 
 
 class JobSubmission(APIModel):
-    kind: Literal["research-context", "account-sync", "market-capture"]
+    kind: Literal["research-context", "account-sync", "market-capture", "broker-sync"]
     parameters: dict[str, Any]
     request_key: Annotated[str, Field(pattern=r"^[a-zA-Z0-9_-]{1,100}$")]
     available_at: Annotated[AwareDatetime | None, Field(strict=False)] = None

@@ -21,6 +21,8 @@ worker는 [작업 실행 안내](docs/JOBS.md)를 따른다. [Codex 조사](docs
 대안의 로컬 자원 배정을 관리한다. 실제 주문은 전송하지 않는다.
 [전향적 모의 매매](docs/PAPER_EXECUTION.md)는 선택 대안과 체결 가정을 먼저 기록하고
 이후 관측으로 별도 모의 원장의 부분체결·비용·평가를 계산한다.
+[브로커 대조](docs/BROKER_RECONCILIATION.md)는 주문의 누적 체결 관측과 계좌 변화를
+따로 비교하고 조회 범위·출처 미연결·비용 정정을 보존한다.
 [시장 관측](docs/MARKET_OBSERVATIONS.md)은 저장한 분봉·일봉의 시점별 수정 이력과
 근거 사건을 웹 차트·CLI·MCP에서 같은 자료로 읽는다.
 [새 웹 작업실 안내](docs/WEB_WORKBENCH.md)를 따른다.
