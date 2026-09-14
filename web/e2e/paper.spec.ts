@@ -1,4 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { mockWorkspaceStatus } from './workspace-status';
 import type {
   AccountSnapshotsResponse,
   InvestmentContext,
@@ -11,6 +12,7 @@ import type {
   PaperCancel,
   PaperMutation,
   PaperIntent,
+  GuidedFlowResponse,
 } from '../src/lib/api/types.gen';
 const now = '2026-09-10T09:00:00Z';
 const later = '2026-09-10T09:03:00Z';
@@ -172,8 +174,11 @@ async function mocks(page: Page, data: Fixture, initial = false) {
     holdDetail: undefined as Promise<void> | undefined,
     heldPlan: '',
     holdPlan: undefined as Promise<void> | undefined,
+    holdPlans: undefined as Promise<void> | undefined,
+    planListReads: 0,
     receipts: new Map<string, PaperMutation>(),
   };
+  await mockWorkspaceStatus(page);
   await page.route('**/api/v1/health', async (route) => {
     const response = await route.fetch();
     await route.fulfill({
@@ -207,8 +212,10 @@ async function mocks(page: Page, data: Fixture, initial = false) {
       },
     }),
   );
-  await page.route(/\/api\/v1\/capital-plans(?:\?.*)?$/, (route) =>
-    route.fulfill({
+  await page.route(/\/api\/v1\/capital-plans(?:\?.*)?$/, async (route) => {
+    state.planListReads++;
+    if (state.holdPlans) await state.holdPlans;
+    await route.fulfill({
       json: {
         items: [planId, otherPlanId].map((id) => ({
           id,
@@ -222,8 +229,8 @@ async function mocks(page: Page, data: Fixture, initial = false) {
         total_count: 2,
         omitted_count: 0,
       },
-    }),
-  );
+    });
+  });
   await page.route(/\/api\/v1\/capital-plans\/[a-f0-9]{64}$/, async (route) => {
     const id = new URL(route.request().url()).pathname.split('/').at(-1)!;
     if (id === state.heldPlan && state.holdPlan) await state.holdPlan;
@@ -552,6 +559,115 @@ test('lost create response keeps original cash and account after changing select
   await expect(
     panel(page).getByRole('region', { name: '선택한 모의 원장', exact: true }),
   ).toHaveCount(0);
+});
+test('lost paper creation survives reload and account change without automatic or duplicate creation', async ({
+  page,
+  request,
+}) => {
+  const data = await fixture(request);
+  const state = await mocks(page, data);
+  state.lost = 'create';
+  await open(page, data);
+  await fillCreate(page);
+  await panel(page).getByRole('button', { name: '모의 원장 만들기', exact: true }).click();
+  await expect(panel(page).getByRole('button', { name: '같은 모의 요청 결과 확인' })).toBeEnabled();
+  const original = structuredClone(state.creates[0]);
+  await page.reload();
+  await expect(panel(page).getByRole('button', { name: '같은 모의 요청 결과 확인' })).toBeEnabled();
+  expect(state.creates).toHaveLength(1);
+  await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(data.second.id);
+  await panel(page).getByRole('button', { name: '같은 모의 요청 결과 확인' }).click();
+  await expect.poll(() => state.creates.length).toBe(2);
+  expect(state.creates[1]).toEqual(original);
+  expect(state.books).toHaveLength(1);
+});
+test('guided paper inputs keep their saved plan and alternative while full plan options are delayed', async ({
+  page,
+  request,
+}) => {
+  const data = await fixture(request);
+  const state = await mocks(page, data, true);
+  const savedPlan = plan(data);
+  const savedBook = book(data);
+  const savedAlternative = savedPlan.record.request.alternatives[0];
+  let release!: () => void;
+  state.holdPlans = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const resolution: GuidedFlowResponse = {
+    workspace_key: 'f'.repeat(64),
+    selection: {
+      snapshot_id: data.first.id,
+      investigation_id: null,
+      revision: null,
+      output_id: null,
+      plan_id: savedPlan.id,
+      alternative_id: savedAlternative.key,
+      book_id: savedBook.id,
+      report_id: null,
+    },
+    context: {
+      account_seq: savedBook.account_seq,
+      frozen_snapshot_id: savedPlan.record.request.snapshot_id,
+      mode: savedPlan.record.request.mode,
+      currencies: ['USD'],
+    },
+    investigation: null,
+    plans: [
+      {
+        id: savedPlan.id,
+        recorded_at: savedPlan.record.recorded_at,
+        snapshot_id: savedPlan.record.request.snapshot_id,
+        mode: savedPlan.record.request.mode,
+        alternatives: [
+          {
+            key: savedAlternative.key,
+            label: savedAlternative.label,
+            eligibility: 'eligible',
+            currencies: ['USD'],
+          },
+        ],
+      },
+    ],
+    books: [
+      {
+        id: savedBook.id,
+        label: savedBook.label,
+        snapshot_id: savedBook.snapshot_id,
+        mode: savedBook.mode,
+        currencies: ['USD'],
+        linked: false,
+      },
+    ],
+    reports: [],
+    issues: [],
+    jobs_available: true,
+    orders_enabled: false,
+  };
+  await page.route(/\/api\/v1\/guided-flow(?:\?.*)?$/, (route) =>
+    route.fulfill({ json: resolution }),
+  );
+  await page.goto(
+    `/?${new URLSearchParams({ snapshot_id: data.first.id, plan_id: savedPlan.id, alternative_id: savedAlternative.key, book_id: savedBook.id, stage: 'paper' })}`,
+  );
+  await expect.poll(() => state.planListReads).toBeGreaterThan(0);
+  await expect(
+    panel(page).getByRole('region', { name: '선택한 모의 원장', exact: true }),
+  ).toBeVisible();
+  await expect(
+    panel(page).getByRole('combobox', { name: '모의 주문할 저장 계획', exact: true }),
+  ).toHaveValue(savedPlan.id);
+  release();
+  await expect(
+    panel(page).getByRole('combobox', { name: '모의 주문 대안', exact: true }),
+  ).toHaveValue(savedAlternative.key);
+  await expect(
+    panel(page).getByRole('combobox', { name: '모의 주문할 저장 계획', exact: true }),
+  ).toHaveValue(savedPlan.id);
+  expect(state.creates).toEqual([]);
+  expect(state.submits).toEqual([]);
+  expect(state.advances).toEqual([]);
+  expect(state.cancels).toEqual([]);
 });
 test('uncertain submit advance and cancel retry original body despite changed source or book', async ({
   page,

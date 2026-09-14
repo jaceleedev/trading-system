@@ -1,4 +1,12 @@
 <script lang="ts">
+  import { pendingObject, pendingKey, pendingNullable } from '$lib/pending-shapes';
+  import type { GuidedRequest } from '$lib/guided';
+  import type { GuidedSelection } from '$lib/api/types.gen';
+  import {
+    readPendingReceipt,
+    writePendingReceipt,
+    PendingReceiptError,
+  } from '$lib/pending-receipt';
   import { createQuery } from '@tanstack/svelte-query';
   import { tick, untrack } from 'svelte';
   import { RotateCw } from '@lucide/svelte';
@@ -32,6 +40,9 @@
   } from '$lib/paper';
 
   let {
+    guidedRequest = null,
+    workspaceKey = null,
+    onGuide,
     ready = false,
     jobsEnabled = false,
     synthetic = false,
@@ -39,6 +50,9 @@
     context,
     requestedPaperCaptures = null,
   }: {
+    guidedRequest?: GuidedRequest | null;
+    workspaceKey?: string | null;
+    onGuide?: (selection: Partial<GuidedSelection>) => void;
     ready?: boolean;
     jobsEnabled?: boolean;
     synthetic?: boolean;
@@ -53,6 +67,33 @@
     { currency: 'USD', enabled: false, amount: '' },
   ]);
   let selectedBookId = $state('');
+  let hadGuided = false;
+  let createOpen = $state(false);
+  $effect(() => {
+    const request = guidedRequest;
+    untrack(() => {
+      if (request?.stage === 'paper') {
+        hadGuided = true;
+        opened = true;
+        if (pending || busy) {
+          feedback =
+            '이전 모의 요청은 원래 입력으로 유지됩니다. 결과 확인 후 다음 입력을 연결해 주세요.';
+          return;
+        }
+        selectedBookId = request.resolution.selection.book_id ?? '';
+        selectedPlanId = request.resolution.selection.plan_id ?? '';
+        alternativeId = request.resolution.selection.alternative_id ?? '';
+        createOpen = !selectedBookId;
+        feedback =
+          '계획과 대안을 모의 입력에 연결했습니다. 초기 현금과 체결 가정을 직접 확인한 뒤 실행해 주세요.';
+      } else if (!request && hadGuided) {
+        selectedBookId = '';
+        selectedPlanId = '';
+        alternativeId = '';
+        hadGuided = false;
+      }
+    });
+  });
   let selectedPlanId = $state('');
   let alternativeId = $state('');
   let profile = $state({ slippage_bps: '', participation_bps: '', quantity_step: '' });
@@ -67,6 +108,8 @@
   let pending = $state<Pending | null>(null);
   let busy = $state(false);
   let feedback = $state('');
+  let receiptError = $state('');
+  let loadedWorkspace = $state<string | null>(null);
   let actionError = $state('');
   const booksQuery = createQuery(() => ({
     queryKey: ['paper-books'],
@@ -77,6 +120,7 @@
     const id = selectedBookId;
     return {
       queryKey: ['paper-book', id],
+      notifyOnChangeProps: 'all',
       enabled: ready && opened && jobsEnabled && !!id,
       queryFn: ({ signal }) => fetchPaperBook(id, signal),
     };
@@ -90,6 +134,9 @@
     const id = selectedPlanId;
     return {
       queryKey: ['capital-plan', id],
+      // The detail may finish before the catalog enables its conditional view.
+      // Observe all changes so a completed detail cannot remain hidden behind a stale result.
+      notifyOnChangeProps: 'all',
       enabled: ready && opened && jobsEnabled && !!id,
       queryFn: ({ signal }) => fetchCapitalPlan(id, signal),
     };
@@ -188,6 +235,7 @@
     feedback = '';
     actionError = '';
     try {
+      persistPending();
       const result =
         operation.kind === 'create'
           ? await createPaper(operation.body)
@@ -197,6 +245,7 @@
               ? await advancePaper(operation.id, operation.body)
               : await cancelPaper(operation.id, operation.intentId, operation.body);
       pending = null;
+      finishReceipt();
       if (
         operation.kind === 'create' &&
         selectedSnapshot === operation.body.snapshot_id &&
@@ -212,6 +261,7 @@
       actionError =
         error instanceof Error ? error.message : '모의 원장 처리 결과를 확인하지 못했습니다.';
     } finally {
+      finishReceipt();
       busy = false;
     }
   }
@@ -300,6 +350,49 @@
       };
     });
   }
+
+  $effect(() => {
+    const key = workspaceKey;
+    if (key && key !== loadedWorkspace && !busy)
+      untrack(() => {
+        pending = null;
+        receiptError = '';
+        try {
+          const value = readPendingReceipt<unknown>(key, 'paper');
+          if (value !== null) {
+            if (!(
+              pendingObject(value) &&
+              ['create', 'submit', 'advance', 'cancel'].includes(String(value.kind)) &&
+              pendingKey(value.body) &&
+              (value.kind === 'create'
+                ? typeof value.previousBook === 'string'
+                : typeof value.id === 'string') &&
+              (value.kind !== 'cancel' || typeof value.intentId === 'string')
+            ))
+              throw new PendingReceiptError();
+            const stored = value as Pending;
+            pending = stored;
+            opened = true;
+            feedback = '이전 실행 요청을 복원했습니다. 원래 요청의 결과 확인을 직접 눌러 주세요.';
+          }
+        } catch (error) {
+          receiptError = error instanceof Error ? error.message : new PendingReceiptError().message;
+        }
+        loadedWorkspace = key;
+      });
+  });
+  function persistPending() {
+    if (!workspaceKey || loadedWorkspace !== workspaceKey || receiptError)
+      throw new PendingReceiptError();
+    writePendingReceipt(workspaceKey, 'paper', !pending ? null : pending);
+  }
+  function finishReceipt() {
+    try {
+      persistPending();
+    } catch (error) {
+      receiptError = error instanceof Error ? error.message : new PendingReceiptError().message;
+    }
+  }
 </script>
 
 <section id="paper-panel" class="panel capital-panel paper-panel" aria-label="모의 매매">
@@ -322,6 +415,7 @@
           ><RotateCw size={15} aria-hidden="true" />모의 자료 다시 읽기</Button
         >
       </div>
+      {#if receiptError}<p role="alert" class="error-state">{receiptError}</p>{/if}
       {#if actionError}<p role="alert" class="error-state">{actionError}</p>{/if}
       {#if feedback}<p role="status" class="feedback-state">{feedback}</p>{/if}
       {#if pending}<div class="warning-state paper-pending">
@@ -335,7 +429,7 @@
             >같은 모의 요청 결과 확인</Button
           >
         </div>{/if}
-      <details class="paper-create">
+      <details class="paper-create" bind:open={createOpen}>
         <summary>새 모의 원장 만들기</summary>
         <p class="muted">
           선택한 시작 관측: {account
@@ -375,9 +469,16 @@
       </details>
       <div class="capital-form">
         <label class="capital-full"
-          >모의 원장 선택<select bind:value={selectedBookId}
-            ><option value="">원장을 명시적으로 선택하세요</option
-            >{#each books?.items ?? [] as item}<option value={item.id}
+          >모의 원장 선택<select
+            value={selectedBookId}
+            onchange={(event) => {
+              selectedBookId = event.currentTarget.value;
+            }}
+            ><option value="">원장을 명시적으로 선택하세요</option>
+            {#if selectedBookId && !books?.items.some((item) => item.id === selectedBookId)}<option
+                value={selectedBookId}>연결 원장 {shortId(selectedBookId)} · 상세 확인 중</option
+              >{/if}
+            {#each books?.items ?? [] as item}<option value={item.id}
                 >{item.label} · {item.account_seq} · {item.mode === 'synthetic'
                   ? '합성 모의'
                   : '전향적 모의'}</option
@@ -403,6 +504,9 @@
       {#if book}
         <section class="capital-result" aria-label="선택한 모의 원장">
           <h3>{book.label}</h3>
+          {#if onGuide}<Button variant="outline" onclick={() => onGuide?.({ book_id: book!.id })}
+              >이 원장에서 기간 결과 이어가기</Button
+            >{/if}
           <p class="muted">
             {book.mode === 'synthetic' ? '합성 모의' : '전향적 모의'} · 계좌 {book.account_seq} · {book.revision}번
             상태 · 갱신 {formatTime(book.updated_at)}
@@ -602,18 +706,26 @@
           <form onsubmit={submit} class="capital-form">
             <label class="capital-full"
               >모의 주문할 저장 계획<select
-                bind:value={selectedPlanId}
-                onchange={() => {
+                value={selectedPlanId}
+                onchange={(event) => {
+                  selectedPlanId = event.currentTarget.value;
                   alternativeId = '';
                 }}
-                ><option value="">저장 계획을 선택하세요</option
-                >{#each plans?.items ?? [] as item}<option value={item.id}
+                ><option value="">저장 계획을 선택하세요</option>
+                {#if selectedPlanId && !plans?.items.some((item) => item.id === selectedPlanId)}<option
+                    value={selectedPlanId}
+                    >연결 계획 {shortId(selectedPlanId)} · 상세 확인 중</option
+                  >{/if}
+                {#each plans?.items ?? [] as item}<option value={item.id}
                     >{formatTime(item.recorded_at)} · {shortId(item.id)} · 대안 {item.alternative_count}개</option
                   >{/each}</select
               ></label
             >
             {#if plansQuery.isError}<p role="alert" class="error-state capital-full">
                 {plansQuery.error.message}
+              </p>{/if}
+            {#if selectedPlanId && planQuery.isFetching}<p role="status" class="muted capital-full">
+                선택한 계획과 대안을 확인하고 있습니다.
               </p>{/if}
             {#if selectedPlanId && planQuery.isError}<p
                 role="alert"
@@ -627,9 +739,16 @@
                   선택해 주세요.
                 </p>{/if}
               <label class="capital-full"
-                >모의 주문 대안<select bind:value={alternativeId}
-                  ><option value="">하나의 대안을 선택하세요</option
-                  >{#each plan.record.request.alternatives as item}<option value={item.key}
+                >모의 주문 대안<select
+                  value={alternativeId}
+                  onchange={(event) => {
+                    alternativeId = event.currentTarget.value;
+                  }}
+                  ><option value="">하나의 대안을 선택하세요</option>
+                  {#if alternativeId && !plan.record.request.alternatives.some((item) => item.key === alternativeId)}<option
+                      value={alternativeId}>연결 대안 {alternativeId} · 확인 필요</option
+                    >{/if}
+                  {#each plan.record.request.alternatives as item}<option value={item.key}
                       >{item.label}</option
                     >{/each}</select
                 ></label

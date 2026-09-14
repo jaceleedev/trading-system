@@ -301,6 +301,9 @@ def create_app(
     from trading_research.outcome_api import register_outcome_routes
 
     register_outcome_routes(app, workspace, job_store, synthetic=synthetic)
+    from trading_research.guided_flow_api import register_guided_flow_routes
+
+    register_guided_flow_routes(app, workspace, job_store, synthetic=synthetic)
 
     @app.get("/{path:path}", include_in_schema=False)
     def static(path: str):

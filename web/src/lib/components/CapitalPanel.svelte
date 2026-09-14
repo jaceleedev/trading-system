@@ -1,4 +1,13 @@
 <script lang="ts">
+  import { pendingObject, pendingKey, pendingNullable } from '$lib/pending-shapes';
+  import type { GuidedRequest } from '$lib/guided';
+  import type { GuidedSelection } from '$lib/api/types.gen';
+  import {
+    readPendingReceipt,
+    writePendingReceipt,
+    PendingReceiptError,
+  } from '$lib/pending-receipt';
+  import { untrack } from 'svelte';
   import { createQuery } from '@tanstack/svelte-query';
   import { RotateCw } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
@@ -34,6 +43,9 @@
   } from '$lib/capital';
 
   let {
+    guidedRequest = null,
+    workspaceKey = null,
+    onGuide,
     ready = false,
     jobsEnabled = false,
     synthetic = false,
@@ -42,6 +54,9 @@
     knownRecords = [],
     onselect,
   }: {
+    guidedRequest?: GuidedRequest | null;
+    workspaceKey?: string | null;
+    onGuide?: (selection: Partial<GuidedSelection>) => void;
     ready?: boolean;
     jobsEnabled?: boolean;
     synthetic?: boolean;
@@ -52,6 +67,56 @@
   } = $props();
   let opened = $state(false);
   let sourceValue = $state('');
+  let guidedSource = $state<{
+    outputId: string;
+    snapshotId: string;
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    revision: number | null;
+  } | null>(null);
+  let hadGuided = false;
+  let formSnapshot = $derived(
+    guidedSource && sourceValue === `investigation_output:${guidedSource.outputId}`
+      ? guidedSource.snapshotId
+      : selectedSnapshot,
+  );
+  $effect(() => {
+    const request = guidedRequest;
+    untrack(() => {
+      if (request?.stage === 'capital') {
+        const resolved = request.resolution;
+        opened = true;
+        hadGuided = true;
+        selectedPlanId = resolved.selection.plan_id ?? '';
+        if (mutationBusy || pendingMutation) {
+          feedback =
+            '이전 자금 요청은 원래 입력으로 유지됩니다. 결과 확인 후 새 입력을 연결해 주세요.';
+          return;
+        }
+        if (
+          resolved.selection.output_id &&
+          resolved.context.frozen_snapshot_id &&
+          resolved.context.mode
+        ) {
+          guidedSource = {
+            outputId: resolved.selection.output_id,
+            snapshotId: resolved.context.frozen_snapshot_id,
+            mode: resolved.context.mode,
+            revision: resolved.selection.revision ?? null,
+          };
+          sourceValue = `investigation_output:${resolved.selection.output_id}`;
+          feedback =
+            '선택한 조사 결과와 원래 계좌 관측을 계획 입력에 연결했습니다. 예산과 대안을 직접 확인해 주세요.';
+        }
+      } else if (!request && hadGuided) {
+        selectedPlanId = '';
+        if (guidedSource && sourceValue === `investigation_output:${guidedSource.outputId}`)
+          sourceValue = '';
+        guidedSource = null;
+        hadGuided = false;
+        preview = null;
+      }
+    });
+  });
   let funding = $state<CapitalFundingDraft[]>([
     { currency: 'KRW', enabled: false, limit_amount: '', reserve_amount: '' },
     { currency: 'USD', enabled: false, limit_amount: '', reserve_amount: '' },
@@ -68,11 +133,13 @@
   );
   let pendingRelease = $state<string | null>(null);
   let feedback = $state('');
+  let receiptError = $state('');
+  let loadedWorkspace = $state<string | null>(null);
   let actionError = $state('');
   let calculationVersion = 0;
   const plansQuery = createQuery(() => ({
     queryKey: ['capital-plans'],
-    enabled: ready && opened && jobsEnabled,
+    enabled: ready && opened,
     queryFn: ({ signal }) => fetchCapitalPlans(signal),
   }));
   const investigationsQuery = createQuery(() => ({
@@ -84,6 +151,7 @@
     const id = selectedPlanId;
     return {
       queryKey: ['capital-plan', id],
+      notifyOnChangeProps: 'all',
       enabled: ready && opened && !!id,
       queryFn: ({ signal }) => fetchCapitalPlan(id, signal),
     };
@@ -99,6 +167,15 @@
     };
   });
   let sources = $derived([
+    ...(guidedSource
+      ? [
+          {
+            value: `investigation_output:${guidedSource.outputId}`,
+            mode: guidedSource.mode,
+            label: `이어온 조사 결과 · 버전 ${guidedSource.revision ?? '미확인'}`,
+          },
+        ]
+      : []),
     ...knownRecords
       .filter((item) => item.record.kind === 'decision')
       .map((item) => ({
@@ -110,6 +187,7 @@
       ? investigationsQuery.data.items
           .filter(
             (item) =>
+              item.latest_result?.output_id !== guidedSource?.outputId &&
               item.latest_completed_revision !== null &&
               typeof item.latest_result?.output_id === 'string',
           )
@@ -126,7 +204,13 @@
       : (sources.find((item) => item.value === sourceValue)?.mode ?? 'prospective'),
   );
   let formKey = $derived(
-    capitalInputKey({ selectedSnapshot, sourceValue, sourceMode, funding, alternatives }),
+    capitalInputKey({
+      selectedSnapshot: formSnapshot,
+      sourceValue,
+      sourceMode,
+      funding,
+      alternatives,
+    }),
   );
   let selectedAccount = $derived(
     ready && context?.account?.id === selectedSnapshot ? context.account : undefined,
@@ -137,16 +221,10 @@
       : undefined,
   );
   let plans = $derived(
-    ready && jobsEnabled && plansQuery.isSuccess && !plansQuery.isFetching
-      ? plansQuery.data.items
-      : undefined,
+    ready && plansQuery.isSuccess && !plansQuery.isFetching ? plansQuery.data.items : undefined,
   );
   let saved = $derived(
-    ready &&
-      plans &&
-      planQuery.isSuccess &&
-      !planQuery.isFetching &&
-      planQuery.data.id === selectedPlanId
+    ready && planQuery.isSuccess && !planQuery.isFetching && planQuery.data.id === selectedPlanId
       ? planQuery.data
       : undefined,
   );
@@ -178,7 +256,7 @@
     if (!selectedAccount) throw new Error('계산할 계좌 관측을 선택하고 조회 완료를 기다려 주세요.');
     if (!sources.some((item) => item.value === sourceValue))
       throw new Error('계획의 바탕이 되는 저장 판단이나 조사 결과를 다시 선택해 주세요.');
-    return capitalFormRequest(selectedSnapshot, sourceValue, sourceMode, funding, alternatives);
+    return capitalFormRequest(formSnapshot, sourceValue, sourceMode, funding, alternatives);
   }
   async function calculate() {
     const version = ++calculationVersion;
@@ -207,15 +285,27 @@
         if (!visiblePreview) throw new Error('현재 입력으로 대안을 먼저 계산해 주세요.');
         pendingSave = { request: structuredClone(request()), request_key: crypto.randomUUID() };
       }
+      persistPending();
       mutationBusy = true;
+      const view = { snapshot: selectedSnapshot, planId: selectedPlanId, form: formKey };
       const result = await saveCapital({
         ...pendingSave.request,
         request_key: pendingSave.request_key,
       });
       pendingSave = null;
+      finishReceipt();
       preview = null;
-      selectedPlanId = result.id;
-      feedback = '자금 계획을 저장했습니다. 예산 적용과 대안 배정은 별도로 선택합니다.';
+      const stillSelected =
+        view.snapshot === selectedSnapshot &&
+        view.planId === selectedPlanId &&
+        view.form === formKey &&
+        (result.record.request.snapshot_id === selectedSnapshot ||
+          (guidedSource?.snapshotId === result.record.request.snapshot_id &&
+            result.record.snapshot.account_seq === selectedAccount?.snapshot.account_seq));
+      if (stillSelected) selectedPlanId = result.id;
+      feedback =
+        '자금 계획을 저장했습니다. 예산 적용과 대안 배정은 별도로 선택합니다.' +
+        (stillSelected ? '' : ' 원래 요청의 결과이며 바뀐 계좌나 계획 선택에는 붙이지 않았습니다.');
       await plansQuery.refetch();
       await planQuery.refetch();
     } catch (error) {
@@ -223,6 +313,7 @@
       actionError =
         error instanceof Error ? error.message : '계획 저장 여부를 확인하지 못했습니다.';
     } finally {
+      finishReceipt();
       mutationBusy = false;
     }
   }
@@ -232,8 +323,8 @@
     preview = null;
     ++calculationVersion;
     calculating = false;
+    await plansQuery.refetch();
     if (jobsEnabled) {
-      await plansQuery.refetch();
       await investigationsQuery.refetch();
       if (selectedAccount) await fundingQuery.refetch();
     }
@@ -254,9 +345,11 @@
           expected_pool_revisions: poolRevisions(allocationState),
         });
       }
+      persistPending();
       mutationBusy = true;
       await applyFunding(pendingFunding);
       pendingFunding = null;
+      finishReceipt();
       preview = null;
       feedback = '선택한 관측과 계획 예산을 적용했습니다. 대안 배정은 별도로 선택합니다.';
       await fundingQuery.refetch();
@@ -268,6 +361,7 @@
       actionError =
         error instanceof Error ? error.message : '계획 예산 적용 여부를 확인하지 못했습니다.';
     } finally {
+      finishReceipt();
       mutationBusy = false;
     }
   }
@@ -289,9 +383,11 @@
           },
         };
       }
+      persistPending();
       mutationBusy = true;
       await allocateCapital(pendingAllocation.id, pendingAllocation.body);
       pendingAllocation = null;
+      finishReceipt();
       preview = null;
       feedback = '선택한 대안에 자금을 배정했습니다. 이 배정은 작업실의 계획 기록입니다.';
       await fundingQuery.refetch();
@@ -303,6 +399,7 @@
       actionError =
         error instanceof Error ? error.message : '대안 배정 여부를 확인하지 못했습니다.';
     } finally {
+      finishReceipt();
       mutationBusy = false;
     }
   }
@@ -313,9 +410,11 @@
     try {
       pendingRelease ??= id ?? null;
       if (!pendingRelease) return;
+      persistPending();
       mutationBusy = true;
       await releaseCapital(pendingRelease);
       pendingRelease = null;
+      finishReceipt();
       preview = null;
       feedback = '계획 배정을 해제했습니다.';
       await fundingQuery.refetch();
@@ -327,7 +426,88 @@
       actionError =
         error instanceof Error ? error.message : '배정 해제 여부를 확인하지 못했습니다.';
     } finally {
+      finishReceipt();
       mutationBusy = false;
+    }
+  }
+
+  $effect(() => {
+    const key = workspaceKey;
+    if (key && key !== loadedWorkspace && !mutationBusy)
+      untrack(() => {
+        pendingSave = null;
+        pendingFunding = null;
+        pendingAllocation = null;
+        pendingRelease = null;
+        receiptError = '';
+        try {
+          const value = readPendingReceipt<unknown>(key, 'capital');
+          if (value !== null) {
+            if (!(
+              pendingObject(value) &&
+              pendingNullable(
+                value.save,
+                (v) => pendingKey(v) && pendingObject(v) && pendingObject(v.request),
+              ) &&
+              pendingNullable(
+                value.funding,
+                (v) =>
+                  pendingObject(v) &&
+                  typeof v.snapshot_id === 'string' &&
+                  Array.isArray(v.funding) &&
+                  pendingObject(v.expected_pool_revisions),
+              ) &&
+              pendingNullable(
+                value.allocation,
+                (v) =>
+                  pendingObject(v) &&
+                  typeof v.id === 'string' &&
+                  typeof v.label === 'string' &&
+                  pendingKey(v.body),
+              ) &&
+              pendingNullable(value.release, (v) => typeof v === 'string')
+            ))
+              throw new PendingReceiptError();
+            const stored = value as {
+              save: typeof pendingSave;
+              funding: typeof pendingFunding;
+              allocation: typeof pendingAllocation;
+              release: typeof pendingRelease;
+            };
+            pendingSave = stored.save;
+            pendingFunding = stored.funding;
+            pendingAllocation = stored.allocation;
+            pendingRelease = stored.release;
+            opened = true;
+            feedback = '이전 실행 요청을 복원했습니다. 원래 요청의 결과 확인을 직접 눌러 주세요.';
+          }
+        } catch (error) {
+          receiptError = error instanceof Error ? error.message : new PendingReceiptError().message;
+        }
+        loadedWorkspace = key;
+      });
+  });
+  function persistPending() {
+    if (!workspaceKey || loadedWorkspace !== workspaceKey || receiptError)
+      throw new PendingReceiptError();
+    writePendingReceipt(
+      workspaceKey,
+      'capital',
+      !pendingSave && !pendingFunding && !pendingAllocation && !pendingRelease
+        ? null
+        : {
+            save: pendingSave,
+            funding: pendingFunding,
+            allocation: pendingAllocation,
+            release: pendingRelease,
+          },
+    );
+  }
+  function finishReceipt() {
+    try {
+      persistPending();
+    } catch (error) {
+      receiptError = error instanceof Error ? error.message : new PendingReceiptError().message;
     }
   }
 </script>
@@ -468,7 +648,7 @@
   </section>
 {/snippet}
 
-<section class="panel capital-panel" aria-label="자금 계획">
+<section id="capital-panel" class="panel capital-panel" aria-label="자금 계획">
   <details bind:open={opened}>
     <summary>자금 계획</summary>
     <p class="muted">
@@ -486,11 +666,15 @@
       {#if !selectedAccount}<p class="market-notice">
           상단에서 계산할 계좌 관측을 선택해 주세요.
         </p>{:else}<p class="investigation-account">
-          선택 계좌 {selectedAccount.snapshot.account_seq} · {formatTime(
+          현재 상단 계좌 {selectedAccount.snapshot.account_seq} · {formatTime(
             selectedAccount.snapshot.collection_completed_at,
           )}<br /><span class="muted"
             >현금 잔고 미확인 · 매수 가능 금액과 계획 예산은 구분합니다.</span
           >
+        </p>{/if}
+      {#if guidedSource}<p class="market-notice">
+          계획 입력의 계좌 관측은 조사에 고정된 {shortId(guidedSource.snapshotId)}입니다. 상단
+          관측과 별도로 유지합니다.
         </p>{/if}
       <form
         onsubmit={(event) => {
@@ -504,7 +688,12 @@
         >
           <div class="capital-form">
             <label class="capital-full"
-              >바탕이 되는 판단·조사<select aria-label="계획 근거" bind:value={sourceValue}
+              >바탕이 되는 판단·조사<select
+                aria-label="계획 근거"
+                value={sourceValue}
+                onchange={(event) => {
+                  sourceValue = event.currentTarget.value;
+                }}
                 ><option value="">저장 판단 또는 완료한 조사 결과 선택</option
                 >{#each sources as source}<option value={source.value}>{source.label}</option
                   >{/each}</select
@@ -699,14 +888,16 @@
             >계획 저장과 자금 배정은 이 작업실에서 꺼져 있습니다.</span
           >{/if}
       </div>
+      {#if receiptError}<p role="alert" class="error-state">{receiptError}</p>{/if}
       {#if actionError}<p role="alert" class="error-state investigation-feedback">
           {actionError}
         </p>{/if}{#if feedback}<p role="status" class="investigation-feedback">{feedback}</p>{/if}
       <section class="capital-result" aria-label="저장한 자금 계획">
         <h3>저장한 계획</h3>
         {#if !jobsEnabled}<p class="empty-state muted">
-            계획 저장소가 꺼져 있습니다. 대안 계산은 계속 사용할 수 있습니다.
-          </p>{:else if plansQuery.isFetching}<p role="status" class="empty-state">
+            새 계획 저장과 자금 배정은 꺼져 있습니다. 저장 계획 조회와 대안 계산은 계속 사용할 수
+            있습니다.
+          </p>{/if}{#if plansQuery.isFetching}<p role="status" class="empty-state">
             저장한 계획을 읽고 있습니다.
           </p>{:else if plansQuery.isError}<p role="alert" class="error-state">
             {plansQuery.error.message}
@@ -740,6 +931,13 @@
             {planQuery.error.message}
           </p>{:else if saved}{@render calculation(saved.record, '저장 계획 상세')}
           <p class="identifier muted">계획 {saved.id}</p>
+          {#if onGuide}<div class="capital-actions">
+              {#each saved.record.request.alternatives as alternative}<Button
+                  variant="outline"
+                  onclick={() => onGuide?.({ plan_id: saved!.id, alternative_id: alternative.key })}
+                  >{alternative.label}에서 모의 단계 이어가기</Button
+                >{/each}
+            </div>{/if}
           <div class="capital-actions">
             {#each saved.record.calculation.alternatives as alternative}<Button
                 variant="outline"

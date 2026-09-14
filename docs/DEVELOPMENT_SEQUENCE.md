@@ -22,8 +22,14 @@ Vitest 38개, 웹 E2E 86개 및 필수 정적 검사·빌드가 통과했다. �
 Python 2,227개, Vitest 45개, 웹 E2E 103개 및 필수 검사·빌드, 격리된 실제
 API·DB·worker·데스크톱/모바일 브라우저 검증이 통과했다. 새 migration은 없다.
 실제 외부 수집은 합성 transport로 격리했으며 새 주문·모델 호출은 하지 않았다.
-정확한 로컬 완료 SHA는 브랜치 끝점과 `/tmp/trading-feature28-completion.txt`를 따른다.
-29번은 아직 구현하지 않았다. 조정 작업이 28번 완료 커밋에서 별도 새 작업을 만든다.
+28번의 완료 SHA는 `0ffac3cd92dcd59b2d7ac43368483edc66e2a924`다.
+
+29번은 이 커밋에서 `feat/29-guided-investment-flow`로 이어 구현·검증을 완료했다.
+Python 2,254개, Vitest 58개, E2E 123개와 모든 필수 검사·빌드가 통과했다.
+격리된 실제 API·DB·worker 및 데스크톱/모바일 빌드 앱에서 출처 연결·과거 버전·계좌
+전환·원래 요청 복구와 탐색 중 DB/파일 불변을 확인했다. 새 migration은 없다.
+정확한 로컬 완료 SHA는 29번 브랜치 끝점과 `/tmp/trading-feature29-completion.txt`를
+따른다. 세 기능의 로컬 순차 개발은 완료됐으며 다음 작업이나 자동화는 만들지 않았다.
 
 ## 새 작업의 구현 원칙
 

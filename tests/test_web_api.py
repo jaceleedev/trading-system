@@ -396,6 +396,7 @@ def test_openapi_is_offline_typed_and_matches_export(client):
     assert schema["components"]["schemas"]["Holding"]["properties"]["quantity"]["type"] == "string"
     assert "accountNo" not in json.dumps(schema)
     assert set(schema["paths"]) == {
+        "/api/v1/guided-flow",
         "/api/v1/health",
         "/api/v1/account-snapshots",
         "/api/v1/context",

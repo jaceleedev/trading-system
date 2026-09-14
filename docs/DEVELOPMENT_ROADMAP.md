@@ -13,9 +13,14 @@ Vitest 38개, 웹 E2E 86개와 필수 정적 검사·빌드가 통과했다. wor
 28번은 27번 완료 SHA `b04ca337544df94b6a71259dd52bc7a023ea8af9`에서 이어
 `feat/28-web-observation-capture`에 구현·검증했다. Python 2,227개, Vitest 45개,
 웹 E2E 103개 및 필수 검사·빌드가 통과했고 새 migration은 없다. 실제 API·DB·worker와
-빌드 앱의 브라우저 검증은 합성 외부 transport로 격리했다. 29번은 승인된 다음 작업이며
-아직 구현하지 않았다. 실제 결과·제약·완료 커밋·증거는 [HANDOFF.md](HANDOFF.md)
-상단과 `/tmp/trading-feature28-completion.txt`를 따른다. 아래는 과거 승인 기록이다.
+빌드 앱의 브라우저 검증은 합성 외부 transport로 격리했다. 28번 완료 SHA는
+`0ffac3cd92dcd59b2d7ac43368483edc66e2a924`다.
+29번도 이 커밋에서 `feat/29-guided-investment-flow`로 이어 구현·검증했다.
+Python 2,254개, Vitest 58개, E2E 123개와 모든 필수 검사·빌드가 통과했다.
+격리된 실제 API·DB·worker·브라우저에서 출처 연결과 원래 요청 복구, 읽기 전용
+탐색 중 기록 불변을 확인했고 새 migration은 없다. 27~29의 로컬 순차 개발을 완료했다.
+실제 결과·제약·완료 SHA·증거는 [HANDOFF.md](HANDOFF.md) 상단과
+`/tmp/trading-feature29-completion.txt`를 따른다. 아래는 과거 승인 기록이다.
 
 2026-09-10 사용자는 기능 18~22의 후속 개발과 실제 주문 연결 코드까지의 범위 확장을
 승인했다. 기존 토스 보유분과 앞으로 투입하는 자금을 함께 운용 대상으로 설계한다.

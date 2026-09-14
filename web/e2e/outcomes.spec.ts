@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { mockWorkspaceStatus } from './workspace-status';
 import type {
   PaperBook,
   PaperWindowOutcome,
@@ -6,6 +7,7 @@ import type {
   OutcomeResponse,
   OutcomeCreate,
   OpenOrder,
+  GuidedFlowResponse,
 } from '../src/lib/api/types.gen';
 
 const now = '2026-09-11T09:00:00Z';
@@ -351,6 +353,7 @@ async function mocks(page: Page, enabled = true, saved = true) {
     heldId: '',
     hold: null as Promise<void> | null,
   };
+  await mockWorkspaceStatus(page, enabled);
   await page.route('**/api/v1/health', async (route) => {
     const response = await route.fetch();
     await route.fulfill({
@@ -549,6 +552,135 @@ test('uncertain response retries original null end and request identity despite 
   expect(state.creates[1]).toEqual(state.creates[0]);
   await expect(panel(page).getByLabel('결과 보고서 선택')).toHaveValue('');
   await expect(detail(page)).toHaveCount(0);
+});
+test('lost result calculation survives reload and retries only the original request after explicit action', async ({
+  page,
+}) => {
+  const state = await mocks(page, true, false);
+  state.lost = true;
+  await open(page);
+  await form(page);
+  await panel(page).getByRole('button', { name: '기간 결과 계산·저장' }).click();
+  await expect(panel(page).getByRole('button', { name: '같은 계산 요청 결과 확인' })).toBeEnabled();
+  const original = structuredClone(state.creates[0]);
+  await page.reload();
+  await expect(page.getByRole('heading', { name: '투자 작업실', exact: true })).toBeVisible();
+  await expect(panel(page).getByRole('button', { name: '같은 계산 요청 결과 확인' })).toBeEnabled();
+  expect(state.creates).toHaveLength(1);
+  await page.getByRole('button', { name: '저장 자료 다시 읽기', exact: true }).click();
+  await expect(panel(page).getByRole('button', { name: '같은 계산 요청 결과 확인' })).toBeEnabled();
+  expect(state.creates).toHaveLength(1);
+  await panel(page).getByRole('button', { name: '같은 계산 요청 결과 확인' }).click();
+  await expect.poll(() => state.creates.length).toBe(2);
+  expect(state.creates[1]).toEqual(original);
+  expect(state.creates[1].end_at).toBeNull();
+  expect(state.reports).toHaveLength(1);
+  await expect(panel(page).getByRole('status')).toContainText('기간별 결과 보고서를 저장했습니다.');
+  await expect(panel(page).getByRole('button', { name: '같은 계산 요청 결과 확인' })).toHaveCount(
+    0,
+  );
+  await page.reload();
+  await panel(page).locator(':scope > details > summary').click();
+  await expect(panel(page).getByRole('button', { name: '같은 계산 요청 결과 확인' })).toHaveCount(
+    0,
+  );
+  expect(state.creates).toHaveLength(2);
+});
+test('jumping to the outcome stage cannot preselect a book whose chosen alternative is not linked', async ({
+  page,
+  request,
+}) => {
+  const state = await mocks(page, true, false);
+  const { items } = await (await request.get('/api/v1/account-snapshots')).json();
+  const account = items.find((item: { account_seq: string }) => item.account_seq === '101');
+  const book = paperBook();
+  book.account_seq = account.account_seq;
+  book.snapshot_id = account.id;
+  book.seed.account_seq = account.account_seq;
+  book.seed.snapshot_id = account.id;
+  const plan = '1'.repeat(64);
+  const alternative = 'buy-synth';
+  const resolution: GuidedFlowResponse = {
+    workspace_key: 'f'.repeat(64),
+    selection: {
+      snapshot_id: account.id,
+      investigation_id: null,
+      revision: null,
+      output_id: null,
+      plan_id: plan,
+      alternative_id: alternative,
+      book_id: book.id,
+      report_id: null,
+    },
+    context: {
+      account_seq: account.account_seq,
+      frozen_snapshot_id: account.id,
+      mode: 'synthetic',
+      currencies: ['USD'],
+    },
+    investigation: null,
+    plans: [
+      {
+        id: plan,
+        recorded_at: now,
+        snapshot_id: account.id,
+        mode: 'synthetic',
+        alternatives: [
+          {
+            key: alternative,
+            label: 'SYNTH 합성 대안',
+            eligibility: 'eligible',
+            currencies: ['USD'],
+          },
+        ],
+      },
+    ],
+    books: [
+      {
+        id: book.id,
+        label: book.label,
+        snapshot_id: book.snapshot_id,
+        mode: book.mode,
+        currencies: ['USD'],
+        linked: false,
+      },
+    ],
+    reports: [],
+    issues: [
+      {
+        code: 'paper_submission_required',
+        stage: 'paper',
+        message: '선택한 원장은 호환되지만 이 계획·대안을 아직 모의 선택하지 않았습니다.',
+      },
+    ],
+    jobs_available: true,
+    orders_enabled: false,
+  };
+  await page.route(/\/api\/v1\/guided-flow(?:\?.*)?$/, (route) =>
+    route.fulfill({ json: resolution }),
+  );
+  await page.route(/\/api\/v1\/paper\/books(?:\?.*)?$/, (route) =>
+    route.fulfill({ json: { items: [book], total_count: 1, omitted_count: 0 } }),
+  );
+  await page.goto(
+    `/?${new URLSearchParams({ snapshot_id: account.id, plan_id: plan, alternative_id: alternative, book_id: book.id, stage: 'investigations' })}`,
+  );
+  const guided = page.getByRole('region', { name: '투자 단계 이어가기', exact: true });
+  await expect(
+    guided.getByRole('button', { name: '기간 결과로 이동', exact: true }),
+  ).toBeDisabled();
+  await guided.getByRole('button', { name: '4. 기간 결과', exact: true }).click();
+  await expect(page).toHaveURL(/stage=outcomes/);
+  await expect(panel(page)).toContainText('선택한 대안이 이 원장에 아직 연결되지 않았습니다.');
+  await panel(page).getByText('자료와 기간 선택하기', { exact: true }).click();
+  await expect(
+    panel(page).getByRole('checkbox', { name: new RegExp(book.label) }),
+  ).not.toBeChecked();
+  await panel(page).getByLabel('시작 시각', { exact: true }).fill('2026-09-11T18:00');
+  await expect(
+    panel(page).getByRole('button', { name: '기간 결과 계산·저장', exact: true }),
+  ).toBeDisabled();
+  expect(state.creates).toEqual([]);
 });
 test('late report responses and failed refresh never present another selected or old result', async ({
   page,
