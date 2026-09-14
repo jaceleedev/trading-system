@@ -105,6 +105,8 @@ const output: InvestigationOutput = {
 async function mockInvestigations(page: Page, initial: InvestigationResponse[] = []) {
   const state = {
     items: initial,
+    listReads: 0,
+    detailReads: 0,
     creates: [] as InvestigationCreate[],
     reviews: [] as { id: string; body: InvestigationRevise }[],
     pauses: [] as { id: string; expected_revision: number }[],
@@ -122,6 +124,14 @@ async function mockInvestigations(page: Page, initial: InvestigationResponse[] =
     });
   });
   const catalog: MarketCatalog = {
+    observation_age: {
+      checked_at: '2026-09-10T09:00:00Z',
+      capture_id: null,
+      observed_at: null,
+      age_seconds: null,
+      status: 'not_observed',
+      max_age_seconds: null,
+    },
     items: [captureA, captureB].map((id, index) => ({
       capture_id: id,
       endpoint: '/api/v1/candles',
@@ -151,6 +161,7 @@ async function mockInvestigations(page: Page, initial: InvestigationResponse[] =
       return;
     }
     if (route.request().method() === 'GET') {
+      state.listReads++;
       await route.fulfill({
         json: {
           items: state.items.map((item) => ({
@@ -184,6 +195,7 @@ async function mockInvestigations(page: Page, initial: InvestigationResponse[] =
     } else await route.fulfill({ json: result });
   });
   await page.route(/\/api\/v1\/investigations\/[a-f0-9-]{36}$/, async (route) => {
+    state.detailReads++;
     const id = new URL(route.request().url()).pathname.split('/').at(-1)!;
     if (state.hold && id === state.holdId) await state.hold;
     await route
@@ -531,4 +543,34 @@ test('mobile investigation inputs and results remain within the page width', asy
     .getByRole('button', { name: /합성 기회 조사/ })
     .click();
   await expect(panel(page).getByText(output.summary, { exact: true })).toBeVisible();
+});
+
+test('active investigation updates to its completed output then stops automatic list and detail reads', async ({
+  page,
+}) => {
+  await page.clock.install();
+  const current = investigation();
+  current.active_job = activeJob(firstId, 'running');
+  const state = await mockInvestigations(page, [current]);
+  await page.goto('/');
+  await panel(page)
+    .getByRole('button', { name: /합성 기회 조사/ })
+    .click();
+  await expect(
+    panel(page)
+      .getByRole('region', { name: '선택한 조사 상세' })
+      .getByText('조사 중', { exact: true }),
+  ).toBeVisible();
+  state.items[0].investigation.active_job_id = null;
+  state.items[0].investigation.latest_completed_revision = 1;
+  state.items[0].active_job = null;
+  state.items[0].latest_output = output;
+  await page.clock.runFor(5100);
+  await expect(panel(page).getByText(output.summary)).toBeVisible();
+  await expect(panel(page).getByRole('button', { name: /합성 기회 조사/ })).toContainText(
+    '결과 저장 완료',
+  );
+  const reads = [state.listReads, state.detailReads];
+  await page.clock.runFor(20000);
+  expect([state.listReads, state.detailReads]).toEqual(reads);
 });

@@ -63,7 +63,12 @@ comparisons can have different observation periods and do not establish actual c
 individual fills, FX profit or causal AI attribution. Replay saved reports without current DB
 state or later model references. File backup v5 includes frozen exports, not operational DB recovery.
 
-The user approved features 18 through 26 in `docs/DEVELOPMENT_ROADMAP.md`, including order
+Feature 27 adds independent workspace worker observations, operational wait reasons and a
+workbench summary of saved data freshness and review state. Worker permissions and heartbeat
+observations do not establish login, provider success or investment execution readiness.
+See `docs/JOBS.md` and `docs/WEB_WORKBENCH.md`.
+
+The user approved features 18 through 29 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate
 to cover existing holdings and new investment funds. Do not insert user-described balances or
 assets at another broker into the observed account. Continue validating on this Mac; no new paid
@@ -74,6 +79,11 @@ decimal strings, unknown balances, observation times, and explicit account selec
 the built app in a browser using isolated synthetic workspaces, never fixtures written into the
 user's private stores. Use `mise run web-check`, `pnpm --dir web format:check`,
 `mise run web-build`, and `pnpm --dir web test:e2e` in addition to Python checks.
+
+The 2026-09-14 sequence for features 27 through 29 is in `docs/DEVELOPMENT_SEQUENCE.md`.
+Each feature uses a separate Codex task; the coordinating task creates the next task only after
+the preceding feature is verified and locally committed. Do not mix feature 28 capture UI or
+feature 29 guided navigation into feature 27.
 
 The user requested successive feature branches with local verification and commits. Start each new
 feature branch from the preceding completed feature. Preserve branch tips so PRs can be prepared

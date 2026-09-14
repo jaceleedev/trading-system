@@ -26,6 +26,39 @@ mise run worker
 예약 시각을 지정하면 그 시각 이후 실행 가능하고, 생략하면 바로 대기열에 넣는다.
 worker의 대기열 확인 간격은 AI 재판단 주기나 포지션 보유 기간이 아니다.
 
+## 운영 상태와 대기 이유 (기능 27)
+
+`/api/v1/jobs/status`는 다음 관측을 구분한다. 응답 시각은 `checked_at`에 보존한다.
+
+- `enabled`: 이 API 프로세스에서 작업 기능을 구성했는지 여부다.
+- `database`: `not_checked`(작업 기능 비활성), `reachable`(조회 성공),
+  `unavailable`(작업 저장소 접근 실패)이다. 장애 시 작업 수는 0이 아닌 `null`이다.
+- `workers`: 같은 workspace의 독립 프로세스 세션별 시작·heartbeat·유효 기한·정지
+  시각, idle/running/stopped 관측, live/stale/stopped 생존 판정과 허용 설정이다.
+- `queued_count`/`running_count`: 같은 workspace의 DB 작업 수다. 제한된 최근 작업
+  목록과 달리 전체 대기·실행 상태를 집계한다. 임대 만료 복구는 worker가 담당하며
+  상태 GET은 작업을 인수·재시도·수정하지 않는다.
+
+worker는 실행 시 새 세션을 등록하고, 작업 시도 heartbeat와 별도의 heartbeat를
+idle 동안에도 갱신한다. 정상 종료는 stopped로 남기고 비정상 종료는 관측 유효 기한이
+지나면 stale로 판정한다. 재시작은 새 세션이며 이전 세션의 시각·설정을 덮어쓰지 않는다.
+업그레이드 이전 worker는 독립 등록이 없으므로 실행 시도가 보여도 생존을 확인할 수 없다.
+API와 worker를 같은 코드로 재시작해야 한다.
+
+대기 이유에는 예약 시각 전, 같은 workspace의 worker 없음, 실행 가능한 worker의
+생존 관측 만료, 필요 기능 미허용, 실행 가능한 worker가 처리 중, 인수 대기가 있다.
+여러 이유가 함께 나타날 수 있다. 각 worker의 유효 시각과 권한을 함께 평가하므로
+살아 있는 비허용 worker와 만료된 허용 worker를 합쳐 실행 가능으로 표시하지 않는다.
+worker와 대기 이유 목록은 최대 100개이며 생략 여부를 응답에 남긴다.
+
+기본 `mise run worker`는 저장 자료 검증만 허용한다. Codex 조사에는
+`--allow-codex`, 계좌·시장·브로커 GET 수집에는 `--allow-network`가 각각 필요하다.
+두 설정은 독립적이다. Codex 웹 검색의 실제 runner 설정도
+`codex_web_search_allowed`로 별도 표시하며 토스 수집 허용과 혼동하지 않는다.
+관측되지 않은 이전 세션의 검색 설정은 `null`로 남긴다.
+설정 관측은 실제 로그인, 모델 실행, 외부 API 성공이나 투자 실행
+준비의 증명이 아니다. 상태 조회는 자격증명·모델·외부 API를 검사하지 않는다.
+
 ## CLI와 종류
 
 ```bash

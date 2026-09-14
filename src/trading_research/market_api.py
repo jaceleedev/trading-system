@@ -31,6 +31,15 @@ class MarketCaptureSummary(APIModel):
     response_contract_sha256: ObjectId | None
 
 
+class MarketObservationAge(APIModel):
+    checked_at: TimestampText
+    capture_id: ObjectId | None
+    observed_at: TimestampText | None
+    age_seconds: float | None
+    status: Literal["unknown", "future", "not_observed"]
+    max_age_seconds: None
+
+
 class MarketCatalog(APIModel):
     items: list[MarketCaptureSummary]
     total_count: int
@@ -38,6 +47,7 @@ class MarketCatalog(APIModel):
     unsupported_count: int
     invalid_count: int
     truncated_count: int
+    observation_age: MarketObservationAge
 
 
 class CandleRevision(APIModel):
@@ -127,10 +137,28 @@ def _check_workspace(workspace):
 
 
 def market_catalog(workspace, *, limit=100):
-    from trading_research.market_observations import catalog
+    from trading_research.market_observations import catalog, utc_now
 
     workspace = _check_workspace(workspace)
-    return catalog(workspace / "var/captures", limit=limit)
+    value = catalog(workspace / "var/captures", limit=limit)
+    checked_at = utc_now()
+    # The catalog is ordered by retrieval time, and its limit is explicit. A newly
+    # retrieved candle is not necessarily a recent price or a final candle. No
+    # common live-market freshness threshold has been configured for these stores.
+    latest = next((item for item in value["items"] if item["status"] == "supported"), None)
+    observed_at = latest["retrieved_at"] if latest else None
+    age = (checked_at - datetime.fromisoformat(observed_at)).total_seconds() if latest else None
+    return {
+        **value,
+        "observation_age": {
+            "checked_at": checked_at.isoformat(),
+            "capture_id": latest["capture_id"] if latest else None,
+            "observed_at": observed_at,
+            "age_seconds": age,
+            "status": "not_observed" if age is None else "future" if age < 0 else "unknown",
+            "max_age_seconds": None,
+        },
+    }
 
 
 def market_view(workspace, capture_ids, *, as_of=None, max_points=1000, max_events=200):

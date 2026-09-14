@@ -98,6 +98,36 @@ class EvaluationRow(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class WorkerSessionRow(Base):
+    """Process-session observations, independent of job-attempt leases."""
+
+    __tablename__ = "worker_sessions"
+    __table_args__ = (
+        CheckConstraint("state IN ('idle','running','stopped')", name="ck_worker_sessions_state"),
+        CheckConstraint(
+            "(state = 'running' AND current_job_id IS NOT NULL) OR "
+            "(state <> 'running' AND current_job_id IS NULL)",
+            name="ck_worker_sessions_job",
+        ),
+        CheckConstraint(
+            "(state = 'stopped') = (stopped_at IS NOT NULL)", name="ck_worker_sessions_stop"
+        ),
+        Index("ix_worker_sessions_workspace", "workspace_key", "expires_at", "started_at"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    workspace_key: Mapped[str] = mapped_column(String(64))
+    owner: Mapped[str] = mapped_column(String(128))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    heartbeat_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    stopped_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    state: Mapped[str] = mapped_column(String(16))
+    allow_network: Mapped[bool] = mapped_column(Boolean)
+    allow_codex: Mapped[bool] = mapped_column(Boolean)
+    codex_web_search_allowed: Mapped[bool | None] = mapped_column(Boolean)
+    current_job_id: Mapped[str | None] = mapped_column(String(36))
+
+
 class JobRow(Base):
     __tablename__ = "jobs"
     __table_args__ = (

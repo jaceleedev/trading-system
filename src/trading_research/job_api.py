@@ -1,5 +1,6 @@
 """Typed local job endpoints; the existing saved-data API remains usable without a DB."""
 
+from datetime import UTC, datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
@@ -51,8 +52,50 @@ class JobResponse(APIModel):
     job: JobView
 
 
+class WorkerObservation(APIModel):
+    id: str
+    owner: str
+    started_at: TimestampText
+    heartbeat_at: TimestampText
+    expires_at: TimestampText
+    stopped_at: TimestampText | None
+    state: Literal["idle", "running", "stopped"]
+    liveness: Literal["live", "stale", "stopped"]
+    allow_network: bool
+    allow_codex: bool
+    codex_web_search_allowed: bool | None
+    current_job_id: str | None
+
+
+class JobWaitingState(APIModel):
+    job_id: str
+    kind: str
+    available_at: TimestampText
+    required_capabilities: list[Literal["network", "codex"]]
+    eligible_worker_ids: list[str]
+    reasons: list[
+        Literal[
+            "scheduled",
+            "no_worker",
+            "worker_observation_expired",
+            "capability_not_allowed",
+            "eligible_workers_busy",
+            "awaiting_worker_claim",
+        ]
+    ]
+
+
 class JobServiceStatus(APIModel):
     enabled: bool
+    database: Literal["not_checked", "reachable", "unavailable"]
+    checked_at: TimestampText
+    workspace_key: str | None
+    workers: list[WorkerObservation]
+    workers_truncated: bool
+    queued_count: int | None
+    running_count: int | None
+    waiting_jobs: list[JobWaitingState]
+    waiting_jobs_truncated: bool
 
 
 class JobSubmission(APIModel):
@@ -108,7 +151,24 @@ def register_job_routes(app: FastAPI, store=None):
         responses=responses,
     )
     def status():
-        return {"enabled": store is not None}
+        value = {
+            "enabled": store is not None,
+            "database": "not_checked" if store is None else "unavailable",
+            "checked_at": datetime.now(UTC).isoformat(),
+            "workspace_key": None,
+            "workers": [],
+            "workers_truncated": False,
+            "queued_count": None,
+            "running_count": None,
+            "waiting_jobs": [],
+            "waiting_jobs_truncated": False,
+        }
+        if store is not None:
+            try:
+                return store.service_status()
+            except DataError, SQLAlchemyError:
+                pass
+        return value
 
     @app.get("/api/v1/jobs", response_model=JobList, operation_id="list_jobs", responses=responses)
     def list_jobs(limit: Annotated[int, Query(ge=1, le=100)] = 50):

@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 from trading_research.config import Settings
 from trading_research.database import get_engine
 from trading_research.errors import DataError
-from trading_research.models import JobAttemptRow, JobRow
+from trading_research.models import JobAttemptRow, JobRow, WorkerSessionRow
 from trading_research.serialization import encode, fingerprint
 
 MAX_JSON_BYTES = 256 * 1024
@@ -154,6 +154,69 @@ def _text(value):
     return value.astimezone(UTC).isoformat() if value is not None else None
 
 
+def _worker_public(row, now):
+    return {
+        "id": row.id,
+        "owner": row.owner,
+        "started_at": _text(row.started_at),
+        "heartbeat_at": _text(row.heartbeat_at),
+        "expires_at": _text(row.expires_at),
+        "stopped_at": _text(row.stopped_at),
+        "state": row.state,
+        "liveness": "stopped" if row.stopped_at else "live" if row.expires_at > now else "stale",
+        "allow_network": row.allow_network,
+        "allow_codex": row.allow_codex,
+        "codex_web_search_allowed": row.codex_web_search_allowed,
+        "current_job_id": row.current_job_id,
+    }
+
+
+def _waiting_job(row, workers, now):
+    from trading_research.job_worker import KINDS, NETWORK_KINDS
+
+    required = (
+        ["network"]
+        if row.kind in NETWORK_KINDS
+        else ["codex"]
+        if row.kind == "investigation-run"
+        else []
+    )
+
+    def capable(worker):
+        return (
+            row.kind in (*KINDS, "investigation-run")
+            and ("network" not in required or worker.allow_network)
+            and ("codex" not in required or worker.allow_codex)
+        )
+
+    live = [worker for worker in workers if worker.stopped_at is None and worker.expires_at > now]
+    eligible = [worker for worker in live if capable(worker)]
+    reasons = ["scheduled"] if row.available_at > now else []
+    if not eligible:
+        if any(
+            worker.stopped_at is None and worker.expires_at <= now and capable(worker)
+            for worker in workers
+        ):
+            reasons.append("worker_observation_expired")
+        if not live:
+            if "worker_observation_expired" not in reasons:
+                reasons.append("no_worker")
+        else:
+            reasons.append("capability_not_allowed")
+    elif not any(worker.state == "idle" for worker in eligible):
+        reasons.append("eligible_workers_busy")
+    elif not reasons:
+        reasons.append("awaiting_worker_claim")
+    return {
+        "job_id": row.id,
+        "kind": row.kind,
+        "available_at": _text(row.available_at),
+        "required_capabilities": required,
+        "eligible_worker_ids": [worker.id for worker in eligible],
+        "reasons": reasons,
+    }
+
+
 def _public(session, row, *, attempts=True):
     value = {
         "id": row.id,
@@ -229,6 +292,150 @@ class JobStore:
         if type(workspace_key) is not str or not _HEX.fullmatch(workspace_key):
             raise DataError("Job workspace key must be a SHA-256 identity")
         self.engine, self.workspace_key = engine, workspace_key
+
+    @_safe
+    def register_worker(
+        self,
+        owner,
+        *,
+        allow_network=False,
+        allow_codex=False,
+        codex_web_search_allowed=None,
+        ttl_seconds=30,
+    ):
+        """Record explicit process settings; this does not probe login or a provider."""
+        _name(owner, 128, "worker owner")
+        _integer(ttl_seconds, 3, 300, "worker observation lifetime")
+        if type(allow_network) is not bool or type(allow_codex) is not bool:
+            raise DataError("Worker capabilities must be explicit booleans")
+        if codex_web_search_allowed is not None and (
+            type(codex_web_search_allowed) is not bool or not allow_codex
+        ):
+            raise DataError("Codex web search requires an explicit Codex-enabled observation")
+        with Session(self.engine) as session, session.begin():
+            now = _now(session)
+            row = WorkerSessionRow(
+                id=str(uuid4()),
+                workspace_key=self.workspace_key,
+                owner=owner,
+                started_at=now,
+                heartbeat_at=now,
+                expires_at=now + timedelta(seconds=ttl_seconds),
+                stopped_at=None,
+                state="idle",
+                allow_network=allow_network,
+                allow_codex=allow_codex,
+                codex_web_search_allowed=codex_web_search_allowed,
+                current_job_id=None,
+            )
+            session.add(row)
+            return _worker_public(row, now)
+
+    @_safe
+    def heartbeat_worker(self, worker_id, *, current_job_id=None, ttl_seconds=30):
+        _id(worker_id)
+        _integer(ttl_seconds, 3, 300, "worker observation lifetime")
+        if current_job_id is not None:
+            _id(current_job_id)
+        with Session(self.engine) as session, session.begin():
+            row = session.scalar(
+                select(WorkerSessionRow)
+                .where(
+                    WorkerSessionRow.id == worker_id,
+                    WorkerSessionRow.workspace_key == self.workspace_key,
+                )
+                .with_for_update()
+            )
+            if row is None or row.stopped_at is not None:
+                raise DataError("Worker session is unavailable or stopped")
+            if (
+                current_job_id is not None
+                and session.scalar(
+                    select(JobRow.id).where(
+                        JobRow.id == current_job_id, JobRow.workspace_key == self.workspace_key
+                    )
+                )
+                is None
+            ):
+                raise DataError("Worker job is outside this workspace")
+            now = _now(session)
+            row.heartbeat_at, row.expires_at = now, now + timedelta(seconds=ttl_seconds)
+            row.current_job_id = current_job_id
+            row.state = "running" if current_job_id else "idle"
+            return _worker_public(row, now)
+
+    @_safe
+    def stop_worker(self, worker_id):
+        _id(worker_id)
+        with Session(self.engine) as session, session.begin():
+            row = session.scalar(
+                select(WorkerSessionRow)
+                .where(
+                    WorkerSessionRow.id == worker_id,
+                    WorkerSessionRow.workspace_key == self.workspace_key,
+                )
+                .with_for_update()
+            )
+            if row is None:
+                return None
+            now = _now(session)
+            if row.stopped_at is None:
+                row.state, row.stopped_at, row.expires_at = "stopped", now, now
+                row.current_job_id = None
+            return _worker_public(row, now)
+
+    @_safe
+    def service_status(self, limit=100):
+        """Observe the queue and worker registry without claiming or repairing work."""
+        _integer(limit, 1, 100, "status limit")
+        with Session(self.engine) as session, session.begin():
+            now = _now(session)
+            # Evaluate every worker independently before bounding the response. An old
+            # capable worker and a live incapable one do not form an eligible worker.
+            workers = list(
+                session.scalars(
+                    select(WorkerSessionRow)
+                    .where(WorkerSessionRow.workspace_key == self.workspace_key)
+                    .order_by(
+                        (
+                            WorkerSessionRow.stopped_at.is_(None)
+                            & (WorkerSessionRow.expires_at > now)
+                        ).desc(),
+                        WorkerSessionRow.started_at.desc(),
+                        WorkerSessionRow.id,
+                    )
+                )
+            )
+            counts = dict(
+                session.execute(
+                    select(JobRow.status, func.count())
+                    .where(
+                        JobRow.workspace_key == self.workspace_key,
+                        JobRow.status.in_(["queued", "running"]),
+                    )
+                    .group_by(JobRow.status)
+                ).all()
+            )
+            queued = list(
+                session.scalars(
+                    select(JobRow)
+                    .where(JobRow.workspace_key == self.workspace_key, JobRow.status == "queued")
+                    .order_by(JobRow.available_at, JobRow.created_at, JobRow.id)
+                    .limit(limit)
+                )
+            )
+            return {
+                "enabled": True,
+                "database": "reachable",
+                "checked_at": _text(now),
+                "workspace_key": self.workspace_key,
+                "workers": [_worker_public(row, now) for row in workers[:limit]],
+                "workers_truncated": len(workers) > limit,
+                "queued_count": counts.get("queued", 0),
+                "running_count": counts.get("running", 0),
+                "waiting_jobs": [_waiting_job(row, workers, now) for row in queued],
+                "waiting_jobs_truncated": counts.get("queued", 0) > limit,
+            }
 
     @contextmanager
     def provider_request_slot(self, checkpoint, spacing_seconds=1.1):

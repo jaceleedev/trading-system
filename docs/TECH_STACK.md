@@ -37,6 +37,7 @@ Streamlit을 후속 제품 화면의 기반으로 사용하지 않는다.
 | AI 연결 | 프로젝트 MCP + 기존 Codex CLI | 도입. 명시적으로 허용한 worker가 고정 입력으로 Codex를 실행한다. 별도 모델 API 서비스는 없다. |
 | 검증 | pytest·Ruff 유지, Vitest·Playwright 추가 | Python 검증을 유지하고 프론트 로직·실제 브라우저 흐름을 검사한다. |
 | 관측 | 구조화 로그 + pg_stat_statements | 도입 예정. 요청·외부 API·작업·SQL의 소요 시간과 오류를 추적한다. |
+| 작업실 운영 상태 | PostgreSQL worker 등록·독립 heartbeat + 상태 API | 기능 27. API·DB·worker 생존·허용 설정·작업 대기 이유를 분리한다. 설정 관측은 로그인·외부 호출 성공을 증명하지 않는다. |
 | 개발·로컬 운영 | mise + uv + Docker Compose | 기존 구성 유지. 웹 빌드용 Node 24.18.0·pnpm 11.13.0을 프로젝트 범위에서 고정한다. |
 
 신규 패키지의 세부 버전은 구현 시 상호 호환성을 확인하고 잠금 파일로 고정한다.

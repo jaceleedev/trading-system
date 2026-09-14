@@ -38,6 +38,21 @@ class FakeStore:
         self.claimed_kinds = None
         self.provider_slots = 0
         self.provider_slot_active = False
+        self.worker_sessions = {}
+        self.worker_heartbeats = 0
+
+    def register_worker(self, owner, **settings):
+        identity = str(uuid.uuid4())
+        self.worker_sessions[identity] = {"id": identity, "owner": owner, **settings}
+        return self.worker_sessions[identity]
+
+    def heartbeat_worker(self, identity, **settings):
+        self.worker_heartbeats += 1
+        self.worker_sessions[identity].update(settings)
+        return self.worker_sessions[identity]
+
+    def stop_worker(self, identity):
+        self.worker_sessions[identity]["stopped"] = True
 
     @contextmanager
     def provider_request_slot(self, checkpoint, spacing_seconds=1.1):

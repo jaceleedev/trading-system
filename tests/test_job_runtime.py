@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import delete
 
 from trading_research.jobs import local_job_store
-from trading_research.models import JobRow
+from trading_research.models import JobRow, WorkerSessionRow
 from trading_research.private_store import get_object
 from trading_research.web_api import create_app
 
@@ -64,7 +64,19 @@ def test_http_job_runs_in_separate_worker_and_survives_client_restart(tmp_path):
         )
         assert json.loads(resumed.stdout) == {"status": "idle"}
         assert store.get(job_id)["attempt_count"] == 1
+        status = store.service_status()
+        assert status["database"] == "reachable"
+        assert status["queued_count"] == status["running_count"] == 0
+        assert len(status["workers"]) == 2
+        assert len({worker["id"] for worker in status["workers"]}) == 2
+        assert all(worker["liveness"] == "stopped" for worker in status["workers"])
+        assert all(worker["codex_web_search_allowed"] is None for worker in status["workers"])
     finally:
         with store.engine.begin() as connection:
+            connection.execute(
+                delete(WorkerSessionRow).where(
+                    WorkerSessionRow.workspace_key == store.workspace_key
+                )
+            )
             connection.execute(delete(JobRow).where(JobRow.workspace_key == store.workspace_key))
         store.engine.dispose()
