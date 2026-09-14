@@ -1064,6 +1064,265 @@ export type CapitalSourceContext = {
 };
 
 /**
+ * CaptureAccountEndpoint
+ */
+export type CaptureAccountEndpoint = {
+    /**
+     * Endpoint
+     */
+    endpoint: string;
+    /**
+     * Query
+     */
+    query: {
+        [key: string]: string;
+    };
+};
+
+/**
+ * CaptureCoverage
+ */
+export type CaptureCoverage = {
+    /**
+     * Has More
+     */
+    has_more: boolean | null;
+    /**
+     * Received Pages
+     */
+    received_pages: number | null;
+    /**
+     * Requested Pages
+     */
+    requested_pages: number | null;
+    /**
+     * Truncated
+     */
+    truncated: boolean | null;
+    /**
+     * Unknowns
+     */
+    unknowns: Array<string>;
+};
+
+/**
+ * CaptureMarketEndpoint
+ */
+export type CaptureMarketEndpoint = {
+    /**
+     * Alias
+     */
+    alias: string;
+    /**
+     * Endpoint
+     */
+    endpoint: string;
+    /**
+     * Max Pages
+     */
+    max_pages: number;
+    /**
+     * Query Fields
+     */
+    query_fields: Array<CaptureQueryField>;
+};
+
+/**
+ * CaptureObservation
+ */
+export type CaptureObservation = {
+    /**
+     * Adjusted
+     */
+    adjusted: boolean | null;
+    /**
+     * Candle Count
+     */
+    candle_count: number | null;
+    /**
+     * Endpoint
+     */
+    endpoint: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Interval
+     */
+    interval: string | null;
+    /**
+     * Normalization
+     */
+    normalization: 'supported' | 'unsupported' | 'not_applicable';
+    /**
+     * Observed At
+     */
+    observed_at: string;
+    /**
+     * Paper Candidate
+     */
+    paper_candidate: boolean;
+    /**
+     * Symbol
+     */
+    symbol: string | null;
+};
+
+/**
+ * CaptureOptions
+ */
+export type CaptureOptions = {
+    /**
+     * Account Endpoints
+     */
+    account_endpoints: Array<CaptureAccountEndpoint>;
+    /**
+     * Account Source
+     */
+    account_source: 'saved_snapshots_only';
+    /**
+     * Accounts
+     */
+    accounts: Array<SnapshotSummary>;
+    /**
+     * Accounts Truncated
+     */
+    accounts_truncated: boolean;
+    /**
+     * Market Endpoints
+     */
+    market_endpoints: Array<CaptureMarketEndpoint>;
+    /**
+     * Network Permission Changed
+     */
+    network_permission_changed: false;
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+};
+
+/**
+ * CaptureQueryField
+ */
+export type CaptureQueryField = {
+    /**
+     * Default
+     */
+    default: string | number | boolean | null;
+    /**
+     * Enum Values
+     */
+    enum_values: Array<string>;
+    /**
+     * Format
+     */
+    format: string | null;
+    /**
+     * Maximum
+     */
+    maximum: number | null;
+    /**
+     * Minimum
+     */
+    minimum: number | null;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Pattern
+     */
+    pattern: string | null;
+    /**
+     * Required
+     */
+    required: boolean;
+    /**
+     * Type
+     */
+    type: 'string' | 'integer' | 'boolean';
+};
+
+/**
+ * CaptureResult
+ */
+export type CaptureResult = {
+    /**
+     * Account Seq
+     */
+    account_seq: string | null;
+    /**
+     * Capture Ids
+     */
+    capture_ids: Array<string>;
+    /**
+     * Collection Completed At
+     */
+    collection_completed_at: string | null;
+    /**
+     * Collection Started At
+     */
+    collection_started_at: string | null;
+    coverage: CaptureCoverage;
+    /**
+     * Job Id
+     */
+    job_id: string;
+    /**
+     * Kind
+     */
+    kind: 'account-sync' | 'market-capture';
+    /**
+     * Observations
+     */
+    observations: Array<CaptureObservation>;
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string | null;
+    /**
+     * Status
+     */
+    status: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+    /**
+     * Warnings
+     */
+    warnings: Array<string>;
+};
+
+/**
+ * CaptureSubmission
+ */
+export type CaptureSubmission = {
+    /**
+     * Kind
+     */
+    kind: 'account-sync' | 'market-capture';
+    /**
+     * Parameters
+     */
+    parameters: {
+        [key: string]: string | number | boolean | {
+            [key: string]: string | number | boolean;
+        };
+    };
+    /**
+     * Request Key
+     */
+    request_key: string;
+};
+
+/**
  * CashBalances
  */
 export type CashBalances = {
@@ -7309,6 +7568,207 @@ export type GetMarketViewResponses = {
 };
 
 export type GetMarketViewResponse = GetMarketViewResponses[keyof GetMarketViewResponses];
+
+export type SubmitObservationCaptureData = {
+    body: CaptureSubmission;
+    path?: never;
+    query?: never;
+    url: '/api/v1/observation-captures';
+};
+
+export type SubmitObservationCaptureErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type SubmitObservationCaptureError = SubmitObservationCaptureErrors[keyof SubmitObservationCaptureErrors];
+
+export type SubmitObservationCaptureResponses = {
+    /**
+     * Successful Response
+     */
+    200: JobResponse;
+};
+
+export type SubmitObservationCaptureResponse = SubmitObservationCaptureResponses[keyof SubmitObservationCaptureResponses];
+
+export type CaptureOptionsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/v1/observation-captures/options';
+};
+
+export type CaptureOptionsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type CaptureOptionsError = CaptureOptionsErrors[keyof CaptureOptionsErrors];
+
+export type CaptureOptionsResponses = {
+    /**
+     * Successful Response
+     */
+    200: CaptureOptions;
+};
+
+export type CaptureOptionsResponse = CaptureOptionsResponses[keyof CaptureOptionsResponses];
+
+export type RecoverObservationCaptureData = {
+    body: CaptureSubmission;
+    path?: never;
+    query?: never;
+    url: '/api/v1/observation-captures/recover';
+};
+
+export type RecoverObservationCaptureErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type RecoverObservationCaptureError = RecoverObservationCaptureErrors[keyof RecoverObservationCaptureErrors];
+
+export type RecoverObservationCaptureResponses = {
+    /**
+     * Successful Response
+     */
+    200: JobResponse;
+};
+
+export type RecoverObservationCaptureResponse = RecoverObservationCaptureResponses[keyof RecoverObservationCaptureResponses];
+
+export type GetObservationCaptureResultData = {
+    body?: never;
+    path: {
+        /**
+         * Id
+         */
+        id: string;
+    };
+    query?: never;
+    url: '/api/v1/observation-captures/{id}/result';
+};
+
+export type GetObservationCaptureResultErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Not Found
+     */
+    404: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+    /**
+     * Service Unavailable
+     */
+    503: ErrorResponse;
+};
+
+export type GetObservationCaptureResultError = GetObservationCaptureResultErrors[keyof GetObservationCaptureResultErrors];
+
+export type GetObservationCaptureResultResponses = {
+    /**
+     * Successful Response
+     */
+    200: CaptureResult;
+};
+
+export type GetObservationCaptureResultResponse = GetObservationCaptureResultResponses[keyof GetObservationCaptureResultResponses];
 
 export type ListOrderIntentsData = {
     body?: never;

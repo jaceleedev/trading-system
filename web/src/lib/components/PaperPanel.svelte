@@ -1,6 +1,6 @@
 <script lang="ts">
   import { createQuery } from '@tanstack/svelte-query';
-  import { tick } from 'svelte';
+  import { tick, untrack } from 'svelte';
   import { RotateCw } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
   import type {
@@ -37,12 +37,14 @@
     synthetic = false,
     selectedSnapshot = '',
     context,
+    requestedPaperCaptures = null,
   }: {
     ready?: boolean;
     jobsEnabled?: boolean;
     synthetic?: boolean;
     selectedSnapshot?: string;
     context?: InvestmentContext;
+    requestedPaperCaptures?: { captureIds: string[]; accountSeq: string | null } | null;
   } = $props();
   let opened = $state(false);
   let label = $state('');
@@ -55,6 +57,8 @@
   let alternativeId = $state('');
   let profile = $state({ slippage_bps: '', participation_bps: '', quantity_step: '' });
   let captureIds = $state<string[]>([]);
+  let linkedCaptureIds = $state<string[]>([]);
+  let linkedAccountSeq = $state<string | null>(null);
   type Pending =
     | { kind: 'create'; body: PaperBookCreate; previousBook: string }
     | { kind: 'submit'; id: string; body: PaperSubmit }
@@ -135,6 +139,33 @@
         )
       : undefined,
   );
+  let linkedBookMismatch = $derived(
+    !!book &&
+      linkedAccountSeq !== null &&
+      book.account_seq !== linkedAccountSeq &&
+      captureIds.some((id) => linkedCaptureIds.includes(id)),
+  );
+  $effect(() => {
+    const requested = requestedPaperCaptures;
+    if (requested)
+      untrack(() => {
+        if (pending || busy) {
+          actionError = '기존 모의 요청 결과를 먼저 확인한 뒤 완료 분봉을 다시 연결해 주세요.';
+          return;
+        }
+        opened = true;
+        const changedAccount = linkedAccountSeq !== requested.accountSeq;
+        if (changedAccount) captureIds = captureIds.filter((id) => !linkedCaptureIds.includes(id));
+        linkedCaptureIds = [
+          ...new Set([...(changedAccount ? [] : linkedCaptureIds), ...requested.captureIds]),
+        ];
+        linkedAccountSeq = requested.accountSeq;
+        captureIds = [...new Set([...captureIds, ...requested.captureIds])];
+        feedback =
+          '완료 분봉을 진행 입력에 추가했습니다. 원장을 선택한 뒤 별도로 모의 진행하세요. 기존 대안과 가정은 유지됩니다.' +
+          (changedAccount ? ' 이전 계좌에서 연결한 분봉은 이번 진행 입력에서 제외했습니다.' : '');
+      });
+  });
   const operationLabels = {
     create: '원장 만들기',
     submit: '대안 모의 주문',
@@ -239,7 +270,11 @@
         !captures ||
         !captureIds.length ||
         captureIds.length > 20 ||
-        captureIds.some((id) => !captures.some((item) => item.capture_id === id))
+        linkedBookMismatch ||
+        captureIds.some(
+          (id) =>
+            !linkedCaptureIds.includes(id) && !captures.some((item) => item.capture_id === id),
+        )
       )
         throw new Error('진행할 비수정 분봉 캡처를 1~20개 선택해 주세요.');
       return {
@@ -267,7 +302,7 @@
   }
 </script>
 
-<section class="panel capital-panel paper-panel" aria-label="모의 매매">
+<section id="paper-panel" class="panel capital-panel paper-panel" aria-label="모의 매매">
   <details bind:open={opened}>
     <summary>모의 매매</summary>
     <p class="muted">
@@ -676,9 +711,14 @@
                     >{item.symbol} · {item.currencies.join('/')} · 확인 {formatTime(
                       item.retrieved_at,
                     )} · {shortId(item.capture_id)}</option
+                  >{/each}{#each linkedCaptureIds.filter((id) => !captures?.some((item) => item.capture_id === id)) as id}<option
+                    value={id}>연결한 완료 분봉 · {shortId(id)}</option
                   >{/each}</select
               ></label
             >
+            {#if linkedBookMismatch}<p role="alert" class="error-state capital-full">
+                수집 당시 계좌와 선택한 모의 원장의 계좌가 다릅니다. 같은 계좌의 원장을 선택하세요.
+              </p>{/if}
             {#if catalogQuery.isError}<p role="alert" class="error-state capital-full">
                 {catalogQuery.error.message}
               </p>{:else if captures && !captures.length}<p class="muted capital-full">
@@ -688,8 +728,13 @@
                 시장 캡처 {catalogQuery.data.truncated_count}개는 이번 목록에서 생략됐습니다.
               </p>{/if}
             <div class="capital-full">
-              <Button type="submit" disabled={!captures || !captureIds.length || !!pending || busy}
-                >선택 관측으로 모의 진행</Button
+              <Button
+                type="submit"
+                disabled={!captures ||
+                  !captureIds.length ||
+                  linkedBookMismatch ||
+                  !!pending ||
+                  busy}>선택 관측으로 모의 진행</Button
               >
             </div>
           </form>

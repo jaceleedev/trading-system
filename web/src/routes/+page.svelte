@@ -7,6 +7,7 @@
   import RecordDetail from '$lib/components/RecordDetail.svelte';
   import OperationsPanel from '$lib/components/OperationsPanel.svelte';
   import JobsPanel from '$lib/components/JobsPanel.svelte';
+  import ObservationCapturePanel from '$lib/components/ObservationCapturePanel.svelte';
   import MarketPanel from '$lib/components/MarketPanel.svelte';
   import InvestigationsPanel from '$lib/components/InvestigationsPanel.svelte';
   import CapitalPanel from '$lib/components/CapitalPanel.svelte';
@@ -21,6 +22,10 @@
   let selectedSnapshot = $state('');
   let selectedRecordId = $state<string | null>(null);
   let requestedInvestigation = $state<{ id: string } | null>(null);
+  let requestedCaptureInput = $state<{ snapshotId: string; captureIds: string[] } | null>(null);
+  let requestedPaperCaptures = $state<{ captureIds: string[]; accountSeq: string | null } | null>(
+    null,
+  );
   let maxRecords = $state(50);
   const queryClient = useQueryClient();
   const health = createQuery(() => ({
@@ -181,9 +186,25 @@
       }}
     />
   </div>
+  <ObservationCapturePanel
+    ready={health.isSuccess && !health.isFetching}
+    jobsEnabled={health.data?.jobs_enabled ?? false}
+    {selectedSnapshot}
+    selectedAccountSeq={activeSnapshot?.account_seq ?? null}
+    onInvestigation={(value) => {
+      selectSnapshot(value.snapshotId);
+      requestedCaptureInput = value;
+      document.getElementById('investigations-panel')?.scrollIntoView({ block: 'start' });
+    }}
+    onPaper={(value) => {
+      requestedPaperCaptures = value;
+      document.getElementById('paper-panel')?.scrollIntoView({ block: 'start' });
+    }}
+  />
   <MarketPanel ready={health.isSuccess && !health.isFetching} onselect={selectRecord} />
   <InvestigationsPanel
     {requestedInvestigation}
+    {requestedCaptureInput}
     ready={health.isSuccess && !health.isFetching}
     jobsEnabled={health.isSuccess && health.data.jobs_enabled}
     synthetic={health.isSuccess && health.data.synthetic}
@@ -201,6 +222,7 @@
     onselect={selectRecord}
   />
   <PaperPanel
+    {requestedPaperCaptures}
     ready={health.isSuccess && !health.isFetching}
     jobsEnabled={health.data?.jobs_enabled ?? false}
     synthetic={health.data?.synthetic ?? false}

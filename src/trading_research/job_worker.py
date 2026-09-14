@@ -15,6 +15,7 @@ import signal
 import threading
 import time
 import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 from urllib.request import ProxyHandler, build_opener
 
@@ -44,13 +45,18 @@ def validate_parameters(kind, parameters):
     if kind == "account-sync":
         sequence = parameters.get("account_seq")
         if (
-            set(parameters) != {"account_seq"}
+            set(parameters) - {"account_seq", "source_snapshot_id"}
             or type(sequence) is not str
             or re.fullmatch(r"[1-9][0-9]{0,18}", sequence) is None
             or int(sequence) > 2**63 - 1
         ):
             raise DataError("Account sync requires an explicit positive signed64 decimal string")
-        return {"account_seq": sequence}
+        source = parameters.get("source_snapshot_id")
+        if "source_snapshot_id" in parameters and (
+            type(source) is not str or _OBJECT_ID.fullmatch(source) is None
+        ):
+            raise DataError("Account source snapshot must be a stored object ID")
+        return {"account_seq": sequence, **({"source_snapshot_id": source} if source else {})}
     if kind == "broker-sync":
         from trading_research.toss_broker import validate_scan_request
 
@@ -271,6 +277,10 @@ def _account_sync(workspace, job, guard):
     from trading_research.private_store import put_object
 
     guard.checkpoint()
+    if "source_snapshot_id" in job["parameters"]:
+        from trading_research.observation_capture import validate_account_source
+
+        validate_account_source(workspace, job["parameters"])
     root = _store_root(workspace, "accounts", create=True)
     client = toss_account.TossAccountClient(
         _access_token(guard),
@@ -298,6 +308,7 @@ def _market_capture(workspace, job, guard):
     from trading_research import toss_market
     from trading_research.capture_store import write_capture
 
+    started_at = datetime.now(UTC).isoformat()
     guard.checkpoint()
     root = _store_root(workspace, "captures", create=True)
     client = toss_market.TossMarketClient(
@@ -315,7 +326,12 @@ def _market_capture(workspace, job, guard):
         guard.checkpoint()
         identity = write_capture(root, capture).stem
         artifacts.append({"store": "market-capture", "id": identity})
-    return {"artifacts": artifacts, "orders_enabled": False}
+    return {
+        "artifacts": artifacts,
+        "collection_started_at": started_at,
+        "collection_completed_at": datetime.now(UTC).isoformat(),
+        "orders_enabled": False,
+    }
 
 
 def _broker_sync(workspace, job, guard):

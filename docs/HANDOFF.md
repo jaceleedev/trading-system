@@ -1,3 +1,115 @@
+# 2026-09-14 기능 28 인수인계
+
+## 기능 28: 웹의 명시적인 계좌·시장 관측 수집
+
+`feat/28-web-observation-capture`에서 기능 28을 구현·검증했다. 시작점과 부모는
+기능 27의 `b04ca337544df94b6a71259dd52bc7a023ea8af9`이며 작업 위치는
+`/Users/jace/.codex/worktrees/15ee/trading-system`이다. 이 절을 포함한 로컬 완료
+커밋이 28번 브랜치 끝점이다. 정확한 SHA는 최종 응답,
+`git rev-parse feat/28-web-observation-capture`, `/tmp/trading-feature28-completion.txt`에
+남긴다. 원본 `/Users/jace/Desktop/trading-system`의 깨끗한 `main`과 27번 브랜치
+끝점은 보존했다. 원격 push·PR 생성·병합과 다음 작업 생성은 하지 않았다.
+
+### 구현된 동작
+
+- 새 수집 패널과 4개 typed API가 기존 `account-sync`/`market-capture` 및
+  PostgreSQL 작업 저장소·credential resolver·`--allow-network` 경계를 재사용한다.
+  접수·상태 확인·완료 결과 읽기는 네트워크 권한이나 주문 전송을 활성화하지 않는다.
+- 계좌 선택지는 검증된 저장 관측 최대 100개다. 현재 로그인한 계좌 목록으로
+  표시하지 않고 생략을 알린다. `account_seq` 십진 문자열과 `source_snapshot_id`를
+  고정해 서버와 worker가 대조하고, 실제 수집의 첫 계좌 목록에서도 계좌 존재를 확인한다.
+  처음 연결할 계좌는 기존 직접 CLI 조회·명시적 sync 경로를 이용한다.
+- 계좌는 기존 필수 6개 GET 묶음을 확인 후 접수한다. 시장은 고정된 6개 endpoint의
+  입력 계약·기본값·범위·종목·수정 여부를 보여 주고 봉 개수 1~200, 최대 1~10페이지를
+  검증한다. 다른 endpoint는 1회다. 계좌번호·비밀값·원응답을 HTTP로 노출하지 않는다.
+- 첫 접수 전 원래 request key·입력을 workspace별 브라우저 localStorage에 보관한다.
+  새로고침은 원래 입력의 fingerprint를 읽기 전용 `/recover`에서 확인한다. 저장된
+  job ID만으로 결과를 신뢰하지 않는다. 요청이 없으면 명시적 같은 키 재접수만 제공하고,
+  확정된 입력 거절은 수정할 수 있다. 상태 확인이나 새로고침은 새 작업을 만들지 않는다.
+- 접수 여부 미확인·대기·실행·실패·취소·완료와 대기 이유를 구분한다. 기능 27의
+  보이는 화면·5초·최대 5분·오류 정지 경계를 재사용하고 완료 후 수집 상태 polling을 멈춘다.
+  응답 유실 후 복구가 성공하면 이전 오류를 현재 실패로 남기지 않는다.
+- 완료 API는 실제 저장 원본 ID·내용·계좌·endpoint·정규화한 query·페이지 커서·시각을
+  대조한다. 계좌 수집 시작/완료와 개별 관측, 시장 수집 구간과 봉 원래 기준을 구분한다.
+  다음 커서가 남은 페이지 한도는 잘림, 커서 누락/미해석은 미확인, 명시적 null은 해당
+  방향의 추가 페이지 없음이다. 실패 중 부분 저장 원본을 완료 결과로 연결하지 않는다.
+- 완료 관측은 버튼으로 새 조사 입력 또는 모의 진행 입력에 전달한다. 계좌 전환 후
+  늦은 결과·연결 중 입력 변경을 차단하며 목록 밖 완료 관측 ID도 유지한다. 과거 조사
+  입력, 고정한 모의 선택·가정, 계좌 보유는 바꾸지 않는다. 비수정 분봉의 모의 후보 표시와
+  원장별 시각·영수증·수정·거래량 적격성 검사는 분리하고 실행은 별도 클릭을 요구한다.
+- 새 [OBSERVATION_CAPTURE.md](OBSERVATION_CAPTURE.md), 작업·웹 안내와 생성 SDK를
+  갱신했다. OpenAPI 의미 변화는 경로 4개·Capture 스키마 8개 추가뿐이며 기존 경로와
+  스키마 수정·삭제는 없다. DB 없이 저장 자료를 읽는 경로와 소수·unknown·통화 분리를 보존했다.
+
+### 최종 검증
+
+- 잠금 파일 설치 완료. Python 3.14.7·Node 24.18.0·pnpm 11.13.0으로 검증했다.
+- `TRADING_TEST_DB=1 uv run pytest`: **2,227개 통과**, 108.65초. 수집 검사 38개를
+  추가했다. 기존 FastAPI/Starlette 의존성 deprecation 경고 2개가 남아 있다.
+- `uv run ruff check .`, `uv run ruff format --check .`: 통과, Python 249개 파일.
+- `mise run web-check`: OpenAPI·SDK 일치, Svelte 오류·경고 0개, Vitest **45개 통과**.
+  `pnpm --dir web format:check`, `mise run web-build`, `git diff --check` 통과.
+- `pnpm --dir web test:e2e`: **103개 통과**, 49.2초. 수집 E2E 17개를 추가했다. 합성 HTTP
+  응답 검사는 실제 로컬 런타임 검증과 구분한다. 전체 첫 실행의 7개 실패는 기존
+  상단 계좌 선택기의 부분 이름이 새 수집 선택기도 찾는 문제였고, 기존 선택기를
+  `exact: true`로 지정해 원래 검증을 보존했다. 최종 실패는 없다.
+- 독립 검토로 여러 차례 연결한 목록 밖 분봉의 선택 유지, 연결 중 계좌·요청 변경,
+  원래 요청의 서버 복구, storage 쓰기 실패 시 접수 차단, 확정 입력 거절 후 수정,
+  복구 성공 뒤 이전 오류 제거를 확인했다.
+
+실제 로컬 런타임은 `/tmp/trading-feature28-runtime-0efmejvx/workspace` 하나에서 검증했다.
+
+- 실제 FastAPI·PostgreSQL·독립 worker에서 원래 키 접수/복구/중복 방지, 네트워크
+  비허용 대기의 시도 0회, 입력 계좌 불일치·범위 오류, 실제 원본 6개가 연결된 새 계좌
+  관측, 비수정 분봉·수정주가·잘린 응답·provider 실패를 확인했다. 기존 handler를
+  그대로 실행하고 외부 transport·토큰 경계만 `/tmp` QA worker에서 합성으로 대체했다.
+- `http://127.0.0.1:57217`의 빌드 앱에서 명시적 계좌 선택→수집 실행→다른 계좌 전환→
+  늦은 완료 결과 연결 차단→같은 계좌의 새 조사 입력→별도 조사 접수를 확인했다.
+  원래 판단은 이전 계좌 관측을 유지하고 새 조사는 완료 관측 ID를 고정했다. Codex
+  미허용 worker에서 조사 시도는 0회다. 실제 모델을 호출하지 않았다.
+- 모의 선택을 07:38:54 UTC에 실제 로컬 시계로 먼저 고정하고, 이후 수집한
+  07:47 UTC 종료 분봉(07:47:58 UTC 관측)을 브라우저에서 모의 입력으로 연결했다.
+  사용자의 별도 진행 동작 후 2주 중 1주가 10 USD로 모의체결되고 1주는 남았다.
+  모의 현금은 100→90 USD이며 기존 보유의 가격은 미확인이므로 총평가를 만들어내지
+  않았다. 원장 seed·대안·프로필과 원래 계좌 보유는 유지됐다.
+- 실제 POST가 DB에 반영된 뒤 브라우저 응답만 의도적으로 끊었다. 새로고침 후 원래
+  키·입력으로 완료를 복구했고 접수 POST 1개·작업 1개·시도 1회였다. 실제 API 응답을
+  fixture로 교체하지 않았으며 합성인 경계는 외부 provider transport다. 최종 소스의
+  API·worker 재시작 후에도 같은 검증과 원래 조사·모의 기록 재조회를 통과했다.
+- Browser 플러그인 스킬이 없어 프로젝트 Playwright를 사용했다. 데스크톱
+  1536×1024·모바일 390×844를 직접 확인했고 콘솔 경고/오류·페이지 오류·외부 브라우저
+  요청·모바일 가로 넘침이 없었다. 응답 유실 검증의 의도적인 네트워크 실패는 별도다.
+  마지막 빌드에서도 완료/잘림/복구 화면을 확인했다.
+- DB engine 생성을 금지한 별도 API 검사에서 작업 비활성 설정으로 같은 합성 계좌·
+  시장·연구·수집 선택지 읽기가 성공했다. 이 검사는 실제 DB 중단을 주장하지 않는다.
+- 모든 이번 QA API·worker를 종료하고 57217 포트 종료, 이번 namespace의 jobs,
+  job_attempts, worker_sessions, investigations/revisions, paper books/intents/events
+  잔여 0을 확인했다. 다른 namespace·개인 저장소는 수정하지 않았다. 합성 원본과
+  요청·결과·화면·정리 증거는 보존했다.
+
+### Migration·증거·잔여 범위
+
+새 migration은 **없다**. 기존 로컬 `127.0.0.1:55432/trading`의 schema
+`b727f04e62d1`를 확인해 그대로 사용했다. 빈 DB 생성·migration 적용이나 운영 복구를
+수행했다고 주장하지 않는다. 실제 토스·계좌·시장·주문 API, 유료 모델·데이터 서비스,
+원격 운영·상시 서비스 설치는 실행하지 않았다. 합성 수집·모의 결과는 실제 거래·수익이 아니다.
+
+최종 로그는 `/tmp/trading-feature28-pytest-final.log`,
+`/tmp/trading-feature28-ruff-check.log`, `/tmp/trading-feature28-ruff-format.log`,
+`/tmp/trading-feature28-web-check.log`, `/tmp/trading-feature28-web-format.log`,
+`/tmp/trading-feature28-web-build.log`, `/tmp/trading-feature28-e2e.log`다.
+최종 E2E 산출물 경로는 `/tmp/trading-feature28-e2e-final/`, 실제 런타임·브라우저 증거는
+`/tmp/trading-feature28-runtime-0efmejvx/`다. `08-browser-health.json`,
+`09-real-response-loss-recovery.json`, `10-frozen-source-and-paper-validation.json`,
+`11-final-code-restart.json`, `12-saved-reads-with-database-access-forbidden.json`,
+`99-cleanup-verification.json`에서 경계와 결과를 확인한다. QA 스크립트는
+`/tmp/trading-feature28-qa/`에 보존했다. `/tmp` 산출물은 운영 백업이 아니다.
+
+완료 관측 연결은 다음 입력 채우기이며 전체 조사→계획→원장→보고서 탐색은 구현하지
+않았다. 조정 작업은 28번 완료 커밋에서 별도의 새 작업과
+`feat/29-guided-investment-flow` 브랜치로 **기능 29만** 이어간다. 출처 저장 강화,
+새 가격·공시 재판단 확장, 실제 자료 모의운용은 27~29 이후 별도 검토 범위다.
+
 # 2026-09-14 기능 27 인수인계
 
 ## 기능 27: 작업실 운영 상태·대기 이유·자료 시점

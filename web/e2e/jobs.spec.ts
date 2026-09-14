@@ -117,7 +117,7 @@ test('enabled empty jobs submit only saved-data validation with the explicitly s
   await page.goto('/');
   const panel = page.getByRole('region', { name: '작업 실행', exact: true });
   await expect(panel.getByText('등록된 작업이 없습니다.')).toBeVisible();
-  await page.getByRole('combobox', { name: '계좌 관측' }).selectOption(snapshot.id);
+  await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(snapshot.id);
   await panel.getByLabel(/예약 시각/).fill('2026-12-01T18:30');
   await panel.getByRole('button', { name: '검증 작업 접수' }).click();
   await expect(panel.getByText('저장 자료 검증 작업을 접수했습니다.')).toBeVisible();
@@ -148,7 +148,7 @@ test('an uncertain submission retries the same UUID and original snapshot after 
   const { items } = (await response.json()) as AccountSnapshotsResponse;
   await page.goto('/');
   const panel = page.getByRole('region', { name: '작업 실행', exact: true });
-  const selector = page.getByRole('combobox', { name: '계좌 관측' });
+  const selector = page.getByRole('combobox', { name: '계좌 관측', exact: true });
   await selector.selectOption(items[0].id);
   await panel.getByRole('button', { name: '검증 작업 접수' }).click();
   await expect(panel.getByText(/접수 여부가 아직 확인되지 않았습니다/)).toBeVisible();
@@ -205,7 +205,7 @@ test('job errors hide stale rows while account data stays available, then refres
   const response = await request.get('/api/v1/account-snapshots');
   const { items } = (await response.json()) as AccountSnapshotsResponse;
   await page.goto('/');
-  await page.getByRole('combobox', { name: '계좌 관측' }).selectOption(items[0].id);
+  await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(items[0].id);
   await expect(page.getByTestId('buying-power-KRW')).toBeVisible();
   const panel = page.getByRole('region', { name: '작업 실행', exact: true });
   await expect(panel.getByTestId(`job-${firstJobId}`)).toBeVisible();

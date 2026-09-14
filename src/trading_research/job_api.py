@@ -111,7 +111,7 @@ class JobAPIError(Exception):
         self.status, self.code, self.message = status, code, message
 
 
-def register_job_routes(app: FastAPI, store=None):
+def register_job_routes(app: FastAPI, store=None, *, workspace=None):
     @app.exception_handler(JobAPIError)
     async def job_error(_request, exc):
         return JSONResponse(
@@ -211,3 +211,8 @@ def register_job_routes(app: FastAPI, store=None):
     )
     def cancel_job(id: UUID):
         return existing(call("cancel", str(id)))
+
+    if workspace is not None:
+        from trading_research.observation_capture_api import register_capture_routes
+
+        register_capture_routes(app, workspace, call, existing, responses)

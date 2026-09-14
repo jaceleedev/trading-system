@@ -15,8 +15,15 @@
 `6c3eddb5d05cb1ec3585b2da83aa4a5cb159ea01`이다. 각 기능의 실제 완료 상태,
 검증 결과, migration과 이어갈 범위는 [HANDOFF.md](HANDOFF.md) 상단에서 확인한다.
 27번은 `feat/27-workbench-operations`에서 구현·검증을 완료했다. Python 2,189개,
-Vitest 38개, 웹 E2E 86개 및 필수 정적 검사·빌드가 통과했다. 28·29번은 아직 구현하지
-않았다. 27번의 완료는 28·29번의 구현 완료를 의미하지 않는다.
+Vitest 38개, 웹 E2E 86개 및 필수 정적 검사·빌드가 통과했다. 완료 SHA는
+`b04ca337544df94b6a71259dd52bc7a023ea8af9`다.
+
+28번은 이 커밋에서 `feat/28-web-observation-capture`로 이어 구현·검증을 완료했다.
+Python 2,227개, Vitest 45개, 웹 E2E 103개 및 필수 검사·빌드, 격리된 실제
+API·DB·worker·데스크톱/모바일 브라우저 검증이 통과했다. 새 migration은 없다.
+실제 외부 수집은 합성 transport로 격리했으며 새 주문·모델 호출은 하지 않았다.
+정확한 로컬 완료 SHA는 브랜치 끝점과 `/tmp/trading-feature28-completion.txt`를 따른다.
+29번은 아직 구현하지 않았다. 조정 작업이 28번 완료 커밋에서 별도 새 작업을 만든다.
 
 ## 새 작업의 구현 원칙
 

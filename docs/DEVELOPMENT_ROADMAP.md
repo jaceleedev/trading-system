@@ -10,8 +10,12 @@
 27번은 `feat/27-workbench-operations`에서 구현·검증을 완료했다. Python 2,189개,
 Vitest 38개, 웹 E2E 86개와 필수 정적 검사·빌드가 통과했다. worker 관측용 migration
 2개를 기존 로컬 DB에 적용했으며 현재 schema는 `b727f04e62d1`이다.
-28·29번은 승인된 다음 작업이며 아직 구현하지 않았다. 실제 결과·제약·연결 범위는
-[HANDOFF.md](HANDOFF.md) 상단을 따른다. 아래는 과거 승인 기록이다.
+28번은 27번 완료 SHA `b04ca337544df94b6a71259dd52bc7a023ea8af9`에서 이어
+`feat/28-web-observation-capture`에 구현·검증했다. Python 2,227개, Vitest 45개,
+웹 E2E 103개 및 필수 검사·빌드가 통과했고 새 migration은 없다. 실제 API·DB·worker와
+빌드 앱의 브라우저 검증은 합성 외부 transport로 격리했다. 29번은 승인된 다음 작업이며
+아직 구현하지 않았다. 실제 결과·제약·완료 커밋·증거는 [HANDOFF.md](HANDOFF.md)
+상단과 `/tmp/trading-feature28-completion.txt`를 따른다. 아래는 과거 승인 기록이다.
 
 2026-09-10 사용자는 기능 18~22의 후속 개발과 실제 주문 연결 코드까지의 범위 확장을
 승인했다. 기존 토스 보유분과 앞으로 투입하는 자금을 함께 운용 대상으로 설계한다.

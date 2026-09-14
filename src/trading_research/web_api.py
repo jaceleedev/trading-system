@@ -275,7 +275,7 @@ def create_app(
 
     from trading_research.job_api import register_job_routes
 
-    register_job_routes(app, job_store)
+    register_job_routes(app, job_store, workspace=workspace)
     from trading_research.market_api import register_market_routes
 
     register_market_routes(app, workspace)
