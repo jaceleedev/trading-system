@@ -98,6 +98,14 @@ async function mockMarket(page: Page) {
     capture('e', 'ALPHA', '1d'),
   ];
   const catalog: MarketCatalog = {
+    observation_age: {
+      checked_at: '2026-09-10T09:00:00Z',
+      capture_id: null,
+      observed_at: null,
+      age_seconds: null,
+      status: 'not_observed',
+      max_age_seconds: null,
+    },
     items: entries,
     total_count: 5,
     supported_count: 5,

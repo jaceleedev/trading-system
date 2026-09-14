@@ -2331,9 +2331,45 @@ export type JobResponse = {
  */
 export type JobServiceStatus = {
     /**
+     * Checked At
+     */
+    checked_at: string;
+    /**
+     * Database
+     */
+    database: 'not_checked' | 'reachable' | 'unavailable';
+    /**
      * Enabled
      */
     enabled: boolean;
+    /**
+     * Queued Count
+     */
+    queued_count: number | null;
+    /**
+     * Running Count
+     */
+    running_count: number | null;
+    /**
+     * Waiting Jobs
+     */
+    waiting_jobs: Array<JobWaitingState>;
+    /**
+     * Waiting Jobs Truncated
+     */
+    waiting_jobs_truncated: boolean;
+    /**
+     * Workers
+     */
+    workers: Array<WorkerObservation>;
+    /**
+     * Workers Truncated
+     */
+    workers_truncated: boolean;
+    /**
+     * Workspace Key
+     */
+    workspace_key: string | null;
 };
 
 /**
@@ -2443,6 +2479,36 @@ export type JobView = {
 };
 
 /**
+ * JobWaitingState
+ */
+export type JobWaitingState = {
+    /**
+     * Available At
+     */
+    available_at: string;
+    /**
+     * Eligible Worker Ids
+     */
+    eligible_worker_ids: Array<string>;
+    /**
+     * Job Id
+     */
+    job_id: string;
+    /**
+     * Kind
+     */
+    kind: string;
+    /**
+     * Reasons
+     */
+    reasons: Array<'scheduled' | 'no_worker' | 'worker_observation_expired' | 'capability_not_allowed' | 'eligible_workers_busy' | 'awaiting_worker_claim'>;
+    /**
+     * Required Capabilities
+     */
+    required_capabilities: Array<'network' | 'codex'>;
+};
+
+/**
  * MarketCaptureSummary
  */
 export type MarketCaptureSummary = {
@@ -2504,6 +2570,7 @@ export type MarketCatalog = {
      * Items
      */
     items: Array<MarketCaptureSummary>;
+    observation_age: MarketObservationAge;
     /**
      * Supported Count
      */
@@ -2596,6 +2663,36 @@ export type MarketEvidenceEvent = {
      * Verification
      */
     verification: 'user_supplied' | 'provider_capture' | 'unverified';
+};
+
+/**
+ * MarketObservationAge
+ */
+export type MarketObservationAge = {
+    /**
+     * Age Seconds
+     */
+    age_seconds: number | null;
+    /**
+     * Capture Id
+     */
+    capture_id: string | null;
+    /**
+     * Checked At
+     */
+    checked_at: string;
+    /**
+     * Max Age Seconds
+     */
+    max_age_seconds: null;
+    /**
+     * Observed At
+     */
+    observed_at: string | null;
+    /**
+     * Status
+     */
+    status: 'unknown' | 'future' | 'not_observed';
 };
 
 /**
@@ -5599,6 +5696,60 @@ export type UnselectedFreshness = {
      * Status
      */
     status: 'not_selected';
+};
+
+/**
+ * WorkerObservation
+ */
+export type WorkerObservation = {
+    /**
+     * Allow Codex
+     */
+    allow_codex: boolean;
+    /**
+     * Allow Network
+     */
+    allow_network: boolean;
+    /**
+     * Codex Web Search Allowed
+     */
+    codex_web_search_allowed: boolean | null;
+    /**
+     * Current Job Id
+     */
+    current_job_id: string | null;
+    /**
+     * Expires At
+     */
+    expires_at: string;
+    /**
+     * Heartbeat At
+     */
+    heartbeat_at: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Liveness
+     */
+    liveness: 'live' | 'stale' | 'stopped';
+    /**
+     * Owner
+     */
+    owner: string;
+    /**
+     * Started At
+     */
+    started_at: string;
+    /**
+     * State
+     */
+    state: 'idle' | 'running' | 'stopped';
+    /**
+     * Stopped At
+     */
+    stopped_at: string | null;
 };
 
 /**

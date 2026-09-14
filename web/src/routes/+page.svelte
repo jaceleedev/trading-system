@@ -5,6 +5,7 @@
   import AccountPanel from '$lib/components/AccountPanel.svelte';
   import ResearchList from '$lib/components/ResearchList.svelte';
   import RecordDetail from '$lib/components/RecordDetail.svelte';
+  import OperationsPanel from '$lib/components/OperationsPanel.svelte';
   import JobsPanel from '$lib/components/JobsPanel.svelte';
   import MarketPanel from '$lib/components/MarketPanel.svelte';
   import InvestigationsPanel from '$lib/components/InvestigationsPanel.svelte';
@@ -19,6 +20,7 @@
 
   let selectedSnapshot = $state('');
   let selectedRecordId = $state<string | null>(null);
+  let requestedInvestigation = $state<{ id: string } | null>(null);
   let maxRecords = $state(50);
   const queryClient = useQueryClient();
   const health = createQuery(() => ({
@@ -143,6 +145,17 @@
     {#if snapshots.isError}<span class="error-state" role="alert">{snapshots.error.message}</span
       >{/if}
   </div>
+  <OperationsPanel
+    ready={health.isSuccess && !health.isFetching}
+    jobsEnabled={health.data?.jobs_enabled ?? false}
+    {context}
+    contextError={contextQuery.isError ? contextQuery.error.message : undefined}
+    onselect={selectRecord}
+    onInvestigation={(id) => {
+      requestedInvestigation = { id };
+      document.getElementById('investigations-panel')?.scrollIntoView({ block: 'start' });
+    }}
+  />
   <div class="workbench-columns">
     <AccountPanel
       context={snapshots.isSuccess && !snapshots.isFetching ? context : undefined}
@@ -170,6 +183,7 @@
   </div>
   <MarketPanel ready={health.isSuccess && !health.isFetching} onselect={selectRecord} />
   <InvestigationsPanel
+    {requestedInvestigation}
     ready={health.isSuccess && !health.isFetching}
     jobsEnabled={health.isSuccess && health.data.jobs_enabled}
     synthetic={health.isSuccess && health.data.synthetic}

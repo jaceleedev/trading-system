@@ -39,6 +39,15 @@ def store(monkeypatch):
             self.calls.append(("claim", kwargs))
             return None
 
+        def register_worker(self, owner, **kwargs):
+            return {"id": str(uuid.uuid4())}
+
+        def heartbeat_worker(self, identity, **kwargs):
+            return None
+
+        def stop_worker(self, identity):
+            return None
+
     instance = Store()
     monkeypatch.setattr("trading_research.jobs.local_job_store", lambda _: instance)
     return instance

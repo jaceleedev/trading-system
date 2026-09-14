@@ -39,6 +39,31 @@ class Store:
             "attempts": [],
         }
 
+    def service_status(self):
+        if self.error:
+            raise self.error
+        return {
+            "enabled": True,
+            "database": "reachable",
+            "checked_at": TIME,
+            "workspace_key": "a" * 64,
+            "workers": [],
+            "workers_truncated": False,
+            "queued_count": 1,
+            "running_count": 0,
+            "waiting_jobs": [
+                {
+                    "job_id": JOB_ID,
+                    "kind": "research-context",
+                    "available_at": TIME,
+                    "required_capabilities": [],
+                    "eligible_worker_ids": [],
+                    "reasons": ["no_worker"],
+                }
+            ],
+            "waiting_jobs_truncated": False,
+        }
+
     def list_jobs(self, limit):
         if self.error:
             raise self.error
@@ -79,7 +104,10 @@ def submission(**values):
 
 def test_jobs_disabled_does_not_break_saved_data_or_access_db(tmp_path):
     with TestClient(create_app(tmp_path), base_url="http://127.0.0.1") as client:
-        assert client.get("/api/v1/jobs/status").json() == {"enabled": False}
+        status = client.get("/api/v1/jobs/status").json()
+        assert status["enabled"] is False and status["database"] == "not_checked"
+        assert status["queued_count"] is None and status["running_count"] is None
+        assert status["workers"] == [] and status["workspace_key"] is None
         assert client.get("/api/v1/context").status_code == 200
         assert client.get("/api/v1/health").json()["read_only"] is True
         for method, path, data in (
@@ -94,7 +122,7 @@ def test_jobs_disabled_does_not_break_saved_data_or_access_db(tmp_path):
 
 
 def test_list_detail_and_cooperative_cancel_are_typed(client, store):
-    assert client.get("/api/v1/jobs/status").json() == {"enabled": True}
+    assert client.get("/api/v1/jobs/status").json() == store.service_status()
     health = client.get("/api/v1/health").json()
     assert health["jobs_enabled"] and not health["read_only"] and not health["orders_enabled"]
     assert client.get("/api/v1/jobs?limit=9").json() == {"items": [store.job]}
@@ -153,6 +181,24 @@ def test_job_errors_are_sanitized(client, store, error, status, code):
         assert response.status_code == status
         assert response.json()["error"]["code"] == code
         assert "private-db-marker" not in response.text
+
+
+@pytest.mark.parametrize(
+    "error", [JobStoreUnavailable("private-db-marker"), SQLAlchemyError("private-db-marker")]
+)
+def test_status_distinguishes_enabled_api_from_database_failure_and_saved_reads(
+    client, store, error
+):
+    store.error = error
+    response = client.get("/api/v1/jobs/status")
+    assert response.status_code == 200
+    status = response.json()
+    assert status["enabled"] is True and status["database"] == "unavailable"
+    assert status["queued_count"] is None and status["running_count"] is None
+    assert status["workers"] == [] and status["waiting_jobs"] == []
+    assert "private-db-marker" not in response.text
+    assert client.get("/api/v1/context").status_code == 200
+    assert client.get("/api/v1/jobs").status_code == 503
 
 
 def test_foreign_origin_cannot_submit_or_cancel_jobs(client, store):

@@ -60,7 +60,12 @@
   </section>
 {/snippet}
 
-<section class="panel detail-panel" aria-label="연구 기록 상세" aria-busy={loading}>
+<section
+  id="record-detail"
+  class="panel detail-panel"
+  aria-label="연구 기록 상세"
+  aria-busy={loading}
+>
   {#if loading}<div class="empty-state" role="status">연결된 연구 기록을 읽고 있습니다.</div>
   {:else if error}<div class="empty-state error-state" role="alert">{error}</div>
   {:else if !record || !item}<div class="empty-state detail-empty">

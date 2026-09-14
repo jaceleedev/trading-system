@@ -4442,13 +4442,91 @@
       "JobServiceStatus": {
         "additionalProperties": false,
         "properties": {
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "database": {
+            "enum": [
+              "not_checked",
+              "reachable",
+              "unavailable"
+            ],
+            "title": "Database",
+            "type": "string"
+          },
           "enabled": {
             "title": "Enabled",
             "type": "boolean"
+          },
+          "queued_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Queued Count"
+          },
+          "running_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Running Count"
+          },
+          "waiting_jobs": {
+            "items": {
+              "$ref": "#/components/schemas/JobWaitingState"
+            },
+            "title": "Waiting Jobs",
+            "type": "array"
+          },
+          "waiting_jobs_truncated": {
+            "title": "Waiting Jobs Truncated",
+            "type": "boolean"
+          },
+          "workers": {
+            "items": {
+              "$ref": "#/components/schemas/WorkerObservation"
+            },
+            "title": "Workers",
+            "type": "array"
+          },
+          "workers_truncated": {
+            "title": "Workers Truncated",
+            "type": "boolean"
+          },
+          "workspace_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workspace Key"
           }
         },
         "required": [
-          "enabled"
+          "enabled",
+          "database",
+          "checked_at",
+          "workspace_key",
+          "workers",
+          "workers_truncated",
+          "queued_count",
+          "running_count",
+          "waiting_jobs",
+          "waiting_jobs_truncated"
         ],
         "title": "JobServiceStatus",
         "type": "object"
@@ -4642,6 +4720,67 @@
         "title": "JobView",
         "type": "object"
       },
+      "JobWaitingState": {
+        "additionalProperties": false,
+        "properties": {
+          "available_at": {
+            "format": "date-time",
+            "title": "Available At",
+            "type": "string"
+          },
+          "eligible_worker_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Eligible Worker Ids",
+            "type": "array"
+          },
+          "job_id": {
+            "title": "Job Id",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "reasons": {
+            "items": {
+              "enum": [
+                "scheduled",
+                "no_worker",
+                "worker_observation_expired",
+                "capability_not_allowed",
+                "eligible_workers_busy",
+                "awaiting_worker_claim"
+              ],
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "required_capabilities": {
+            "items": {
+              "enum": [
+                "network",
+                "codex"
+              ],
+              "type": "string"
+            },
+            "title": "Required Capabilities",
+            "type": "array"
+          }
+        },
+        "required": [
+          "job_id",
+          "kind",
+          "available_at",
+          "required_capabilities",
+          "eligible_worker_ids",
+          "reasons"
+        ],
+        "title": "JobWaitingState",
+        "type": "object"
+      },
       "MarketCaptureSummary": {
         "additionalProperties": false,
         "properties": {
@@ -4772,6 +4911,9 @@
             "title": "Items",
             "type": "array"
           },
+          "observation_age": {
+            "$ref": "#/components/schemas/MarketObservationAge"
+          },
           "supported_count": {
             "title": "Supported Count",
             "type": "integer"
@@ -4795,7 +4937,8 @@
           "supported_count",
           "unsupported_count",
           "invalid_count",
-          "truncated_count"
+          "truncated_count",
+          "observation_age"
         ],
         "title": "MarketCatalog",
         "type": "object"
@@ -4957,6 +5100,74 @@
           "verification"
         ],
         "title": "MarketEvidenceEvent",
+        "type": "object"
+      },
+      "MarketObservationAge": {
+        "additionalProperties": false,
+        "properties": {
+          "age_seconds": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Age Seconds"
+          },
+          "capture_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Capture Id"
+          },
+          "checked_at": {
+            "format": "date-time",
+            "title": "Checked At",
+            "type": "string"
+          },
+          "max_age_seconds": {
+            "title": "Max Age Seconds",
+            "type": "null"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "status": {
+            "enum": [
+              "unknown",
+              "future",
+              "not_observed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "checked_at",
+          "capture_id",
+          "observed_at",
+          "age_seconds",
+          "status",
+          "max_age_seconds"
+        ],
+        "title": "MarketObservationAge",
         "type": "object"
       },
       "MarketSeries": {
@@ -10531,6 +10742,110 @@
           "sizing_validated"
         ],
         "title": "UnselectedFreshness",
+        "type": "object"
+      },
+      "WorkerObservation": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_codex": {
+            "title": "Allow Codex",
+            "type": "boolean"
+          },
+          "allow_network": {
+            "title": "Allow Network",
+            "type": "boolean"
+          },
+          "codex_web_search_allowed": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Codex Web Search Allowed"
+          },
+          "current_job_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Job Id"
+          },
+          "expires_at": {
+            "format": "date-time",
+            "title": "Expires At",
+            "type": "string"
+          },
+          "heartbeat_at": {
+            "format": "date-time",
+            "title": "Heartbeat At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "liveness": {
+            "enum": [
+              "live",
+              "stale",
+              "stopped"
+            ],
+            "title": "Liveness",
+            "type": "string"
+          },
+          "owner": {
+            "title": "Owner",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "state": {
+            "enum": [
+              "idle",
+              "running",
+              "stopped"
+            ],
+            "title": "State",
+            "type": "string"
+          },
+          "stopped_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stopped At"
+          }
+        },
+        "required": [
+          "id",
+          "owner",
+          "started_at",
+          "heartbeat_at",
+          "expires_at",
+          "stopped_at",
+          "state",
+          "liveness",
+          "allow_network",
+          "allow_codex",
+          "codex_web_search_allowed",
+          "current_job_id"
+        ],
+        "title": "WorkerObservation",
         "type": "object"
       },
       "WorkflowCreate": {

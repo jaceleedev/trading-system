@@ -390,6 +390,71 @@ class Worker:
         self.coordinator_closed = threading.Event()
         self.coordinator_failed = threading.Event()
         self.coordinator_thread = None
+        self.presence_closed = threading.Event()
+        self.presence_failed = threading.Event()
+        self.presence_thread = None
+        self.presence_lock = threading.Lock()
+        self.session_id = None
+        self.current_job_id = None
+
+    def start_presence(self):
+        """Independent process heartbeat, including idle queue polling and blocked handlers."""
+        if self.session_id is not None:
+            return
+        # A new session must not inherit an earlier transient run's completed job.
+        self.current_job_id = None
+        registration = self.store.register_worker(
+            self.owner,
+            allow_network=self.allow_network,
+            allow_codex=self.allow_codex,
+            codex_web_search_allowed=(
+                self.codex_settings.allow_web_search if self.allow_codex else None
+            ),
+            ttl_seconds=self.lease_seconds,
+        )
+        self.session_id = registration["id"]
+        self.presence_closed.clear()
+
+        def observe():
+            while not self.presence_closed.wait(min(self.lease_seconds / 3, 5)):
+                if self.stop.is_set():
+                    return
+                try:
+                    with self.presence_lock:
+                        self._observe_presence()
+                except Exception:
+                    # Losing registration observability must not silently leave a
+                    # process claiming new work or starting another provider request.
+                    self.presence_failed.set()
+                    self.stop.set()
+                    return
+
+        self.presence_thread = threading.Thread(target=observe, name="worker-presence", daemon=True)
+        self.presence_thread.start()
+
+    def _observe_presence(self):
+        self.store.heartbeat_worker(
+            self.session_id, current_job_id=self.current_job_id, ttl_seconds=self.lease_seconds
+        )
+
+    def _set_current_job(self, identity):
+        with self.presence_lock:
+            self.current_job_id = identity
+            self._observe_presence()
+
+    def close_presence(self):
+        self.presence_closed.set()
+        if self.presence_thread is not None:
+            self.presence_thread.join(timeout=10)
+        if self.session_id is not None:
+            try:
+                self.store.stop_worker(self.session_id)
+            except Exception:
+                # Unavailable DB leaves the last observation to expire naturally.
+                self.presence_failed.set()
+            self.session_id = None
+            self.presence_thread = None
+            self.current_job_id = None
 
     def coordinate_once(self):
         if self.investigations is not None and not self.stop.is_set():
@@ -422,6 +487,7 @@ class Worker:
         self.coordinator_closed.set()
         if self.coordinator_thread is not None:
             self.coordinator_thread.join(timeout=10)
+        self.close_presence()
 
     def _finish_investigation(self, job, result):
         # This transaction fences both the lease and investigation revision.
@@ -457,12 +523,28 @@ class Worker:
     def run_once(self):
         if self.stop.is_set():
             return {"status": "stopped"}
+        transient = self.session_id is None
+        self.start_presence()
+        try:
+            return self._run_once()
+        finally:
+            if transient:
+                self.close_presence()
+            else:
+                try:
+                    self._set_current_job(None)
+                except Exception:
+                    self.presence_failed.set()
+                    self.stop.set()
+
+    def _run_once(self):
         allowed = list(KINDS) if self.allow_network else ["research-context"]
         if self.allow_codex:
             allowed.append("investigation-run")
         job = self.store.claim(self.owner, lease_seconds=self.lease_seconds, allowed_kinds=allowed)
         if job is None:
             return {"status": "idle"}
+        self._set_current_job(job["id"])
         try:
             job = copy.deepcopy(job)
             job["parameters"] = (
@@ -575,6 +657,7 @@ def main(argv=None):
         if threading.current_thread() is threading.main_thread():
             for signum in (signal.SIGINT, signal.SIGTERM):
                 previous[signum] = signal.signal(signum, lambda *_: stop.set())
+        worker.start_presence()
         if args.once:
             worker.coordinate_once()
         else:
@@ -587,10 +670,15 @@ def main(argv=None):
                 return 1 if result["status"] == "failed" else 0
             if result["status"] == "idle":
                 stop.wait(args.poll_seconds)
-        if worker.coordinator_failed.is_set():
+        if worker.coordinator_failed.is_set() or worker.presence_failed.is_set():
             print(
                 json.dumps(
-                    {"status": "error", "error_code": "investigation_coordinator_unavailable"}
+                    {
+                        "status": "error",
+                        "error_code": "worker_presence_unavailable"
+                        if worker.presence_failed.is_set()
+                        else "investigation_coordinator_unavailable",
+                    }
                 )
             )
             return 1

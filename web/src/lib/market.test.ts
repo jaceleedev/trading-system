@@ -78,6 +78,14 @@ it('does not combine currencies, time intervals, price bases or unsupported capt
     response_contract_sha256: 'f'.repeat(64),
   };
   const catalog: MarketCatalog = {
+    observation_age: {
+      checked_at: '2026-09-10T09:00:00Z',
+      capture_id: null,
+      observed_at: null,
+      age_seconds: null,
+      status: 'not_observed',
+      max_age_seconds: null,
+    },
     items: [
       entry,
       { ...entry, capture_id: 'b'.repeat(64) },

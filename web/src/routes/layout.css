@@ -1873,3 +1873,132 @@ blockquote {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.operations-panel {
+  padding: 22px;
+  margin-bottom: 20px;
+  font-size: 13px;
+}
+.operations-heading,
+.operations-work {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.operations-heading h2 {
+  font-size: 19px;
+}
+.operations-heading button {
+  font-size: 12px;
+  gap: 7px;
+}
+.operations-status-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+  padding: 12px 0;
+  border-block: 1px solid var(--border);
+}
+.operations-status-grid dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+.operations-status-grid dd {
+  margin: 3px 0 0;
+  font-weight: 600;
+}
+.operations-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  margin: 18px 0;
+}
+.operations-summary-grid section + section {
+  border-left: 1px solid var(--border);
+  padding-left: 22px;
+}
+.operations-summary-grid h3 {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+.operations-summary-grid a,
+.operations-review {
+  display: block;
+  margin-top: 7px;
+  font-size: 12px;
+}
+.operations-review small {
+  display: block;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.operations-work {
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 18px;
+}
+.operations-work h3 {
+  display: inline;
+  font-size: 14px;
+  margin-right: 12px;
+}
+.operations-work p {
+  display: inline;
+}
+.operations-investigations,
+.operations-waiting,
+.operations-workers ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+.operations-investigations li {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.operations-workers li + li {
+  margin-top: 10px;
+}
+.operations-waiting {
+  color: #815622;
+}
+.operations-boundary {
+  margin-top: 12px;
+}
+.operations-panel p,
+.operations-panel dd,
+.operations-panel li,
+.operations-panel button {
+  overflow-wrap: anywhere;
+}
+#record-detail,
+#investigations-panel,
+#jobs-panel,
+#account-heading,
+#market-heading,
+#research-heading {
+  scroll-margin-top: 20px;
+}
+@media (max-width: 700px) {
+  .operations-panel {
+    padding: 18px 16px;
+  }
+  .operations-status-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .operations-summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+  .operations-summary-grid section + section {
+    border-left: 0;
+    padding-left: 0;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+}

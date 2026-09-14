@@ -1,5 +1,10 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { createQuery } from '@tanstack/svelte-query';
+  import { createPollingWindow } from '$lib/polling.svelte';
+  import { jobIsActive } from '$lib/polling';
+  import { investigationNeedsPolling, waitReasonLabels } from '$lib/operations';
+  import { fetchJobs, fetchJobsStatus } from '$lib/jobs';
   import { RotateCw } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
   import type {
@@ -31,6 +36,7 @@
     selectedSnapshot,
     knownRecords,
     onselect,
+    requestedInvestigation = null,
   }: {
     ready: boolean;
     jobsEnabled: boolean;
@@ -38,6 +44,7 @@
     selectedSnapshot: string;
     knownRecords: ResearchResponse[];
     onselect: (id: string) => void;
+    requestedInvestigation?: { id: string } | null;
   } = $props();
   let purpose = $state('');
   let symbols = $state('');
@@ -57,12 +64,32 @@
   let pendingReview = $state<{ id: string; body: InvestigationRevise } | null>(null);
   let pendingPause = $state<{ id: string; revision: number } | null>(null);
 
+  const polling = createPollingWindow();
+  const jobsQuery = createQuery(() => ({
+    queryKey: ['jobs'],
+    enabled: ready && jobsEnabled,
+    queryFn: ({ signal }) => fetchJobs(signal),
+  }));
+  const statusQuery = createQuery(() => ({
+    queryKey: ['jobs-status'],
+    enabled: ready && jobsEnabled,
+    queryFn: ({ signal }) => fetchJobsStatus(signal),
+  }));
   const listQuery = createQuery(() => ({
     queryKey: ['investigations'],
     enabled: ready && jobsEnabled,
     queryFn: ({ signal }) => fetchInvestigations(signal),
+    refetchInterval: (query) =>
+      polling.interval(
+        query.state.status === 'success' &&
+          !!query.state.data &&
+          query.state.data.items.some((item) =>
+            investigationNeedsPolling(item, jobsQuery.isSuccess ? jobsQuery.data.items : undefined),
+          ),
+      ),
+    refetchIntervalInBackground: false,
   }));
-  let available = $derived(ready && jobsEnabled && listQuery.isSuccess && !listQuery.isFetching);
+  let available = $derived(ready && jobsEnabled && listQuery.isSuccess);
   let items = $derived(available ? listQuery.data?.items : undefined);
   let disabled = $derived(
     !jobsEnabled ||
@@ -87,13 +114,19 @@
       queryKey: ['investigation', id],
       enabled: available && !!id,
       queryFn: ({ signal }) => fetchInvestigation(id!, signal),
+      refetchInterval: (query) =>
+        polling.interval(
+          query.state.status === 'success' &&
+            !!query.state.data &&
+            query.state.data.investigation.status !== 'paused' &&
+            (jobIsActive(query.state.data.active_job) ||
+              query.state.data.research_jobs?.some(jobIsActive) === true),
+        ),
+      refetchIntervalInBackground: false,
     };
   });
   let detail = $derived(
-    available &&
-      detailQuery.isSuccess &&
-      !detailQuery.isFetching &&
-      detailQuery.data.investigation.id === selectedId
+    available && detailQuery.isSuccess && detailQuery.data.investigation.id === selectedId
       ? detailQuery.data
       : undefined,
   );
@@ -102,7 +135,13 @@
   let unresolved = $derived(!!pendingCreate || !!pendingReview || !!pendingPause);
   let refreshing = $derived(listQuery.isFetching || detailQuery.isFetching);
 
+  $effect(() => {
+    const requested = requestedInvestigation;
+    if (requested) untrack(() => selectInvestigation(requested.id));
+  });
+
   function selectInvestigation(id: string) {
+    polling.restart();
     selectedId = id;
     if (!pendingReview) {
       reviewInput = null;
@@ -110,6 +149,7 @@
     }
   }
   async function refresh() {
+    polling.restart();
     const listed = await listQuery.refetch();
     if (listed.isSuccess && pendingCreate) {
       const found = listed.data.items.find(
@@ -136,6 +176,7 @@
     }
   }
   async function accepted(result: InvestigationResponse, message: string) {
+    polling.restart();
     selectedId = result.investigation.id;
     feedback = message;
     actionError = '';
@@ -294,7 +335,12 @@
       </ul>{:else}<p class="muted">기록된 항목이 없습니다.</p>{/if}
   </section>{/snippet}
 
-<section class="panel investigations-panel" aria-label="AI 조사" aria-busy={refreshing || busy}>
+<section
+  id="investigations-panel"
+  class="panel investigations-panel"
+  aria-label="AI 조사"
+  aria-busy={refreshing || busy}
+>
   <header class="investigation-heading">
     <div>
       <h2>AI 조사</h2>
@@ -309,7 +355,7 @@
     >
   </header>
   {#if !ready}<p class="empty-state muted">작업실 연결을 확인하고 있습니다.</p>
-  {:else if listQuery.isFetching}<p class="empty-state" role="status">
+  {:else if listQuery.isPending && !disabled}<p class="empty-state" role="status">
       저장된 조사를 읽고 있습니다.
     </p>
   {:else if disabled}<p class="empty-state muted">이 작업실에서는 AI 조사 실행이 꺼져 있습니다.</p>
@@ -425,16 +471,22 @@
               ><span class="investigation-state"
                 >{investigationState(
                   item,
-                  detail?.investigation.id === item.id ? detail.active_job : undefined,
+                  detail?.investigation.id === item.id
+                    ? detail.active_job
+                    : jobsQuery.isSuccess
+                      ? jobsQuery.data.items.find((job) => job.id === item.active_job_id)
+                      : undefined,
                 )}</span
               ></button
             >
           </li>{/each}
       </ul>
-      <p class="muted">최신 조사 최대 50개 · 실행 상태는 선택 후 또는 다시 읽기로 확인</p>{/if}
+      <p class="muted">
+        최신 조사 최대 50개 · 활성 작업은 화면이 보이는 동안 5초마다 최대 5분간 다시 확인
+      </p>{/if}
     {#if selectedId}
       <section class="investigation-detail" aria-label="선택한 조사 상세">
-        {#if detailQuery.isFetching}<p class="empty-state" role="status">
+        {#if detailQuery.isPending}<p class="empty-state" role="status">
             조사 입력과 실행 결과를 읽고 있습니다.
           </p>
         {:else if detailQuery.isError}<p class="empty-state error-state" role="alert">
@@ -461,6 +513,14 @@
                 ? ' · 취소 요청됨'
                 : ''}{detail.active_job.error_code ? ` · 오류 ${detail.active_job.error_code}` : ''}
             </p>{/if}
+          {#if detail.active_job?.status === 'queued' && statusQuery.isSuccess}
+            {@const waiting = statusQuery.data.waiting_jobs?.find(
+              (item) => item.job_id === detail?.active_job?.id,
+            )}
+            {#each waiting?.reasons ?? [] as reason}<p class="muted">
+                대기 이유 · {waitReasonLabels[reason] ?? reason}
+              </p>{/each}
+          {/if}
           {#if detail.investigation.latest_completed_revision !== null && detail.investigation.latest_completed_revision !== detail.investigation.current_revision}<p
               class="market-notice"
             >

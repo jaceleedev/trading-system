@@ -1,5 +1,9 @@
 <script lang="ts">
-  import { createQuery } from '@tanstack/svelte-query';
+  import { createQuery, useQueryClient } from '@tanstack/svelte-query';
+  import type { JobView } from '$lib/api/types.gen';
+  import { createPollingWindow } from '$lib/polling.svelte';
+  import { jobIsActive } from '$lib/polling';
+  import { waitReasonLabels } from '$lib/operations';
   import { RotateCw } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
   import { formatTime, shortId } from '$lib/format';
@@ -23,6 +27,8 @@
   let actionError = $state('');
   let selectedJobId = $state<string | null>(null);
 
+  const polling = createPollingWindow();
+  const queryClient = useQueryClient();
   const statusQuery = createQuery(() => ({
     queryKey: ['jobs-status'],
     enabled: ready,
@@ -31,7 +37,30 @@
   const jobsQuery = createQuery(() => ({
     queryKey: ['jobs'],
     enabled: ready && statusQuery.isSuccess && statusQuery.data.enabled,
-    queryFn: ({ signal }) => fetchJobs(signal),
+    queryFn: async ({ signal }) => {
+      const previous = queryClient.getQueryData<{ items: JobView[] }>(['jobs']);
+      const result = await fetchJobs(signal);
+      if (
+        previous?.items.some(
+          (job) =>
+            jobIsActive(job) &&
+            result.items.some((next) => next.id === job.id && !jobIsActive(next)),
+        )
+      ) {
+        await Promise.allSettled([
+          queryClient.invalidateQueries({ queryKey: ['investigations'] }),
+          queryClient.invalidateQueries({ queryKey: ['investigation'] }),
+        ]);
+      }
+      return result;
+    },
+    refetchInterval: (query) =>
+      polling.interval(
+        query.state.status === 'success' &&
+          !!query.state.data &&
+          query.state.data.items.some(jobIsActive),
+      ),
+    refetchIntervalInBackground: false,
   }));
   const detailQuery = createQuery(() => {
     const id = selectedJobId;
@@ -39,18 +68,20 @@
       queryKey: ['job', id],
       enabled: ready && statusQuery.isSuccess && statusQuery.data.enabled && !!id,
       queryFn: ({ signal }) => fetchJob(id!, signal),
+      refetchInterval: (query) =>
+        polling.interval(
+          query.state.status === 'success' &&
+            !!query.state.data &&
+            jobIsActive(query.state.data.job),
+        ),
+      refetchIntervalInBackground: false,
     };
   });
   let enabled = $derived(ready && statusQuery.isSuccess && statusQuery.data.enabled);
-  let jobs = $derived(
-    enabled && jobsQuery.isSuccess && !jobsQuery.isFetching ? jobsQuery.data.items : undefined,
-  );
+  let jobs = $derived(enabled && jobsQuery.isSuccess ? jobsQuery.data.items : undefined);
   let refreshing = $derived(statusQuery.isFetching || jobsQuery.isFetching);
   let detail = $derived(
-    jobs &&
-      detailQuery.isSuccess &&
-      !detailQuery.isFetching &&
-      detailQuery.data.job.id === selectedJobId
+    jobs && detailQuery.isSuccess && detailQuery.data.job.id === selectedJobId
       ? detailQuery.data.job
       : undefined,
   );
@@ -72,6 +103,7 @@
   };
 
   async function refreshJobs() {
+    polling.restart();
     feedback = '';
     actionError = '';
     const status = await statusQuery.refetch();
@@ -91,6 +123,7 @@
   }
 
   async function submit() {
+    polling.restart();
     if (!canSubmit) return;
     actionError = '';
     feedback = '';
@@ -134,6 +167,7 @@
   }
 
   async function cancel(id: string) {
+    polling.restart();
     if (cancellingId || submitting || !enabled) return;
     cancellingId = id;
     feedback = '';
@@ -157,7 +191,12 @@
   }
 </script>
 
-<section class="panel jobs-panel" aria-labelledby="jobs-heading" aria-busy={refreshing}>
+<section
+  id="jobs-panel"
+  class="panel jobs-panel"
+  aria-labelledby="jobs-heading"
+  aria-busy={refreshing}
+>
   <div class="panel-heading jobs-heading">
     <div>
       <h2 id="jobs-heading">작업 실행</h2>
@@ -219,7 +258,7 @@
     {/if}
     {#if feedback}<p class="jobs-feedback" role="status">{feedback}</p>{/if}
     {#if actionError}<p class="jobs-feedback error-state" role="alert">{actionError}</p>{/if}
-    {#if jobsQuery.isFetching}
+    {#if jobsQuery.isPending}
       <div class="jobs-empty" role="status">작업 목록을 읽고 있습니다.</div>
     {:else if jobsQuery.isError}
       <div class="jobs-empty error-state" role="alert">{jobsQuery.error.message}</div>
@@ -254,6 +293,14 @@
                     class:job-success={job.status === 'succeeded'}
                     class:job-failed={job.status === 'failed'}>{statusLabels[job.status]}</span
                   >
+                  {#if job.status === 'queued' && statusQuery.isSuccess}
+                    {@const waiting = statusQuery.data.waiting_jobs?.find(
+                      (item) => item.job_id === job.id,
+                    )}
+                    {#each waiting?.reasons ?? [] as reason}<small
+                        >{waitReasonLabels[reason] ?? reason}</small
+                      >{/each}
+                  {/if}
                   {#if job.cancel_requested && ['queued', 'running'].includes(job.status)}
                     <small class="job-cancel-requested">취소 요청됨</small>
                   {/if}
@@ -292,7 +339,8 @@
         </table>
       </div>
       <p class="muted jobs-count">
-        최근 작업 {jobs.length}개 · 상태 확인은 목록 다시 읽기를 사용합니다.
+        최근 작업 {jobs.length}개 · 대기·실행 중인 작업은 화면이 보이는 동안 5초마다 최대 5분간 다시
+        확인합니다.
       </p>
     {/if}
     {#if selectedJobId && jobs}
@@ -306,7 +354,7 @@
             }}>시도 기록 닫기</button
           >
         </div>
-        {#if detailQuery.isFetching}<p class="muted" role="status">실행 시도를 읽고 있습니다.</p>
+        {#if detailQuery.isPending}<p class="muted" role="status">실행 시도를 읽고 있습니다.</p>
         {:else if detailQuery.isError}<p class="error-state" role="alert">
             {detailQuery.error.message}
           </p>

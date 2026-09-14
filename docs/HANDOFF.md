@@ -1,3 +1,107 @@
+# 2026-09-14 기능 27 인수인계
+
+## 기능 27: 작업실 운영 상태·대기 이유·자료 시점
+
+`feat/27-workbench-operations`에서 기능 27을 구현·검증했다. 시작점은 기능 26 병합
+`6c3eddb5d05cb1ec3585b2da83aa4a5cb159ea01`이며 원본
+`/Users/jace/Desktop/trading-system`의 `main` 체크아웃은 보존했다. 작업 위치는
+`/Users/jace/.codex/worktrees/a58a/trading-system`이다. 이 인계 절을 포함한 로컬 완료
+커밋이 27번 브랜치 끝점이다. 정확한 SHA는 최종 응답과
+`git rev-parse feat/27-workbench-operations`로 확인한다. 원격 push·PR 생성·병합은 하지 않았다.
+
+2026-09-14 추가 승인된 27~29번의 범위·브랜치·새 작업별 구현 원칙·완료 게이트와
+후속 검토는 새 [DEVELOPMENT_SEQUENCE.md](DEVELOPMENT_SEQUENCE.md)에 기록했다.
+이 작업은 27번만 담당했다. 28번의 수집 UI와 29번의 전체 단계 탐색은 아직 구현하지 않았다.
+
+### 구현된 동작
+
+- `worker_sessions`에 workspace별 독립 세션을 등록한다. idle과 긴 작업 중에도 작업
+  시도와 별개의 heartbeat를 갱신하며 정상 종료·관측 만료·재시작의 새 세션을 구분한다.
+  같은 Worker 객체의 재사용에서도 이전 완료 작업 ID가 새 idle 세션에 남지 않는다.
+- `/api/v1/jobs/status`는 API 설정과 DB 접근, worker 생존·관측 시각·유효 기한,
+  Codex 허용, 토스 GET 수집 허용, Codex 웹 검색 설정을 분리한다. 로그인·외부 API
+  성공이나 투자 실행 준비를 검사하거나 주장하지 않는다. 기존 시도 heartbeat만 있는
+  worker는 생존 확인으로 취급하지 않는다.
+- 전체 workspace의 queued/running 수와 제한된 대기 이유 목록을 제공한다. 예약 전,
+  worker 없음, 가능한 worker의 관측 만료, 기능 미허용, 처리 중, 인수 대기를 구분한다.
+  여러 worker의 유효 시각·기능을 각각 검사하고 다른 worker의 권한을 합치지 않는다.
+  GET은 임대 만료 작업을 복구하거나 실행하지 않는다. DB 장애의 수치는 `null`이다.
+- 첫 화면에서 계좌의 기존 신선도 계산과 판단 재검토 목록, 시장 관측 시각·경과 시간,
+  대기 이유·조사 요약을 읽고 해당 기록·패널로 이동한다. 계좌는 자동 선택하지 않는다.
+  시장 공통 신선도 기준은 미설정이며 미래 시각, 목록 밖 자료와 미확인 숫자를 구분한다.
+- 활성 작업·조사는 5초, 유휴 운영 상태는 30초 간격으로 화면이 보이는 동안 최대
+  5분 재조회한다. 숨김·오류·완료·일시정지에서 불필요한 요청을 줄이고 완료 조사 결과를
+  다시 읽는다. 성공한 이전 응답을 실패 이후의 현재 상태로 표시하지 않는다.
+- OpenAPI와 생성 TypeScript 클라이언트를 함께 갱신했다. 소수 문자열과 unknown,
+  자료 관측·기록 시각, DB 없이 저장 자료를 읽는 경로를 보존했다. 실제 주문 전송은 비활성이다.
+
+### 최종 검증
+
+- 잠금 파일 설치 완료. Python 3.14.7·Node 24.18.0·pnpm 11.13.0으로 검증했다.
+- `TRADING_TEST_DB=1 uv run pytest`: **2,189개 통과**, 93.93초. 기존
+  FastAPI/Starlette 의존성 deprecation 경고 2개가 남아 있다.
+- `uv run ruff check .`, `uv run ruff format --check .`: 통과, Python 245개 파일.
+- `mise run web-check`: OpenAPI·생성 SDK 일치, Svelte 오류·경고 0개, Vitest 38개 통과.
+  `pnpm --dir web format:check`, `mise run web-build` 통과(최종 빌드 2.77초).
+- `pnpm --dir web test:e2e`: **86개 통과**, 40.6초. `git diff --check` 통과.
+  새 운영/polling UI의
+  HTTP 응답 fixture 검사와 별도의 실제 DB·worker 검증을 구분했다. 시간 상한·숨김
+  검사는 브라우저 가상 시계를 사용하며 서버/DB 시계를 바꾸지 않는다.
+- 독립 검토에서 조사 선택 효과의 불필요한 재실행, 실패한 작업 조회의 캐시 표시,
+  Worker 객체 재사용 시 완료 작업 ID 누수를 수정하고 관련 회귀검사를 통과했다.
+  첫 polling 테스트의 응답 대기 race도 고쳤다. 최종 미해결 검사 실패는 없다.
+
+실제 로컬 런타임은 새 합성 workspace 2개에서 다음을 확인했다.
+
+- 배포된 CLI의 `--poll-seconds=60` idle 중에도 3초 유효 기간의 독립 heartbeat가
+  갱신됐다. SIGKILL 후 벽시계로 만료를 기다렸고 재시작 시 세션 ID가 바뀌었다.
+- 처리 중인 worker와 대기 이유, 살아 있는 비허용 worker와 만료된 허용 worker의
+  분리, workspace 격리, 재시작 후 원래 작업 ID의 두 번째 시도 복구를 검증했다.
+  오래 실행되는 작업·네트워크 종류의 복구는 안전한 합성 handler를 사용했다.
+- 같은 localhost DB에 별도 QA API의 잘못된 합성 인증 설정을 적용해 실제 접근
+  실패를 유도했다. DB를 중단하지 않고 enabled와 unavailable, `null` 수치,
+  계좌·시장·연구 파일 조회 지속을 확인했다. API 재시작 후 저장 상태도 유지됐다.
+- 브라우저는 Browser 플러그인이 없어 프로젝트의 Playwright를 사용했다.
+  `http://127.0.0.1:52876`에서 실제 FastAPI·DB·기본 native worker·빌드된 앱으로
+  명시적 계좌 선택→자료 시점 확인→저장 자료 검증 접수→자동 완료 표시→조사 요약
+  선택→상세→일시정지를 확인했다. 저장 검증은 실제 프로젝트 handler로 완료했다.
+- 데스크톱 1536×1024·모바일 390×844를 직접 검토했다. 정상 흐름의 콘솔 오류·경고,
+  페이지 오류·HTTP 오류·외부 요청·모바일 가로 넘침은 0이었다. 별도
+  `http://127.0.0.1:53623`에서는 실제 DB 접근 실패 상태의 UI와 저장 자료 읽기를
+  확인했고 추가 6초 동안 자동 요청이 발생하지 않았다. DB 관련 503은 의도한 실패다.
+- 모든 QA API·worker를 종료하고 두 포트가 닫힌 것을 확인했다. 이번 namespace의
+  작업 5행·worker 세션 7행과 연결 조사 자료만 정리했다. jobs/worker_sessions/
+  investigations/investigation_revisions/job_attempts의 해당 namespace 잔여는 0이다.
+  합성 원본과 증거 파일은 보존했으며 개인 저장소나 다른 DB namespace는 수정하지 않았다.
+- 실제 토스·시장·계좌·주문 API와 Codex 모델은 호출하지 않았다. 합성 검증 결과는
+  외부 서비스 연결 성공, 실제 투자·체결·수익 증거가 아니다.
+
+### Migration과 증거
+
+새 migration은 **2개**다. 기존 `f726a13e940b`에서
+`a727d91b30c4`(worker 등록 테이블·인덱스),
+`b727f04e62d1`(별도 Codex 웹 검색 허용 관측 nullable 열)을 순서대로 적용했다.
+대상은 기존 `127.0.0.1:55432/trading`만 사용했고 현재 schema는 `b727f04e62d1`이다.
+기존 테이블·행을 초기화하거나 downgrade하지 않았다. 이 검증은 기존 DB의 순차
+migration 적용이며 빈 DB를 새로 만든 migration 검증은 아니다. API와 worker는
+새 코드로 재시작해야 독립 등록/heartbeat를 제공한다.
+
+검사 로그는 `/tmp/trading-feature27-pytest-final.log`,
+`/tmp/trading-feature27-web-check.log`, `/tmp/trading-feature27-web-format.log`,
+`/tmp/trading-feature27-web-build.log`, `/tmp/trading-feature27-e2e.log`에 있다.
+E2E 산출물은 `/tmp/trading-feature27-e2e/`, 실제 런타임·브라우저 화면·요청/응답·
+정리 증거는 `/tmp/trading-feature27-runtime-bruv_2at/`에 보존했다.
+정리 결과는 `19-final-cleanup-verification.json`이다.
+
+### 이어갈 작업
+
+조정 작업은 27번 완료 커밋에서 새 `feat/28-web-observation-capture` 브랜치와
+새 Codex 작업으로 **기능 28만** 진행한다. 기존 account-sync/market-capture 및
+credential resolver와 allow-network 경계를 재사용하고 명시적 입력·수집 완료
+ID/시각/범위·동일 request key 재확인을 구현한다. 28 완료 후 별도 작업이
+29번을 이어받는다. 출처 저장 강화·새 가격/공시 재판단·실제 자료 모의운용은
+세 기능 이후 별도 검토이며 이번 완료에 포함되지 않는다.
+
 # 2026-09-11 인수인계
 
 ## 기능 26 PR 준비와 재검증

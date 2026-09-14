@@ -106,6 +106,34 @@ def test_empty_catalog_is_offline_without_database(client, tmp_path, monkeypatch
     assert response.json()["items"] == []
     assert response.headers["cache-control"] == "no-store"
     assert not (tmp_path / "var").exists()
+    age = response.json()["observation_age"]
+    assert age["status"] == "not_observed"
+    assert age["observed_at"] is age["age_seconds"] is age["max_age_seconds"] is None
+
+
+def test_market_age_preserves_unknown_policy_future_and_bounded_coverage(
+    client, tmp_path, monkeypatch
+):
+    monkeypatch.setattr("trading_research.market_observations.utc_now", lambda: NOW)
+    identity = capture(tmp_path, received=NOW - timedelta(seconds=30))
+    age = client.get("/api/v1/market/catalog").json()["observation_age"]
+    assert age == {
+        "checked_at": NOW.isoformat(),
+        "capture_id": identity,
+        "observed_at": (NOW - timedelta(seconds=30)).isoformat(),
+        "age_seconds": 30.0,
+        "status": "unknown",
+        "max_age_seconds": None,
+    }
+    future = capture(tmp_path, received=NOW + timedelta(seconds=10))
+    age = client.get("/api/v1/market/catalog").json()["observation_age"]
+    assert age["status"] == "future" and age["age_seconds"] == -10.0
+    assert age["capture_id"] == future
+    capture(tmp_path, received=NOW + timedelta(seconds=20), pinned=False)
+    bounded = client.get("/api/v1/market/catalog?limit=1").json()
+    assert bounded["truncated_count"] == 2
+    assert bounded["observation_age"]["status"] == "not_observed"
+    assert bounded["observation_age"]["age_seconds"] is None
 
 
 def test_http_matches_precise_market_view_and_validated_event(client, tmp_path):
