@@ -26,7 +26,7 @@ test('empty stores render a useful account and research state without inventing 
   await expect(page).toHaveTitle(/투자 작업실/);
   await expect(page.getByRole('heading', { name: '투자 작업실', exact: true })).toBeVisible();
   await expect(page.getByText('저장된 연구 기록이 없습니다.')).toBeVisible();
-  await expect(page.getByRole('combobox', { name: '계좌 관측' })).toHaveValue('');
+  await expect(page.getByRole('combobox', { name: '계좌 관측', exact: true })).toHaveValue('');
   await expect(page.getByTestId('buying-power-KRW')).toHaveCount(0);
   await page.getByRole('button', { name: '저장 자료 다시 읽기' }).click();
   await expect(page.getByText('저장된 연구 기록이 없습니다.')).toBeVisible();
@@ -42,7 +42,7 @@ test('account selection preserves fractions, currencies, unknown values, and exp
   const first = accounts.find((item) => item.account_seq === '101')!;
   const second = accounts.find((item) => item.account_seq === '202')!;
   await page.goto('/');
-  const selector = page.getByRole('combobox', { name: '계좌 관측' });
+  const selector = page.getByRole('combobox', { name: '계좌 관측', exact: true });
   await expect(selector).toHaveValue('');
   await expect(page.getByTestId('buying-power-KRW')).toHaveCount(0);
   await selector.selectOption(first.id);
@@ -69,7 +69,7 @@ test('a saved decision leads to its hypothesis and evidence while preserving the
   const { accounts } = await savedData(request);
   await page.goto('/');
   await page
-    .getByRole('combobox', { name: '계좌 관측' })
+    .getByRole('combobox', { name: '계좌 관측', exact: true })
     .selectOption(accounts.find((item) => item.account_seq === '202')!.id);
   await page.getByRole('button', { name: /합성 계좌 101에서 근거와 판단의 연결 확인/ }).click();
   const detail = page.getByRole('region', { name: '연구 기록 상세' });
@@ -128,7 +128,7 @@ test('a failed reload stops showing old account data as a successful response an
 }) => {
   const { accounts } = await savedData(request);
   await page.goto('/');
-  await page.getByRole('combobox', { name: '계좌 관측' }).selectOption(accounts[0].id);
+  await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(accounts[0].id);
   await expect(page.getByTestId('buying-power-KRW')).toBeVisible();
   await page.route('**/api/v1/context?*', (route) =>
     route.fulfill({
@@ -171,7 +171,7 @@ test('a delayed old account response cannot replace the currently selected accou
     await route.fulfill({ response }).catch(() => {});
   });
   await page.goto('/');
-  const selector = page.getByRole('combobox', { name: '계좌 관측' });
+  const selector = page.getByRole('combobox', { name: '계좌 관측', exact: true });
   await selector.selectOption(first.id);
   await intercepted;
   await selector.selectOption(second.id);
@@ -189,7 +189,7 @@ test('mobile keeps account controls and record details usable without page overf
   const { accounts } = await savedData(request);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
-  await page.getByRole('combobox', { name: '계좌 관측' }).selectOption(accounts[0].id);
+  await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(accounts[0].id);
   await expect(page.getByTestId('buying-power-KRW')).toBeVisible();
   await page.getByRole('button', { name: /합성 계좌 101에서 근거와 판단의 연결 확인/ }).click();
   await expect(page.getByRole('region', { name: '연구 기록 상세' })).toBeVisible();

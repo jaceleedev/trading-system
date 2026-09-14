@@ -553,6 +553,23 @@ class JobStore:
         return row
 
     @_safe
+    def recover_request(self, kind, parameters, request_key, available_at=None, max_attempts=3):
+        """Read a request by its original key and fingerprint; never enqueue or reclaim it."""
+        prepared = _prepare_enqueue(kind, parameters, request_key, available_at, max_attempts)
+        with Session(self.engine) as session, session.begin():
+            row = session.scalar(
+                select(JobRow).where(
+                    JobRow.workspace_key == self.workspace_key,
+                    JobRow.request_key == prepared["request_key"],
+                )
+            )
+            if row is None:
+                return None
+            if row.request_sha256 != prepared["request_sha256"]:
+                raise DataError("Job request key already identifies different input")
+            return _public(session, row)
+
+    @_safe
     def get(self, job_id):
         with Session(self.engine) as session, session.begin():
             row = self._row(session, job_id, shared=True)

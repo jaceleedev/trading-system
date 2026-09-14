@@ -119,7 +119,7 @@ test('first screen distinguishes idle, stale and stopped worker capabilities wit
   await expect(panel.getByText('Codex 웹 검색 미확인', { exact: true }).first()).toBeVisible();
   await expect(panel.getByText('Codex 웹 검색 허용 설정', { exact: true })).toBeVisible();
   await expect(panel.getByText(/로그인이나 외부 API 성공을 확인한 결과가 아닙니다/)).toBeVisible();
-  await expect(page.getByRole('combobox', { name: '계좌 관측' })).toHaveValue('');
+  await expect(page.getByRole('combobox', { name: '계좌 관측', exact: true })).toHaveValue('');
   await expect(page.getByTestId('buying-power-KRW')).toHaveCount(0);
 });
 
@@ -144,7 +144,7 @@ test('DB outage preserves saved research and unknown operational counts without 
   await expect(panel.getByText('실행 중 미확인 · 대기 미확인')).toBeVisible();
   await expect(panel.getByText('1개 생존 관측 유효')).toHaveCount(0);
   const { items } = await (await request.get('/api/v1/account-snapshots')).json();
-  await page.getByRole('combobox', { name: '계좌 관측' }).selectOption(items[0].id);
+  await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(items[0].id);
   await expect(page.getByTestId('buying-power-KRW')).toBeVisible();
   await expect(
     panel.getByRole('region', { name: '계좌 자료 신선도' }).getByText('오래된 저장 관측'),

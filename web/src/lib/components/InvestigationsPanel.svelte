@@ -37,6 +37,7 @@
     knownRecords,
     onselect,
     requestedInvestigation = null,
+    requestedCaptureInput = null,
   }: {
     ready: boolean;
     jobsEnabled: boolean;
@@ -45,10 +46,12 @@
     knownRecords: ResearchResponse[];
     onselect: (id: string) => void;
     requestedInvestigation?: { id: string } | null;
+    requestedCaptureInput?: { snapshotId: string; captureIds: string[] } | null;
   } = $props();
   let purpose = $state('');
   let symbols = $state('');
   let captureIds = $state<string[]>([]);
+  let linkedCaptureIds = $state<string[]>([]);
   let evidenceIds = $state<string[]>([]);
   let selectedId = $state<string | null>(null);
   let busy = $state(false);
@@ -138,6 +141,21 @@
   $effect(() => {
     const requested = requestedInvestigation;
     if (requested) untrack(() => selectInvestigation(requested.id));
+  });
+
+  $effect(() => {
+    const requested = requestedCaptureInput;
+    if (requested)
+      untrack(() => {
+        if (busy || unresolved) {
+          actionError = '기존 조사 요청의 결과를 먼저 확인한 뒤 완료 관측을 다시 연결해 주세요.';
+          return;
+        }
+        createOpen = true;
+        linkedCaptureIds = [...new Set([...linkedCaptureIds, ...requested.captureIds])];
+        captureIds = [...new Set([...captureIds, ...requested.captureIds])];
+        feedback = '완료 관측을 새 조사 입력에 연결했습니다. 과거 조사 입력은 바꾸지 않았습니다.';
+      });
   });
 
   function selectInvestigation(id: string) {
@@ -403,6 +421,8 @@
                   : '수정 전'} · {formatTime(capture.retrieved_at)} · {shortId(
                   capture.capture_id,
                 )}</option
+              >{/each}{#each linkedCaptureIds.filter((id) => !captures.some((item) => item.capture_id === id)) as id}<option
+                value={id}>연결한 완료 관측 · {shortId(id)}</option
               >{/each}</select
           ><span class="muted">여러 항목 선택 가능 · 현재 목록의 지원 자료만 표시</span
           >{#if catalogQuery.isError}<span class="error-state"
