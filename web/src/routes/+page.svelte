@@ -1,4 +1,18 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
+  import { pushState } from '$app/navigation';
+  import GuidedFlowPanel from '$lib/components/GuidedFlowPanel.svelte';
+  import { fetchJobsStatus } from '$lib/jobs';
+  import {
+    emptyGuidedSelection,
+    readGuidedLocation,
+    guidedLocation,
+    guidedKey,
+    type GuidedStage,
+    type GuidedResolution,
+    type GuidedRequest,
+  } from '$lib/guided';
+  import type { GuidedSelection } from '$lib/api/types.gen';
   import { createQuery, useQueryClient } from '@tanstack/svelte-query';
   import { ChartLine, RotateCw } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
@@ -20,6 +34,84 @@
   import { formatTime } from '$lib/format';
 
   let selectedSnapshot = $state('');
+  let guidedSelection = $state<GuidedSelection>(emptyGuidedSelection());
+  let guidedStage = $state<GuidedStage>('investigations');
+  let guidedResolved = $state<{ key: string; value: GuidedResolution } | null>(null);
+  let historyReady = $state(false);
+  let guidedRequested = $state(false);
+  let guidedKeyNow = $derived(
+    guidedKey({ ...guidedSelection, snapshot_id: selectedSnapshot || null }, guidedStage),
+  );
+  let guidedRequest = $derived<GuidedRequest | null>(
+    guidedRequested && guidedResolved?.key === guidedKeyNow
+      ? { stage: guidedStage, resolution: guidedResolved.value }
+      : null,
+  );
+  onMount(() => {
+    function restore() {
+      const stored = readGuidedLocation(new URL(window.location.href));
+      selectedSnapshot = stored.selection.snapshot_id ?? '';
+      guidedSelection = stored.selection;
+      guidedStage = stored.stage;
+      guidedResolved = null;
+      guidedRequested =
+        !!stored.selection.investigation_id ||
+        !!stored.selection.plan_id ||
+        !!stored.selection.book_id ||
+        !!stored.selection.report_id;
+      selectedRecordId = null;
+    }
+    restore();
+    historyReady = true;
+    window.addEventListener('popstate', restore);
+    return () => window.removeEventListener('popstate', restore);
+  });
+  function selectGuided(selection: GuidedSelection, stage: GuidedStage) {
+    const nextSelection = { ...selection, snapshot_id: selectedSnapshot || null };
+    if (guidedKey(nextSelection, stage) !== guidedKeyNow) guidedResolved = null;
+    guidedSelection = nextSelection;
+    guidedStage = stage;
+    guidedRequested = true;
+    if (historyReady) {
+      const next = guidedLocation(new URL(window.location.href), guidedSelection, stage);
+      if (next.href !== window.location.href) pushState(next, {});
+    }
+  }
+  function openGuided(stage: GuidedStage) {
+    selectGuided(guidedResolved?.value.selection ?? guidedSelection, stage);
+    // The resolver must verify the new stage before its inputs become usable.
+    document
+      .getElementById(
+        stage === 'investigations'
+          ? 'investigations-panel'
+          : stage === 'capital'
+            ? 'capital-panel'
+            : stage === 'paper'
+              ? 'paper-panel'
+              : 'outcomes-panel',
+      )
+      ?.scrollIntoView({ block: 'start' });
+  }
+  function startGuided(selection: Partial<GuidedSelection>, stage: GuidedStage) {
+    const current = guidedResolved?.value;
+    const related = selection.investigation_id
+      ? false
+      : selection.plan_id
+        ? current?.plans.some((item) => item.id === selection.plan_id)
+        : selection.book_id
+          ? current?.books.some((item) => item.id === selection.book_id)
+          : selection.report_id
+            ? current?.reports.some((item) => item.id === selection.report_id)
+            : false;
+    const base = related && current ? { ...current.selection } : emptyGuidedSelection();
+    if (selection.plan_id) {
+      base.book_id = null;
+      base.report_id = null;
+    } else if (selection.book_id) base.report_id = null;
+    selectGuided({ ...base, ...selection }, stage);
+    document.getElementById('guided-flow')?.scrollIntoView({ block: 'start' });
+  }
+
   let selectedRecordId = $state<string | null>(null);
   let requestedInvestigation = $state<{ id: string } | null>(null);
   let requestedCaptureInput = $state<{ snapshotId: string; captureIds: string[] } | null>(null);
@@ -32,6 +124,12 @@
     queryKey: ['health'],
     queryFn: ({ signal }) => fetchHealth(signal),
   }));
+  const jobStatus = createQuery(() => ({
+    queryKey: ['jobs-status'],
+    enabled: health.isSuccess && health.data.jobs_enabled,
+    queryFn: ({ signal }) => fetchJobsStatus(signal),
+  }));
+  let workspaceKey = $derived(jobStatus.isSuccess ? (jobStatus.data.workspace_key ?? null) : null);
   const snapshots = createQuery(() => ({
     queryKey: ['snapshots'],
     queryFn: ({ signal }) => fetchSnapshots(signal),
@@ -80,6 +178,10 @@
   function selectSnapshot(id: string) {
     selectedRecordId = null;
     selectedSnapshot = id;
+    guidedResolved = null;
+    const wasRequested = guidedRequested;
+    selectGuided({ ...guidedSelection, snapshot_id: id || null }, guidedStage);
+    guidedRequested = wasRequested;
     queryClient.removeQueries({ queryKey: ['record'] });
   }
   function selectRecord(id: string) {
@@ -130,6 +232,12 @@
       disabled={snapshots.isFetching || snapshots.isError}
     >
       <option value="">계좌 관측 선택</option>
+      {#if selectedSnapshot && !snapshots.data?.items.some((item) => item.id === selectedSnapshot)}<option
+          value={selectedSnapshot}
+          >저장 관측 {selectedSnapshot.slice(0, 12)} · {context?.account?.id === selectedSnapshot
+            ? `계좌 ${context.account.snapshot.account_seq}`
+            : '확인 중 또는 조회 불가'}</option
+        >{/if}
       {#if snapshots.isSuccess && !snapshots.isFetching}{#each snapshots.data.items as snapshot}<option
             value={snapshot.id}
             >계좌 {snapshot.account_seq} · {snapshot.account_type} · {formatTime(
@@ -161,6 +269,17 @@
       document.getElementById('investigations-panel')?.scrollIntoView({ block: 'start' });
     }}
   />
+  <GuidedFlowPanel
+    ready={historyReady && health.isSuccess && !health.isFetching}
+    jobsEnabled={health.data?.jobs_enabled ?? false}
+    selection={{ ...guidedSelection, snapshot_id: selectedSnapshot || null }}
+    stage={guidedStage}
+    onChange={selectGuided}
+    onResolved={(key, value) => {
+      if (key === guidedKeyNow) guidedResolved = value ? { key, value } : null;
+    }}
+    onOpen={openGuided}
+  />
   <div class="workbench-columns">
     <AccountPanel
       context={snapshots.isSuccess && !snapshots.isFetching ? context : undefined}
@@ -190,7 +309,8 @@
     ready={health.isSuccess && !health.isFetching}
     jobsEnabled={health.data?.jobs_enabled ?? false}
     {selectedSnapshot}
-    selectedAccountSeq={activeSnapshot?.account_seq ?? null}
+    selectedAccountSeq={activeSnapshot?.account_seq ??
+      (context?.account?.id === selectedSnapshot ? context.account.snapshot.account_seq : null)}
     onInvestigation={(value) => {
       selectSnapshot(value.snapshotId);
       requestedCaptureInput = value;
@@ -203,6 +323,9 @@
   />
   <MarketPanel ready={health.isSuccess && !health.isFetching} onselect={selectRecord} />
   <InvestigationsPanel
+    {guidedRequest}
+    {workspaceKey}
+    onGuide={(value) => startGuided(value, 'investigations')}
     {requestedInvestigation}
     {requestedCaptureInput}
     ready={health.isSuccess && !health.isFetching}
@@ -213,6 +336,9 @@
     onselect={selectRecord}
   />
   <CapitalPanel
+    {guidedRequest}
+    {workspaceKey}
+    onGuide={(value) => startGuided(value, 'paper')}
     ready={health.isSuccess && !health.isFetching}
     jobsEnabled={health.isSuccess && health.data.jobs_enabled}
     synthetic={health.isSuccess && health.data.synthetic}
@@ -222,6 +348,9 @@
     onselect={selectRecord}
   />
   <PaperPanel
+    {guidedRequest}
+    {workspaceKey}
+    onGuide={(value) => startGuided(value, 'outcomes')}
     {requestedPaperCaptures}
     ready={health.isSuccess && !health.isFetching}
     jobsEnabled={health.data?.jobs_enabled ?? false}
@@ -267,6 +396,9 @@
     </section>
   {:then { default: OutcomePanel }}
     <OutcomePanel
+      {guidedRequest}
+      {workspaceKey}
+      onGuide={(value) => startGuided(value, 'outcomes')}
       ready={health.isSuccess && !health.isFetching}
       jobsEnabled={health.data?.jobs_enabled ?? false}
       synthetic={health.data?.synthetic ?? false}

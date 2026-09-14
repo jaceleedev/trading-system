@@ -1,3 +1,166 @@
+# 2026-09-14 기능 29 PR 준비와 재검증
+
+사용자가 기능 28의 push·PR·병합·pull 완료를 알리고 다음 브랜치의 main 기준
+rebase·push와 완료 브랜치 삭제를 요청했다. GitHub PR #27의 병합 커밋
+`449c6feb4accb01e99ed7c737fb381f8dc2ab3fc`와 로컬 main·origin/main이 일치함을
+확인했다. fetch 후에도 main은 최신 상태였다.
+
+`feat/29-guided-investment-flow`의 원래 `bb4be0a`를 main 위로 rebase한 결과는
+`58afc602772f1833b592866eb518de8c326af3da`다. `docs/HANDOFF.md` 상단에서 겹친
+기능 28 PR 준비 기록과 기능 29 개발 기록을 모두 보존했다. 기능 코드 충돌은 없었고
+`range-diff`와 전체 파일 비교에서 인수인계를 제외한 원래 파일 내용이 동일했다.
+rebase의 updateRefs는 껐으며 이후 이번 인수인계 기록만 별도 커밋으로 추가한다.
+
+28번 원격 브랜치는 이미 없었다. main에 병합된 것을 확인하고 로컬
+`feat/28-web-observation-capture`를 삭제했다. 기존 15ee 작업실은 파일을 삭제하지
+않고 병합된 `e292c1c`의 detached HEAD로 보존했다. 승인된 push 대상은 origin의
+`feat/29-guided-investment-flow` 하나이며 PR 생성·병합은 사용자가 진행한다.
+승인된 27~29의 로컬 개발은 완료 상태이고 추가 기능이나 새 작업을 시작하지 않았다.
+
+### 이번 rebase 이후 검증
+
+- 잠금 파일 기준 `uv sync --frozen`, `pnpm --dir web install --frozen-lockfile` 통과.
+- `TRADING_TEST_DB=1 uv run pytest`: **2,254개 통과**, 128.05초. 기존
+  FastAPI/Starlette 의존성 deprecation 경고 2개가 남아 있다.
+- Ruff 검사·포맷 검사 통과, Python 253개 파일.
+- `mise run web-check`: OpenAPI·생성 SDK 16개 파일 일치, Svelte 오류·경고 0개,
+  Vitest **58개 통과**.
+- 웹 포맷 검사·프로덕션 빌드(3.10초) 통과. 빌드의 `PLUGIN_TIMINGS`는 플러그인
+  소요 시간 안내이며 빌드는 정상 종료했다.
+- 새 빌드로 Playwright 전체 **123개 통과**, 1.1분. 별도 합성 작업실을 생성하는
+  프로젝트 브라우저 검사이며 단계 연결·복구 E2E의 합성 HTTP 응답을 포함한다.
+- 기존 전용 `127.0.0.1:55432/trading`의 `b727f04e62d1`을 읽기 전용 조회로 확인했다.
+  새 migration·downgrade는 없으며 개인 저장소를 검증에 사용하지 않았다.
+- `git diff --check` 통과. 실제 Codex 모델·토스·시장·계좌·주문 API는 호출하지 않았다.
+
+검사 로그는 `/tmp/trading-pr29-rebase-pytest.log`, `/tmp/trading-pr29-web-check.log`,
+`/tmp/trading-pr29-web-format.log`, `/tmp/trading-pr29-web-build.log`,
+`/tmp/trading-pr29-e2e.log`에 있다. 브라우저 산출물은
+`/tmp/trading-pr29-rebase-e2e-58afc60/`에 있다.
+
+아래 실제 로컬 API·DB·worker의 출처 조합·단계 탐색·응답 유실·DB 비활성 읽기와
+별도 브라우저 검증은 최초 개발 완료 당시 기록이다. 이번에는 동일한 기능 코드에서
+전체 자동 검사를 다시 실행했으며 해당 수동 런타임 시나리오를 새로 실행했다고
+주장하지 않는다.
+
+# 2026-09-14 기능 29 인수인계
+
+## 기능 29: 조사부터 기간 결과까지 선택 이어가기
+
+`feat/29-guided-investment-flow`에서 기능 29를 구현·검증했다. 시작점과 부모는
+기능 28의 `0ffac3cd92dcd59b2d7ac43368483edc66e2a924`이며 작업 위치는
+`/Users/jace/.codex/worktrees/e56a/trading-system`이다. 이 인계 절을 포함한 로컬 완료
+커밋이 29번 브랜치 끝점이다. 정확한 SHA는 최종 응답과
+`git rev-parse feat/29-guided-investment-flow`, `/tmp/trading-feature29-completion.txt`에
+남긴다. 원본 `main`과 27·28 브랜치 끝점은 보존했다. 원격 push·PR·병합이나 다음
+작업·자동화 생성은 하지 않았다. 승인된 27→28→29의 로컬 구현 순서를 완료했다.
+
+### 구현된 동작
+
+- 새 `GET /api/v1/guided-flow`가 선택한 조사 ID·버전·출력, 계획·대안, 모의 원장과
+  기간 보고서의 실제 출처 연결을 읽기 전용으로 검증한다. 조사 revision의 DB 기록과
+  고정 입력·출력·run·job 연결을 대조하며, 각각 존재하는 ID를 임의로 조합하지 않는다.
+  최근 100개 밖의 명시적 과거 버전도 개별 조회한다.
+- 계획은 선택 출력·원래 관측·계좌·자료 구분을 대조한다. 모의 원장은 시작 관측의
+  실제 보유와 seed, 계좌·자료 구분·통화, 고정한 정확한 계획·대안을 대조한다.
+  호환되는 원장과 이미 선택 대안이 고정된 원장을 구분한다.
+- 보고서는 해당 기간에 동결한 원장 seed와 그 원장 안의 계획·대안 출처를 확인한다.
+  다른 원장의 대안을 합치거나 보고서 생성 후 추가한 현재 원장 대안을 과거 보고서에
+  붙이지 않는다. 복수 출처에 다른 계좌가 포함된 보고서를 현재 계좌의 연결로 인정하지 않는다.
+- 주소에 선택과 단계를 유지하고 새로고침·뒤로/앞으로 가기마다 서버 검증을 거친다.
+  상단 계좌 선택은 과거 탐색으로 바꾸지 않는다. 같은 계좌의 새 상단 관측과 과거
+  고정 입력 관측을 구분하고, 계좌 변경으로 부적합한 종속 선택은 해제하거나 보류해
+  설명한다. 이전 버전 출력에 최신 버전 실행 정보를 붙이지 않는다.
+- 한국어 단계 이동과 기존 패널의 다음 단계 버튼이 조회·입력 채우기를 제공한다.
+  조사 결과를 계획 근거로, 정확한 계획·대안을 모의 입력으로, 연결된 원장을 기간
+  결과 입력으로 전달한다. 자료가 없으면 기존 입력 위치와 필요한 값을 안내한다.
+  연결되지 않은 대안은 단계 탭을 눌러도 계획 결과 입력으로 자동 채우지 않는다.
+- 조사·자금·모의·결과 패널은 원래 실행 요청을 workspace별 브라우저 영수증에 먼저
+  저장한다. 새로고침은 키를 새로 만들거나 자동 접수하지 않는다. 명시적 재확인도
+  원래 키·입력·revision을 유지한다. 저장 실패·손상은 실행을 막고, 다른 계좌에서
+  이전 요청을 재확인해도 그 결과를 현재 계좌의 선택으로 자동 붙이지 않는다.
+- 비동기 목록의 선택 값 유실을 막고, 조건부로 표시되는 상세 조회도 완료 상태를
+  확실히 구독한다. 늦은 응답·재조회 실패에는 이전 성공 자료를 현재 결과로 표시하지
+  않는다. 기능 27의 제한적 polling과 28의 완료 관측 전달을 유지한다.
+- DB 없는 파일 기반 조회를 보존하고 웹 자금 계획의 저장 목록·상세도 DB 비활성
+  상태에서 읽을 수 있게 했다. 조사 현황과 현재 모의 원장의 검증에는 DB가 필요하다.
+  정확한 소수 문자열, unknown, 통화 분리, 원래 관측·수집·기록 시각을 보존했다.
+  OpenAPI 의미 변화는 읽기 경로 1개·Guided 스키마 10개 추가뿐이다. 기존 경로와
+  스키마 수정·삭제는 없으며 생성 SDK를 갱신했다.
+
+사용법과 복구 경계는 [GUIDED_INVESTMENT_FLOW.md](GUIDED_INVESTMENT_FLOW.md)를 따른다.
+
+### 최종 필수 검사
+
+Python 3.14.7·Node 24.18.0·pnpm 11.13.0과 잠금 파일로 검증했다.
+
+- `TRADING_TEST_DB=1 uv run pytest`: **2,254개 통과**, 126.46초. 새 서버 검사 27개를
+  포함한다. 기존 FastAPI/Starlette 의존성 deprecation 경고 2개가 남아 있다.
+- `uv run ruff check .`, `uv run ruff format --check .`: 통과, Python 253개 파일.
+- `mise run web-check`: OpenAPI·SDK 일치, Svelte 오류·경고 0개, Vitest **58개 통과**.
+- `pnpm --dir web format:check`, `mise run web-build`, `git diff --check`: 통과.
+- `pnpm --dir web test:e2e`: **123개 통과**, 58.6초. 기존 103개에 20개를 추가했다.
+  HTTP 응답 fixture와 실제 런타임 검증을 구분한다. 숨긴 화면·제한적 polling, 빠른
+  계좌 변경·뒤로 가기·지연/실패 응답, 원래 키 복구, 모바일 검사를 포함한다.
+- 전체 Python 첫 실행의 1개 실패는 기존 OpenAPI 경로 집합 검사에 새 경로를 추가하지
+  않은 것이었으며 기대 경로를 갱신했다. 초기 브라우저·회귀 검사에서 드러난 실제
+  선택 구독/유실과 계좌·과거 출력 표시 문제는 수정 후 다시 검증했다. 중간 E2E의
+  DB 비활성 설명 기대값도 새 저장 조회 동작에 맞춰 갱신했다. 최종 실패는 없다.
+
+### 실제 로컬 런타임·브라우저 검증
+
+작업실은 `/tmp/trading-feature29-runtime-li8kfxa6/workspace` 하나로 격리했다.
+실제 FastAPI·`127.0.0.1:55432/trading`·독립 worker를 사용했다. 두 계좌 관측과
+과거/현재 조사 버전, 연결·미연결 원장과 대안, 고정 기간 보고서를 만들었다.
+worker의 Codex 실행 경계만 명시적 합성 출력으로 대체했다. 실제 모델·토스·외부
+provider는 호출하지 않았고 합성 실행 메타데이터를 실제 모델 실행 증거로 주장하지 않는다.
+
+- 실제 API의 11개 선택 조합에서 원래 버전/관측, 다른 계좌·출력·계획·대안·보고서,
+  누락 참조, 호환되지만 미연결인 원장을 검증했다. 읽기 전용 요청 전후 계획 등록·
+  배정·모의 원장/의도/이벤트·보고서·조사/작업 수와 저장 JSON 해시가 동일했다.
+- `http://127.0.0.1:60486`의 최종 빌드 앱에서 조사→계획→모의→기간 결과를 실제
+  API 응답으로 이동했다. 과거 출력과 대안 입력, 뒤로/앞으로 가기·새로고침, 계좌
+  변경 시 보류와 복원, 실제 응답을 보류한 뒤 빠른 계좌 변경의 늦은 응답 차단을 확인했다.
+  탐색 중 쓰기 요청 0건, 페이지 오류·콘솔 경고/오류·외부 브라우저 요청 0건이었다.
+- 데스크톱 1536×1024와 모바일 390×844 화면을 직접 확인했다. 빈 화면·프레임워크
+  오류 화면이 없었고 단계 버튼과 실제 보고서가 작동했다. 모바일 페이지 가로 넘침은 없다.
+- 실제 결과 POST가 DB에 반영된 뒤 브라우저 응답만 의도적으로 끊었다. 새로고침은
+  POST를 추가하지 않았고, 계좌를 바꾼 뒤 명시적 재확인은 동일 키·동일 입력을 보냈다.
+  두 POST의 응답 보고서·고정 종료 시각이 동일하고 해당 요청의 보고서 증가는 1개였다.
+  이전 계좌의 보고서를 현재 선택에 자동 붙이지 않았다. 최종 빌드에서도 반복 검증했다.
+  이 시나리오의 의도적인 네트워크 오류는 일반 브라우저 건강 검사와 별도다.
+- DB 엔진 생성을 금지한 API 검사 10개에서 실제 저장 계좌·연구·시장·계획·보고서·
+  수집 선택지와 DB 비활성 guided 경로를 읽었다. 별도 DB 비활성 API
+  `http://127.0.0.1:50389`의 빌드 앱에서도 저장 계획의 정확한 소수와 보고서를
+  조회했다. DB 전체를 실제 중단했다고 주장하지 않는다.
+- Browser 플러그인/스킬이 없어 프로젝트 Playwright로 검증했다. QA 원문·요청·응답·
+  화면과 스크립트를 `/tmp`에 보존했다. 이번 API 2개·worker를 종료했고 두 포트 종료,
+  이번 namespace의 계획 등록·배정·pool·모의·보고서·조사·job/attempt·worker 행 잔여
+  0을 확인했다. 다른 namespace와 개인 자료는 수정하지 않았다.
+
+### 증거·migration·남은 경계
+
+새 migration은 **없다**. 기존 로컬 schema `b727f04e62d1`을 확인해 사용했고,
+새 DB 생성·migration 적용이나 운영 복구를 수행하지 않았다.
+
+최종 검사 로그는 `/tmp/trading-feature29-pytest-final.log`,
+`/tmp/trading-feature29-ruff-check.log`, `/tmp/trading-feature29-ruff-format.log`,
+`/tmp/trading-feature29-web-check.log`, `/tmp/trading-feature29-web-format.log`,
+`/tmp/trading-feature29-web-build.log`, `/tmp/trading-feature29-web-e2e-final.log`,
+`/tmp/trading-feature29-diff-check.log`다. E2E 산출물은
+`/tmp/trading-feature29-http-e2e-final/`에 있다. 런타임 증거 폴더의
+`03-guided-api-and-readonly-counts.json`, `04-saved-reads-db-access-forbidden.json`,
+`05-browser-readonly-health.json`, `06-real-response-loss-recovery.json`,
+`08-offline-browser.json`, `99-cleanup-verification.json`과 `05-*.png`를 함께 본다.
+QA 스크립트는 `/tmp/trading-feature29-qa/`, 완료 보고 사본은
+`/tmp/trading-feature29-completion.txt`다. `/tmp` 증거는 운영 백업이 아니다.
+
+저장 선택과 영수증은 출처 진실성·실제 체결·수익을 증명하지 않는다. 브라우저 저장소를
+삭제하거나 다른 브라우저로 옮긴 뒤의 원래 요청 복구는 보장하지 않는다. 조회 후보는
+한도가 있는 목록이며 생략을 알린다. 실제 주문 전송은 계속 비활성이다. 원격 push/PR/
+병합, 회사 DB·서버, 유료 서비스, 원격 운영·상시 서비스 설치는 수행하지 않았다.
+출처 저장 강화·가격/공시 재판단·실제 자료 모의운용은 승인된 27~29 이후의 별도 검토다.
+
 # 2026-09-14 기능 28 PR 준비와 재검증
 
 사용자가 기능 27의 push·PR·병합·pull 완료를 알리고 다음 브랜치의 main 기준

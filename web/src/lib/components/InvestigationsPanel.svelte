@@ -1,4 +1,12 @@
 <script lang="ts">
+  import { pendingObject, pendingKey, pendingNullable } from '$lib/pending-shapes';
+  import type { GuidedRequest } from '$lib/guided';
+  import type { GuidedSelection } from '$lib/api/types.gen';
+  import {
+    readPendingReceipt,
+    writePendingReceipt,
+    PendingReceiptError,
+  } from '$lib/pending-receipt';
   import { untrack } from 'svelte';
   import { createQuery } from '@tanstack/svelte-query';
   import { createPollingWindow } from '$lib/polling.svelte';
@@ -30,6 +38,9 @@
   import { formatTime, safeSourceUrl, shortId } from '$lib/format';
 
   let {
+    guidedRequest = null,
+    workspaceKey = null,
+    onGuide,
     ready,
     jobsEnabled,
     synthetic,
@@ -39,6 +50,9 @@
     requestedInvestigation = null,
     requestedCaptureInput = null,
   }: {
+    guidedRequest?: GuidedRequest | null;
+    workspaceKey?: string | null;
+    onGuide?: (selection: Partial<GuidedSelection>) => void;
     ready: boolean;
     jobsEnabled: boolean;
     synthetic: boolean;
@@ -56,6 +70,8 @@
   let selectedId = $state<string | null>(null);
   let busy = $state(false);
   let feedback = $state('');
+  let receiptError = $state('');
+  let loadedWorkspace = $state<string | null>(null);
   let actionError = $state('');
   let createOpen = $state(false);
   let pendingCreate = $state<InvestigationCreate | null>(null);
@@ -115,6 +131,7 @@
     const id = selectedId;
     return {
       queryKey: ['investigation', id],
+      notifyOnChangeProps: 'all',
       enabled: available && !!id,
       queryFn: ({ signal }) => fetchInvestigation(id!, signal),
       refetchInterval: (query) =>
@@ -133,8 +150,39 @@
       ? detailQuery.data
       : undefined,
   );
-  let output = $derived(detail?.latest_output);
-  let execution = $derived(detail?.latest_execution);
+  let guidedInvestigation = $derived(
+    guidedRequest?.stage === 'investigations' &&
+      guidedRequest.resolution.selection.investigation_id === selectedId
+      ? guidedRequest.resolution
+      : null,
+  );
+  let output = $derived(
+    guidedInvestigation ? guidedInvestigation.investigation?.output : detail?.latest_output,
+  );
+  let hadGuided = false;
+  $effect(() => {
+    const request = guidedRequest;
+    untrack(() => {
+      if (request?.stage === 'investigations') {
+        hadGuided = true;
+        if (request.resolution.selection.investigation_id)
+          selectInvestigation(request.resolution.selection.investigation_id);
+        else if (!busy && !unresolved) createOpen = true;
+      } else if (!request && hadGuided) {
+        selectedId = null;
+        hadGuided = false;
+      }
+    });
+  });
+  let historicalOutput = $derived(
+    !!guidedInvestigation?.selection.revision &&
+      guidedInvestigation.selection.revision !== detail?.investigation.latest_completed_revision,
+  );
+  let execution = $derived(
+    historicalOutput || (guidedInvestigation && !guidedInvestigation.selection.output_id)
+      ? null
+      : detail?.latest_execution,
+  );
   let unresolved = $derived(!!pendingCreate || !!pendingReview || !!pendingPause);
   let refreshing = $derived(listQuery.isFetching || detailQuery.isFetching);
 
@@ -174,10 +222,27 @@
         (item) => item.request_key === pendingCreate?.request_key,
       );
       if (found) {
-        pendingCreate = null;
-        selectedId = found.id;
-        feedback = '접수된 조사를 확인했습니다.';
-        actionError = '';
+        const original = pendingCreate;
+        const input = found.context_input;
+        const sameInput =
+          original.purpose === input.purpose &&
+          (original.snapshot_id ?? null) === input.snapshot_id &&
+          (original.mode ?? 'prospective') === input.mode &&
+          JSON.stringify(original.capture_ids ?? []) === JSON.stringify(input.capture_ids) &&
+          JSON.stringify(original.evidence_ids ?? []) === JSON.stringify(input.evidence_ids) &&
+          JSON.stringify(original.symbols ?? []) === JSON.stringify(input.symbols);
+        if (sameInput) {
+          pendingCreate = null;
+          const sameSnapshot = (original.snapshot_id ?? '') === selectedSnapshot;
+          if (sameSnapshot) selectedId = found.id;
+          finishReceipt();
+          feedback =
+            '접수된 조사를 확인했습니다.' +
+            (sameSnapshot ? '' : ' 원래 계좌의 요청이며 현재 선택에는 붙이지 않았습니다.');
+          actionError = '';
+        } else
+          actionError =
+            '저장된 접수와 원래 요청의 입력이 다릅니다. 원래 요청을 유지하고 연결을 보류했습니다.';
       }
     }
     if (selectedId) {
@@ -188,18 +253,29 @@
         result.data.investigation.status === 'paused'
       ) {
         pendingPause = null;
+        finishReceipt();
         feedback = '조사 일시 정지를 확인했습니다.';
         actionError = '';
       }
     }
   }
-  async function accepted(result: InvestigationResponse, message: string) {
+  async function accepted(
+    result: InvestigationResponse,
+    message: string,
+    view: { snapshot: string; id: string | null },
+  ) {
     polling.restart();
-    selectedId = result.investigation.id;
-    feedback = message;
+    const stillSelected =
+      view.snapshot === selectedSnapshot &&
+      view.id === selectedId &&
+      (result.investigation.context_input.snapshot_id ?? '') === selectedSnapshot;
+    if (stillSelected) selectedId = result.investigation.id;
+    feedback =
+      message +
+      (stillSelected ? '' : ' 원래 요청의 결과이며, 바뀐 계좌나 조사 선택에는 붙이지 않았습니다.');
     actionError = '';
     await listQuery.refetch();
-    await detailQuery.refetch();
+    if (stillSelected) await detailQuery.refetch();
   }
   async function create(event?: SubmitEvent) {
     event?.preventDefault();
@@ -219,7 +295,9 @@
           request_key: crypto.randomUUID(),
         };
       }
+      persistPending();
       busy = true;
+      const view = { snapshot: selectedSnapshot, id: selectedId };
       const result = await submitInvestigation(pendingCreate);
       pendingCreate = null;
       purpose = '';
@@ -227,15 +305,18 @@
       captureIds = [];
       evidenceIds = [];
       createOpen = false;
+      finishReceipt();
       await accepted(
         result,
         '조사를 접수했습니다. 모델 실행 여부는 아래 작업 상태에서 확인하세요.',
+        view,
       );
     } catch (error) {
       if (isDefiniteInvestigationError(error)) pendingCreate = null;
       actionError =
         error instanceof Error ? error.message : '조사 접수 결과를 확인하지 못했습니다.';
     } finally {
+      finishReceipt();
       busy = false;
     }
   }
@@ -277,20 +358,25 @@
           },
         };
       }
+      persistPending();
       busy = true;
+      const view = { snapshot: selectedSnapshot, id: selectedId };
       const result = await reviewInvestigation(pendingReview.id, pendingReview.body);
       pendingReview = null;
       reviewInput = null;
       reviewId = null;
+      finishReceipt();
       await accepted(
         result,
         '새 입력으로 재검토를 접수했습니다. 이전 결과와 새 버전의 실행 상태를 구분해 확인하세요.',
+        view,
       );
     } catch (error) {
       if (isDefiniteInvestigationError(error)) pendingReview = null;
       actionError =
         error instanceof Error ? error.message : '재검토 접수 결과를 확인하지 못했습니다.';
     } finally {
+      finishReceipt();
       busy = false;
     }
   }
@@ -307,19 +393,24 @@
     actionError = '';
     busy = true;
     try {
+      persistPending();
+      const view = { snapshot: selectedSnapshot, id: selectedId };
       const result = await stopInvestigation(pendingPause.id, pendingPause.revision);
       pendingPause = null;
       reviewInput = null;
       reviewId = null;
+      finishReceipt();
       await accepted(
         result,
         '조사를 일시 정지했습니다. 진행 중인 작업은 취소 요청과 완료를 구분해 확인하세요.',
+        view,
       );
     } catch (error) {
       if (isDefiniteInvestigationError(error)) pendingPause = null;
       actionError =
         error instanceof Error ? error.message : '일시 정지 결과를 확인하지 못했습니다.';
     } finally {
+      finishReceipt();
       busy = false;
     }
   }
@@ -344,6 +435,76 @@
     ['output_schema_sha256', '출력 계약 해시'],
     ['event_stream_sha256', '실행 이벤트 해시'],
   ];
+
+  $effect(() => {
+    const key = workspaceKey;
+    if (key && key !== loadedWorkspace && !busy)
+      untrack(() => {
+        pendingCreate = null;
+        pendingReview = null;
+        pendingPause = null;
+        receiptError = '';
+        try {
+          const value = readPendingReceipt<unknown>(key, 'investigations');
+          if (value !== null) {
+            if (!(
+              pendingObject(value) &&
+              pendingNullable(
+                value.create,
+                (v) =>
+                  pendingKey(v) &&
+                  pendingObject(v) &&
+                  typeof v.purpose === 'string' &&
+                  Array.isArray(v.capture_ids) &&
+                  Array.isArray(v.evidence_ids) &&
+                  Array.isArray(v.symbols),
+              ) &&
+              pendingNullable(
+                value.review,
+                (v) => pendingObject(v) && typeof v.id === 'string' && pendingKey(v.body),
+              ) &&
+              pendingNullable(
+                value.pause,
+                (v) =>
+                  pendingObject(v) && typeof v.id === 'string' && Number.isSafeInteger(v.revision),
+              )
+            ))
+              throw new PendingReceiptError();
+            const stored = value as {
+              create: InvestigationCreate | null;
+              review: typeof pendingReview;
+              pause: typeof pendingPause;
+            };
+            pendingCreate = stored.create;
+            pendingReview = stored.review;
+            pendingPause = stored.pause;
+            if (pendingCreate) createOpen = true;
+            feedback = '이전 실행 요청을 복원했습니다. 원래 요청의 결과 확인을 직접 눌러 주세요.';
+          }
+        } catch (error) {
+          receiptError = error instanceof Error ? error.message : new PendingReceiptError().message;
+        }
+        loadedWorkspace = key;
+      });
+  });
+  function persistPending() {
+    if (!workspaceKey || loadedWorkspace !== workspaceKey || receiptError)
+      throw new PendingReceiptError();
+    writePendingReceipt(
+      workspaceKey,
+      'investigations',
+      !pendingCreate && !pendingReview && !pendingPause
+        ? null
+        : { create: pendingCreate, review: pendingReview, pause: pendingPause },
+    );
+  }
+  function finishReceipt() {
+    try {
+      persistPending();
+    } catch (error) {
+      receiptError = error instanceof Error ? error.message : new PendingReceiptError().message;
+    }
+  }
 </script>
 
 {#snippet listSection(title: string, values: string[])}<section>
@@ -450,7 +611,10 @@
       </form>
     </details>
     <div class="investigation-feedback" aria-live="polite">
-      {#if feedback}<p>{feedback}</p>{/if}{#if actionError}<p class="error-state" role="alert">
+      {#if feedback}<p>{feedback}</p>{/if}{#if receiptError}<p role="alert" class="error-state">
+          {receiptError}
+        </p>{/if}
+      {#if actionError}<p class="error-state" role="alert">
           {actionError}
         </p>{/if}
       {#if pendingCreate}<p>
@@ -514,7 +678,10 @@
           </p>
         {:else if detail}
           <div class="investigation-heading">
-            <h3>{detail.investigation.context_input.purpose}</h3>
+            <h3>
+              {guidedInvestigation?.investigation?.purpose ??
+                detail.investigation.context_input.purpose}
+            </h3>
             <span class="investigation-state"
               >{investigationState(detail.investigation, detail.active_job)}</span
             >
@@ -549,7 +716,11 @@
             </p>{/if}
           {#if output}
             <section class="detail-section">
-              <h3>최근 AI 결과</h3>
+              <h3>
+                {guidedInvestigation?.selection.revision
+                  ? `선택 버전 ${guidedInvestigation.selection.revision}의 AI 결과`
+                  : '최근 AI 결과'}
+              </h3>
               <p>{output.summary}</p>
               <p>{output.rationale}</p>
             </section>
@@ -602,7 +773,9 @@
                   </div>{/each}
               </section>{/if}
           {:else}<p class="empty-state muted">
-              저장된 AI 결과가 아직 없습니다. 접수와 모델 실행 완료는 구분됩니다.
+              {guidedInvestigation
+                ? '이 선택에서 확인된 조사 출력이 없습니다. 상단 계좌와 이어갈 조사 버전을 확인해 주세요.'
+                : '저장된 AI 결과가 아직 없습니다. 접수와 모델 실행 완료는 구분됩니다.'}
             </p>{/if}
           {#if detail.research_jobs?.length}
             <section class="detail-section" aria-label="현재 버전의 후속 자료 수집">
@@ -652,19 +825,30 @@
                       ? '허용 안 함'
                       : '미확인'}
                 </dd>
-              </dl>{:else}<p class="muted">저장된 프로세스 실행 정보가 없습니다.</p>{/if}
+              </dl>{:else}<p class="muted">
+                {historicalOutput
+                  ? '선택한 과거 버전의 실행 정보는 이 조회에서 확인하지 않습니다. 현재 버전의 실행 정보를 과거 결과의 증거로 사용하지 않습니다.'
+                  : guidedInvestigation && !output
+                    ? '선택한 출력이 확인되지 않아 실행 정보를 연결하지 않았습니다.'
+                    : '저장된 프로세스 실행 정보가 없습니다.'}
+              </p>{/if}
+            {#if guidedInvestigation?.selection.revision}<p class="market-notice">
+                선택 결과는 버전 {guidedInvestigation.selection.revision} · 고정 계좌 관측 {guidedInvestigation
+                  .context.frozen_snapshot_id ?? '미확인'}입니다. 아래 입력 정보와 재검토 버튼은
+                현재 버전 {detail.investigation.current_revision}에 해당합니다.
+              </p>{/if}
             <dl class="metadata-list">
-              <dt>선택 계좌 ID</dt>
+              <dt>현재 버전의 계좌 관측 ID</dt>
               <dd class="identifier">
                 {detail.investigation.context_input.snapshot_id ?? '선택 없음'}
               </dd>
               <dt>현재 입력 ID</dt>
               <dd class="identifier">{detail.investigation.context_input.input_id}</dd>
-              <dt>시장 원자료</dt>
+              <dt>현재 버전의 시장 원자료</dt>
               <dd>{detail.investigation.context_input.capture_ids.length}개</dd>
-              <dt>연구 근거</dt>
+              <dt>현재 버전의 연구 근거</dt>
               <dd>{detail.investigation.context_input.evidence_ids.length}개</dd>
-              <dt>관심 종목</dt>
+              <dt>현재 버전의 관심 종목</dt>
               <dd>{detail.investigation.context_input.symbols.join(', ') || '종목 제한 없음'}</dd>
             </dl>
             {#each detail.investigation.revisions as revision}<p class="muted">
@@ -675,6 +859,19 @@
                 과거 버전 {detail.investigation.omitted_revision_count}개 생략
               </p>{/if}
           </details>
+          {#if onGuide}<div class="capital-actions">
+              {#each detail.investigation.revisions.filter((item) => typeof item.result?.output_id === 'string') as revision}
+                <Button
+                  variant="outline"
+                  onclick={() =>
+                    onGuide?.({
+                      investigation_id: detail!.investigation.id,
+                      revision: revision.number,
+                      output_id: String(revision.result!.output_id),
+                    })}>버전 {revision.number}에서 다음 단계 이어가기</Button
+                >
+              {/each}
+            </div>{/if}
           <div class="investigation-review-actions">
             <Button variant="outline" onclick={prepareReview} disabled={busy || unresolved}
               >입력을 정해 재검토</Button
@@ -703,6 +900,19 @@
                   disabled={busy || unresolved}
                 /></label
               >
+              {#if onGuide}<div class="capital-actions">
+                  {#each detail.investigation.revisions.filter((item) => typeof item.result?.output_id === 'string') as revision}
+                    <Button
+                      variant="outline"
+                      onclick={() =>
+                        onGuide?.({
+                          investigation_id: detail!.investigation.id,
+                          revision: revision.number,
+                          output_id: String(revision.result!.output_id),
+                        })}>버전 {revision.number}에서 다음 단계 이어가기</Button
+                    >
+                  {/each}
+                </div>{/if}
               <div class="investigation-review-actions">
                 <span class="muted"
                   >계좌 {reviewInput.snapshot_id

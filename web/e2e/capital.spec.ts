@@ -1,4 +1,5 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
+import { mockWorkspaceStatus } from './workspace-status';
 import type {
   AccountSnapshotsResponse,
   CapitalPlanCreate,
@@ -122,7 +123,7 @@ function record(body: CapitalPlanRequest, data: Fixture): CapitalPlanRecord {
   };
 }
 
-async function mocks(page: Page, data: Fixture) {
+async function mocks(page: Page, data: Fixture, enabled = true) {
   const state = {
     previews: [] as CapitalPlanRequest[],
     creates: [] as CapitalPlanCreate[],
@@ -149,10 +150,11 @@ async function mocks(page: Page, data: Fixture) {
       execution_ready: false,
     } as FundingState,
   };
+  await mockWorkspaceStatus(page, enabled);
   await page.route('**/api/v1/health', async (route) => {
     const response = await route.fetch();
     await route.fulfill({
-      json: { ...(await response.json()), jobs_enabled: true, read_only: false },
+      json: { ...(await response.json()), jobs_enabled: enabled, read_only: !enabled },
     });
   });
   await page.route(/\/api\/v1\/investigations(?:\?.*)?$/, (route) =>
@@ -352,12 +354,66 @@ test('default disabled planning keeps account viewing usable without mutation re
   await page.goto('/');
   await panel(page).getByText('자금 계획', { exact: true }).click();
   await expect(
-    panel(page).getByText('계획 저장소가 꺼져 있습니다. 대안 계산은 계속 사용할 수 있습니다.'),
+    panel(page).getByText(
+      /새 계획 저장과 자금 배정은 꺼져 있습니다. 저장 계획 조회와 대안 계산은 계속 사용할 수/,
+    ),
   ).toBeVisible();
   await expect(panel(page).getByRole('button', { name: '계획 저장', exact: true })).toBeDisabled();
   await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(data.first.id);
   await expect(page.getByTestId('buying-power-USD')).toHaveText('3,500.5');
   expect(mutations).toEqual([]);
+});
+
+test('saved capital plans and exact details remain readable when operational storage is disabled', async ({
+  page,
+  request,
+}) => {
+  const data = await fixture(request);
+  const state = await mocks(page, data, false);
+  const body: CapitalPlanRequest = {
+    snapshot_id: data.first.id,
+    source: { kind: 'decision', id: data.decision.id },
+    mode: 'synthetic',
+    funding: [{ currency: 'USD', limit_amount: '1000', reserve_amount: '100' }],
+    alternatives: [
+      {
+        key: 'saved-beta',
+        label: '저장 BETA 대안',
+        rationale: '합성 저장 파일만 읽기',
+        legs: [
+          {
+            action: 'add',
+            symbol: 'BETA',
+            market: 'US',
+            currency: 'USD',
+            quantity: '0.125',
+            price: '100',
+            fee_bps: '0',
+            fixed_fee: '0',
+            tax_bps: '0',
+            rationale: '저장 가정 확인',
+          },
+        ],
+      },
+    ],
+  };
+  state.plans.push({ id: planId, record: record(body, data) });
+  await page.goto('/');
+  await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(data.first.id);
+  await panel(page).locator(':scope > details > summary').click();
+  const list = panel(page).getByRole('region', { name: '저장한 자금 계획', exact: true });
+  await list.getByRole('button', { name: /대안 1개/ }).click();
+  const detail = panel(page).getByRole('region', { name: '저장 계획 상세', exact: true });
+  await expect(detail).toBeVisible();
+  await expect(detail.getByRole('cell', { name: '90.000000000000001', exact: true })).toBeVisible();
+  await expect(panel(page).getByRole('button', { name: '계획 저장', exact: true })).toBeDisabled();
+  await expect(
+    panel(page).getByRole('button', { name: '저장 BETA 대안에 자금 배정', exact: true }),
+  ).toBeDisabled();
+  expect(state.previews).toEqual([]);
+  expect(state.creates).toEqual([]);
+  expect(state.budgets).toEqual([]);
+  expect(state.allocations).toEqual([]);
 });
 
 test('explicit assumptions calculate and save exact decimal projections', async ({
@@ -425,7 +481,7 @@ test('replacement legs stay together while a separate alternative stays independ
   await expect(panel(page).getByRole('region', { name: '계산 대안 대안 2' })).toBeVisible();
 });
 
-test('save response loss retries the original request after account switching', async ({
+test('save response loss retries the original request without attaching its plan after account switching', async ({
   page,
   request,
 }) => {
@@ -439,10 +495,15 @@ test('save response loss retries the original request after account switching', 
   await expect(panel(page).getByText(/계획 저장 여부 확인 대기/)).toBeVisible();
   await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(data.second.id);
   await panel(page).getByRole('button', { name: '같은 계획 저장 다시 확인' }).click();
-  await expect(panel(page).getByRole('region', { name: '저장 계획 상세' })).toBeVisible();
+  await expect(panel(page).getByRole('status')).toContainText('자금 계획을 저장했습니다.');
   expect(state.creates).toHaveLength(2);
   expect(state.creates[1]).toEqual(state.creates[0]);
-  await expect(panel(page).getByRole('button', { name: '대안 1에 자금 배정' })).toBeDisabled();
+  await expect(page.getByRole('combobox', { name: '계좌 관측', exact: true })).toHaveValue(
+    data.second.id,
+  );
+  await expect(panel(page).getByRole('region', { name: '저장 계획 상세' })).toHaveCount(0);
+  await expect(panel(page).getByRole('button', { name: '대안 1에 자금 배정' })).toHaveCount(0);
+  expect(state.allocations).toEqual([]);
 });
 
 test('budget applies explicitly and allocation and release retry the same identities', async ({

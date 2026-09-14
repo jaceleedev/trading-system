@@ -1795,6 +1795,277 @@ export type FundingState = {
 };
 
 /**
+ * GuidedAlternative
+ */
+export type GuidedAlternative = {
+    /**
+     * Currencies
+     */
+    currencies: Array<'KRW' | 'USD'>;
+    /**
+     * Eligibility
+     */
+    eligibility: 'eligible' | 'blocked' | 'unknown';
+    /**
+     * Key
+     */
+    key: string;
+    /**
+     * Label
+     */
+    label: string;
+};
+
+/**
+ * GuidedBook
+ */
+export type GuidedBook = {
+    /**
+     * Currencies
+     */
+    currencies: Array<'KRW' | 'USD'>;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Label
+     */
+    label: string;
+    /**
+     * Linked
+     */
+    linked: boolean;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+};
+
+/**
+ * GuidedContext
+ */
+export type GuidedContext = {
+    /**
+     * Account Seq
+     */
+    account_seq?: string | null;
+    /**
+     * Currencies
+     */
+    currencies?: Array<'KRW' | 'USD'>;
+    /**
+     * Frozen Snapshot Id
+     */
+    frozen_snapshot_id?: string | null;
+    /**
+     * Mode
+     */
+    mode?: 'prospective' | 'retrospective' | 'synthetic' | null;
+};
+
+/**
+ * GuidedFlowResponse
+ */
+export type GuidedFlowResponse = {
+    /**
+     * Books
+     */
+    books: Array<GuidedBook>;
+    context: GuidedContext;
+    investigation: GuidedInvestigation | null;
+    /**
+     * Issues
+     */
+    issues: Array<GuidedIssue>;
+    /**
+     * Jobs Available
+     */
+    jobs_available: boolean;
+    /**
+     * Orders Enabled
+     */
+    orders_enabled: false;
+    /**
+     * Plans
+     */
+    plans: Array<GuidedPlan>;
+    /**
+     * Reports
+     */
+    reports: Array<GuidedReport>;
+    selection: GuidedSelection;
+    /**
+     * Workspace Key
+     */
+    workspace_key: string;
+};
+
+/**
+ * GuidedInvestigation
+ */
+export type GuidedInvestigation = {
+    /**
+     * Current Revision
+     */
+    current_revision: number;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Output
+     */
+    output: InvestigationOutput | InvestigationOutputV2 | null;
+    /**
+     * Purpose
+     */
+    purpose: string;
+    /**
+     * Revisions
+     */
+    revisions: Array<GuidedRevision>;
+};
+
+/**
+ * GuidedIssue
+ */
+export type GuidedIssue = {
+    /**
+     * Code
+     */
+    code: string;
+    /**
+     * Message
+     */
+    message: string;
+    /**
+     * Stage
+     */
+    stage: 'investigations' | 'capital' | 'paper' | 'outcomes';
+};
+
+/**
+ * GuidedPlan
+ */
+export type GuidedPlan = {
+    /**
+     * Alternatives
+     */
+    alternatives: Array<GuidedAlternative>;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string;
+};
+
+/**
+ * GuidedReport
+ */
+export type GuidedReport = {
+    /**
+     * End At
+     */
+    end_at: string;
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'synthetic';
+    /**
+     * Recorded At
+     */
+    recorded_at: string;
+    /**
+     * Start At
+     */
+    start_at: string;
+};
+
+/**
+ * GuidedRevision
+ */
+export type GuidedRevision = {
+    /**
+     * Input Id
+     */
+    input_id: string;
+    /**
+     * Mode
+     */
+    mode: 'prospective' | 'retrospective' | 'synthetic';
+    /**
+     * Number
+     */
+    number: number;
+    /**
+     * Output Id
+     */
+    output_id: string | null;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id: string | null;
+};
+
+/**
+ * GuidedSelection
+ */
+export type GuidedSelection = {
+    /**
+     * Alternative Id
+     */
+    alternative_id?: string | null;
+    /**
+     * Book Id
+     */
+    book_id?: string | null;
+    /**
+     * Investigation Id
+     */
+    investigation_id?: string | null;
+    /**
+     * Output Id
+     */
+    output_id?: string | null;
+    /**
+     * Plan Id
+     */
+    plan_id?: string | null;
+    /**
+     * Report Id
+     */
+    report_id?: string | null;
+    /**
+     * Revision
+     */
+    revision?: number | null;
+    /**
+     * Snapshot Id
+     */
+    snapshot_id?: string | null;
+};
+
+/**
  * HealthResponse
  */
 export type HealthResponse = {
@@ -6911,6 +7182,80 @@ export type ReleaseFundingReservationResponses = {
 };
 
 export type ReleaseFundingReservationResponse = ReleaseFundingReservationResponses[keyof ReleaseFundingReservationResponses];
+
+export type ResolveGuidedFlowData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Snapshot Id
+         */
+        snapshot_id?: string | null;
+        /**
+         * Investigation Id
+         */
+        investigation_id?: string | null;
+        /**
+         * Revision
+         */
+        revision?: number | null;
+        /**
+         * Output Id
+         */
+        output_id?: string | null;
+        /**
+         * Plan Id
+         */
+        plan_id?: string | null;
+        /**
+         * Alternative Id
+         */
+        alternative_id?: string | null;
+        /**
+         * Book Id
+         */
+        book_id?: string | null;
+        /**
+         * Report Id
+         */
+        report_id?: string | null;
+    };
+    url: '/api/v1/guided-flow';
+};
+
+export type ResolveGuidedFlowErrors = {
+    /**
+     * Bad Request
+     */
+    400: ErrorResponse;
+    /**
+     * Forbidden
+     */
+    403: ErrorResponse;
+    /**
+     * Conflict
+     */
+    409: ErrorResponse;
+    /**
+     * Unprocessable Content
+     */
+    422: ErrorResponse;
+    /**
+     * Internal Server Error
+     */
+    500: ErrorResponse;
+};
+
+export type ResolveGuidedFlowError = ResolveGuidedFlowErrors[keyof ResolveGuidedFlowErrors];
+
+export type ResolveGuidedFlowResponses = {
+    /**
+     * Successful Response
+     */
+    200: GuidedFlowResponse;
+};
+
+export type ResolveGuidedFlowResponse = ResolveGuidedFlowResponses[keyof ResolveGuidedFlowResponses];
 
 export type HealthData = {
     body?: never;

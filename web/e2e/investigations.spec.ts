@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { mockWorkspaceStatus } from './workspace-status';
 import type {
   InvestigationCreate,
   InvestigationInput,
@@ -7,6 +8,7 @@ import type {
   InvestigationRevise,
   JobView,
   MarketCatalog,
+  GuidedFlowResponse,
 } from '../src/lib/api/types.gen';
 
 const firstId = '20a00000-0000-4000-8000-000000000001';
@@ -117,6 +119,7 @@ async function mockInvestigations(page: Page, initial: InvestigationResponse[] =
     holdId: '',
     hold: undefined as Promise<void> | undefined,
   };
+  await mockWorkspaceStatus(page);
   await page.route('**/api/v1/health', async (route) => {
     const response = await route.fetch();
     await route.fulfill({
@@ -343,6 +346,137 @@ test('an uncertain create keeps the same original request after the selected acc
   expect(state.creates).toHaveLength(2);
   expect(state.creates[1]).toEqual(state.creates[0]);
   expect(state.items).toHaveLength(1);
+});
+
+test('lost investigation admission survives reload and requires explicit same-key recovery', async ({
+  page,
+  request,
+}) => {
+  const state = await mockInvestigations(page);
+  state.loseCreate = true;
+  const { items } = await (await request.get('/api/v1/account-snapshots')).json();
+  await page.goto('/');
+  await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(items[0].id);
+  await panel(page).getByText('새 조사 시작', { exact: true }).click();
+  await panel(page)
+    .getByRole('textbox', { name: '조사 목적', exact: true })
+    .fill('새로고침 합성 복구 검사');
+  await panel(page).getByRole('button', { name: '조사 접수', exact: true }).click();
+  await expect(
+    panel(page).getByRole('button', { name: '같은 접수 다시 확인', exact: true }),
+  ).toBeEnabled();
+  const original = structuredClone(state.creates[0]);
+  state.items[0].active_job = null;
+  state.items[0].investigation.active_job_id = null;
+  state.items[0].investigation.latest_completed_revision = 1;
+  state.items[0].latest_output = { ...output, summary: '이전 계좌에서 완료된 복구 조사 결과' };
+  await page.reload();
+  await expect(
+    panel(page).getByRole('button', { name: '같은 접수 다시 확인', exact: true }),
+  ).toBeEnabled();
+  expect(state.creates).toHaveLength(1);
+  await page.getByRole('combobox', { name: '계좌 관측', exact: true }).selectOption(items[1].id);
+  await panel(page).getByRole('button', { name: '같은 접수 다시 확인', exact: true }).click();
+  await expect.poll(() => state.creates.length).toBe(2);
+  await expect(panel(page).getByText(/조사를 접수했습니다/)).toBeVisible();
+  expect(state.creates[1]).toEqual(original);
+  expect(state.items).toHaveLength(1);
+  await expect(page.getByRole('combobox', { name: '계좌 관측', exact: true })).toHaveValue(
+    items[1].id,
+  );
+  await expect(
+    panel(page).getByRole('region', { name: '선택한 조사 상세', exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    panel(page).getByText('이전 계좌에서 완료된 복구 조사 결과', { exact: true }),
+  ).toHaveCount(0);
+});
+
+test('an account-rejected guided revision cannot fall back to the investigation latest output', async ({
+  page,
+  request,
+}) => {
+  const { items } = await (await request.get('/api/v1/account-snapshots')).json();
+  const originalSnapshot = items.find(
+    (item: { account_seq: string }) => item.account_seq === '101',
+  );
+  const otherSnapshot = items.find((item: { account_seq: string }) => item.account_seq === '202');
+  const result = investigation();
+  result.investigation.context_input.snapshot_id = originalSnapshot.id;
+  result.investigation.active_job_id = null;
+  result.investigation.latest_completed_revision = 1;
+  result.active_job = null;
+  result.latest_output = { ...output, summary: '계좌 101에만 속한 최신 결과가 유출되면 안 됩니다' };
+  const state = await mockInvestigations(page, [result]);
+  const savedOutputId = 'b'.repeat(64);
+  const resolution: GuidedFlowResponse = {
+    workspace_key: 'f'.repeat(64),
+    selection: {
+      snapshot_id: otherSnapshot.id,
+      investigation_id: firstId,
+      revision: null,
+      output_id: null,
+      plan_id: null,
+      alternative_id: null,
+      book_id: null,
+      report_id: null,
+    },
+    context: {
+      account_seq: otherSnapshot.account_seq,
+      frozen_snapshot_id: null,
+      mode: null,
+      currencies: [],
+    },
+    investigation: {
+      id: firstId,
+      purpose: result.investigation.context_input.purpose,
+      current_revision: 1,
+      revisions: [
+        {
+          number: 1,
+          input_id: result.investigation.context_input.input_id,
+          output_id: savedOutputId,
+          snapshot_id: originalSnapshot.id,
+          mode: 'synthetic',
+        },
+      ],
+      output: null,
+    },
+    plans: [],
+    books: [],
+    reports: [],
+    issues: [
+      {
+        code: 'investigation_account_mismatch',
+        stage: 'investigations',
+        message: '상단에서 이 조사의 계좌를 선택하세요. 현재 계좌 선택은 바꾸지 않았습니다.',
+      },
+    ],
+    jobs_available: true,
+    orders_enabled: false,
+  };
+  await page.route(/\/api\/v1\/guided-flow(?:\?.*)?$/, (route) =>
+    route.fulfill({ json: resolution }),
+  );
+  await page.goto(
+    `/?${new URLSearchParams({ snapshot_id: otherSnapshot.id, investigation_id: firstId, revision: '1', output_id: savedOutputId, stage: 'investigations' })}`,
+  );
+  await expect(page.getByRole('region', { name: '투자 단계 이어가기', exact: true })).toContainText(
+    '상단에서 이 조사의 계좌를 선택하세요.',
+  );
+  await expect.poll(() => state.detailReads).toBeGreaterThan(0);
+  await expect(
+    panel(page).getByRole('region', { name: '선택한 조사 상세', exact: true }),
+  ).toBeVisible();
+  await expect(panel(page).getByText(result.latest_output.summary, { exact: true })).toHaveCount(0);
+  await expect(panel(page).getByRole('heading', { name: '최근 AI 결과', exact: true })).toHaveCount(
+    0,
+  );
+  await expect(page.getByRole('combobox', { name: '계좌 관측', exact: true })).toHaveValue(
+    otherSnapshot.id,
+  );
+  expect(state.creates).toEqual([]);
+  expect(state.reviews).toEqual([]);
 });
 
 test('completed analysis separates model suggestions, unverified links and process metadata', async ({

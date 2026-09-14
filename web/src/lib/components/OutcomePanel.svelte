@@ -1,4 +1,13 @@
 <script lang="ts">
+  import { pendingObject, pendingKey, pendingNullable } from '$lib/pending-shapes';
+  import type { GuidedRequest } from '$lib/guided';
+  import type { GuidedSelection } from '$lib/api/types.gen';
+  import {
+    readPendingReceipt,
+    writePendingReceipt,
+    PendingReceiptError,
+  } from '$lib/pending-receipt';
+  import { untrack } from 'svelte';
   import { createQuery } from '@tanstack/svelte-query';
   import { RotateCw } from '@lucide/svelte';
   import { Button } from '$lib/components/ui/button';
@@ -20,11 +29,59 @@
   } from '$lib/outcomes';
 
   let {
+    guidedRequest = null,
+    workspaceKey = null,
+    onGuide,
     ready = false,
     jobsEnabled = false,
     synthetic = false,
-  }: { ready?: boolean; jobsEnabled?: boolean; synthetic?: boolean } = $props();
+  }: {
+    guidedRequest?: GuidedRequest | null;
+    workspaceKey?: string | null;
+    onGuide?: (selection: Partial<GuidedSelection>) => void;
+    ready?: boolean;
+    jobsEnabled?: boolean;
+    synthetic?: boolean;
+  } = $props();
   let opened = $state(false);
+  let inputsOpen = $state(false);
+  let hadGuided = false;
+  $effect(() => {
+    const request = guidedRequest;
+    untrack(() => {
+      if (request?.stage === 'outcomes') {
+        hadGuided = true;
+        opened = true;
+        reportId = request.resolution.selection.report_id ?? '';
+        if (pending || busy) {
+          feedback =
+            '이전 결과 계산은 원래 자료와 기간으로 유지됩니다. 원래 요청 결과를 먼저 확인해 주세요.';
+          return;
+        }
+        const selected = request.resolution.selection;
+        const book = request.resolution.books.find((item) => item.id === selected.book_id);
+        if (selected.plan_id && selected.alternative_id && !book?.linked) {
+          reportId = '';
+          bookIds = [];
+          workflowIds = [];
+          inputsOpen = false;
+          feedback =
+            '선택한 대안이 이 원장에 아직 연결되지 않았습니다. 모의 단계에서 대안을 명시적으로 선택한 뒤 기간 결과로 이어가세요.';
+          return;
+        }
+        bookIds = selected.book_id ? [selected.book_id] : [];
+        workflowIds = [];
+        inputsOpen = !reportId;
+        feedback =
+          '선택한 원장을 기간 결과 입력에 연결했습니다. 비교 기간을 직접 정한 뒤 계산해 주세요.';
+      } else if (!request && hadGuided) {
+        reportId = '';
+        bookIds = [];
+        workflowIds = [];
+        hadGuided = false;
+      }
+    });
+  });
   let bookIds = $state<string[]>([]);
   let workflowIds = $state<string[]>([]);
   let start = $state('');
@@ -33,6 +90,8 @@
   let busy = $state(false);
   let actionError = $state('');
   let feedback = $state('');
+  let receiptError = $state('');
+  let loadedWorkspace = $state<string | null>(null);
   type CreateBody = Parameters<typeof createOutcomeReport>[0];
   let pending = $state<{ body: CreateBody; draft: string; previousReport: string } | null>(null);
   let mode = $derived(synthetic ? ('synthetic' as const) : ('prospective' as const));
@@ -57,6 +116,7 @@
     const id = reportId;
     return {
       queryKey: ['outcome', id],
+      notifyOnChangeProps: 'all',
       enabled: ready && opened && !!id,
       queryFn: ({ signal }) => fetchOutcome(id, signal),
     };
@@ -101,8 +161,10 @@
     actionError = '';
     feedback = '';
     try {
+      persistPending();
       const saved = await createOutcomeReport(original.body);
       pending = null;
+      finishReceipt();
       feedback = `기간별 결과 보고서를 저장했습니다. ${shortId(saved.id)}`;
       if (draftKey === original.draft && reportId === original.previousReport) reportId = saved.id;
       await reportsQuery.refetch();
@@ -111,6 +173,7 @@
       actionError = error instanceof Error ? error.message : '처리 결과를 확인하지 못했습니다.';
       if (definiteOutcomeError(error)) pending = null;
     } finally {
+      finishReceipt();
       busy = false;
     }
   }
@@ -143,9 +206,53 @@
       actionError = error instanceof Error ? error.message : '입력을 확인해 주세요.';
     }
   }
+
+  $effect(() => {
+    const key = workspaceKey;
+    if (key && key !== loadedWorkspace && !busy)
+      untrack(() => {
+        pending = null;
+        receiptError = '';
+        try {
+          const value = readPendingReceipt<unknown>(key, 'outcomes');
+          if (value !== null) {
+            if (!(
+              pendingObject(value) &&
+              pendingKey(value.body) &&
+              typeof value.draft === 'string' &&
+              typeof value.previousReport === 'string'
+            ))
+              throw new PendingReceiptError();
+            const stored = value as NonNullable<typeof pending>;
+            pending = stored;
+            opened = true;
+            feedback = '이전 실행 요청을 복원했습니다. 원래 요청의 결과 확인을 직접 눌러 주세요.';
+          }
+        } catch (error) {
+          receiptError = error instanceof Error ? error.message : new PendingReceiptError().message;
+        }
+        loadedWorkspace = key;
+      });
+  });
+  function persistPending() {
+    if (!workspaceKey || loadedWorkspace !== workspaceKey || receiptError)
+      throw new PendingReceiptError();
+    writePendingReceipt(workspaceKey, 'outcomes', !pending ? null : pending);
+  }
+  function finishReceipt() {
+    try {
+      persistPending();
+    } catch (error) {
+      receiptError = error instanceof Error ? error.message : new PendingReceiptError().message;
+    }
+  }
 </script>
 
-<section class="panel capital-panel outcome-panel" aria-label="기간별 결과 비교">
+<section
+  id="outcomes-panel"
+  class="panel capital-panel outcome-panel"
+  aria-label="기간별 결과 비교"
+>
   <details bind:open={opened}>
     <summary>기간별 결과 비교</summary>
     <p class="muted">
@@ -163,7 +270,7 @@
           이 작업실에서는 새 결과 계산이 꺼져 있습니다. 저장된 보고서는 계속 읽을 수 있습니다.
         </p>
       {:else}
-        <details class="paper-create">
+        <details class="paper-create" bind:open={inputsOpen}>
           <summary>자료와 기간 선택하기</summary>
           <form class="capital-form" onsubmit={calculate}>
             <fieldset class="outcome-selection">
@@ -241,14 +348,28 @@
             >같은 계산 요청 결과 확인</Button
           >
         </div>{/if}
+      {#if receiptError}<p role="alert" class="error-state">{receiptError}</p>{/if}
       {#if actionError}<p class="error-message" role="alert">{actionError}</p>{/if}
       {#if feedback}<p class="feedback" role="status">{feedback}</p>{/if}
       <div class="capital-result">
         <h3>저장된 결과 보고서</h3>
+        {#if selectedReport && onGuide}<Button
+            variant="outline"
+            onclick={() => onGuide?.({ report_id: selectedReport!.id })}
+            >이 보고서의 연결 이어보기</Button
+          >{/if}
         <label
-          >결과 보고서 선택<select bind:value={reportId} disabled={!reports}
-            ><option value="">보고서 선택</option>{#each reports?.items ?? [] as report}<option
-                value={report.id}
+          >결과 보고서 선택<select
+            value={reportId}
+            onchange={(event) => {
+              reportId = event.currentTarget.value;
+            }}
+            disabled={!reports}
+            ><option value="">보고서 선택</option>
+            {#if reportId && !reports?.items.some((item) => item.id === reportId)}<option
+                value={reportId}>연결 보고서 {shortId(reportId)} · 상세 확인 중</option
+              >{/if}
+            {#each reports?.items ?? [] as report}<option value={report.id}
                 >{formatTime(report.start_at)} → {formatTime(report.end_at)} · 모의 {report.book_count}
                 / 운용 {report.workflow_count} · {shortId(report.id)}</option
               >{/each}</select

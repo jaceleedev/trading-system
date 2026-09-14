@@ -3475,6 +3475,558 @@
         "title": "FundingState",
         "type": "object"
       },
+      "GuidedAlternative": {
+        "additionalProperties": false,
+        "properties": {
+          "currencies": {
+            "items": {
+              "enum": [
+                "KRW",
+                "USD"
+              ],
+              "type": "string"
+            },
+            "title": "Currencies",
+            "type": "array"
+          },
+          "eligibility": {
+            "enum": [
+              "eligible",
+              "blocked",
+              "unknown"
+            ],
+            "title": "Eligibility",
+            "type": "string"
+          },
+          "key": {
+            "pattern": "^[A-Za-z0-9_-]{1,64}$",
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "eligibility",
+          "currencies"
+        ],
+        "title": "GuidedAlternative",
+        "type": "object"
+      },
+      "GuidedBook": {
+        "additionalProperties": false,
+        "properties": {
+          "currencies": {
+            "items": {
+              "enum": [
+                "KRW",
+                "USD"
+              ],
+              "type": "string"
+            },
+            "title": "Currencies",
+            "type": "array"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "linked": {
+            "title": "Linked",
+            "type": "boolean"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "snapshot_id",
+          "mode",
+          "currencies",
+          "linked"
+        ],
+        "title": "GuidedBook",
+        "type": "object"
+      },
+      "GuidedContext": {
+        "additionalProperties": false,
+        "properties": {
+          "account_seq": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Account Seq"
+          },
+          "currencies": {
+            "items": {
+              "enum": [
+                "KRW",
+                "USD"
+              ],
+              "type": "string"
+            },
+            "title": "Currencies",
+            "type": "array"
+          },
+          "frozen_snapshot_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frozen Snapshot Id"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "enum": [
+                  "prospective",
+                  "retrospective",
+                  "synthetic"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          }
+        },
+        "title": "GuidedContext",
+        "type": "object"
+      },
+      "GuidedFlowResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "books": {
+            "items": {
+              "$ref": "#/components/schemas/GuidedBook"
+            },
+            "title": "Books",
+            "type": "array"
+          },
+          "context": {
+            "$ref": "#/components/schemas/GuidedContext"
+          },
+          "investigation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidedInvestigation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/GuidedIssue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "jobs_available": {
+            "title": "Jobs Available",
+            "type": "boolean"
+          },
+          "orders_enabled": {
+            "const": false,
+            "title": "Orders Enabled",
+            "type": "boolean"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/GuidedPlan"
+            },
+            "title": "Plans",
+            "type": "array"
+          },
+          "reports": {
+            "items": {
+              "$ref": "#/components/schemas/GuidedReport"
+            },
+            "title": "Reports",
+            "type": "array"
+          },
+          "selection": {
+            "$ref": "#/components/schemas/GuidedSelection"
+          },
+          "workspace_key": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Workspace Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "workspace_key",
+          "selection",
+          "context",
+          "investigation",
+          "plans",
+          "books",
+          "reports",
+          "issues",
+          "jobs_available",
+          "orders_enabled"
+        ],
+        "title": "GuidedFlowResponse",
+        "type": "object"
+      },
+      "GuidedInvestigation": {
+        "additionalProperties": false,
+        "properties": {
+          "current_revision": {
+            "title": "Current Revision",
+            "type": "integer"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "output": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/InvestigationOutput"
+              },
+              {
+                "$ref": "#/components/schemas/InvestigationOutputV2"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output"
+          },
+          "purpose": {
+            "title": "Purpose",
+            "type": "string"
+          },
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/GuidedRevision"
+            },
+            "title": "Revisions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "purpose",
+          "current_revision",
+          "revisions",
+          "output"
+        ],
+        "title": "GuidedInvestigation",
+        "type": "object"
+      },
+      "GuidedIssue": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "stage": {
+            "enum": [
+              "investigations",
+              "capital",
+              "paper",
+              "outcomes"
+            ],
+            "title": "Stage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "stage",
+          "message"
+        ],
+        "title": "GuidedIssue",
+        "type": "object"
+      },
+      "GuidedPlan": {
+        "additionalProperties": false,
+        "properties": {
+          "alternatives": {
+            "items": {
+              "$ref": "#/components/schemas/GuidedAlternative"
+            },
+            "title": "Alternatives",
+            "type": "array"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "snapshot_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Snapshot Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "recorded_at",
+          "snapshot_id",
+          "mode",
+          "alternatives"
+        ],
+        "title": "GuidedPlan",
+        "type": "object"
+      },
+      "GuidedReport": {
+        "additionalProperties": false,
+        "properties": {
+          "end_at": {
+            "format": "date-time",
+            "title": "End At",
+            "type": "string"
+          },
+          "id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "recorded_at": {
+            "format": "date-time",
+            "title": "Recorded At",
+            "type": "string"
+          },
+          "start_at": {
+            "format": "date-time",
+            "title": "Start At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "start_at",
+          "end_at",
+          "recorded_at",
+          "mode"
+        ],
+        "title": "GuidedReport",
+        "type": "object"
+      },
+      "GuidedRevision": {
+        "additionalProperties": false,
+        "properties": {
+          "input_id": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Input Id",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "prospective",
+              "retrospective",
+              "synthetic"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "number": {
+            "title": "Number",
+            "type": "integer"
+          },
+          "output_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Id"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          }
+        },
+        "required": [
+          "number",
+          "input_id",
+          "output_id",
+          "snapshot_id",
+          "mode"
+        ],
+        "title": "GuidedRevision",
+        "type": "object"
+      },
+      "GuidedSelection": {
+        "additionalProperties": false,
+        "properties": {
+          "alternative_id": {
+            "anyOf": [
+              {
+                "pattern": "^[A-Za-z0-9_-]{1,64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Alternative Id"
+          },
+          "book_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Id"
+          },
+          "investigation_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Investigation Id"
+          },
+          "output_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Id"
+          },
+          "plan_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Plan Id"
+          },
+          "report_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Id"
+          },
+          "revision": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revision"
+          },
+          "snapshot_id": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Id"
+          }
+        },
+        "title": "GuidedSelection",
+        "type": "object"
+      },
       "HealthResponse": {
         "additionalProperties": false,
         "properties": {
@@ -13125,6 +13677,212 @@
           }
         },
         "summary": "Release Funding Reservation"
+      }
+    },
+    "/api/v1/guided-flow": {
+      "get": {
+        "operationId": "resolve_guided_flow",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "snapshot_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Snapshot Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "investigation_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Investigation Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Revision"
+            }
+          },
+          {
+            "in": "query",
+            "name": "output_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Output Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "plan_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Plan Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "alternative_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Alternative Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "book_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Book Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "report_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^[0-9a-f]{64}$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Report Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GuidedFlowResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Resolve Guided Flow"
       }
     },
     "/api/v1/health": {

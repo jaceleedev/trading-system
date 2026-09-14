@@ -68,6 +68,12 @@ workbench summary of saved data freshness and review state. Worker permissions a
 observations do not establish login, provider success or investment execution readiness.
 See `docs/JOBS.md` and `docs/WEB_WORKBENCH.md`.
 
+Feature 29 adds read-only guided selection resolution and navigation across investigation
+revisions/outputs, plans/alternatives, paper books, and frozen period reports. URL selections
+are hints; validate their source graph and explicit account before connecting them. Preserve
+frozen snapshots and original pending request receipts across reloads. Navigation must never
+execute mutations. See `docs/GUIDED_INVESTMENT_FLOW.md`.
+
 The user approved features 18 through 29 in `docs/DEVELOPMENT_ROADMAP.md`, including order
 integration implemented with actual brokerage transmission disabled. Design the Toss mandate
 to cover existing holdings and new investment funds. Do not insert user-described balances or
