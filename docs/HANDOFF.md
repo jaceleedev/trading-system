@@ -1,3 +1,48 @@
+# 2026-09-14 기능 29 PR 준비와 재검증
+
+사용자가 기능 28의 push·PR·병합·pull 완료를 알리고 다음 브랜치의 main 기준
+rebase·push와 완료 브랜치 삭제를 요청했다. GitHub PR #27의 병합 커밋
+`449c6feb4accb01e99ed7c737fb381f8dc2ab3fc`와 로컬 main·origin/main이 일치함을
+확인했다. fetch 후에도 main은 최신 상태였다.
+
+`feat/29-guided-investment-flow`의 원래 `bb4be0a`를 main 위로 rebase한 결과는
+`58afc602772f1833b592866eb518de8c326af3da`다. `docs/HANDOFF.md` 상단에서 겹친
+기능 28 PR 준비 기록과 기능 29 개발 기록을 모두 보존했다. 기능 코드 충돌은 없었고
+`range-diff`와 전체 파일 비교에서 인수인계를 제외한 원래 파일 내용이 동일했다.
+rebase의 updateRefs는 껐으며 이후 이번 인수인계 기록만 별도 커밋으로 추가한다.
+
+28번 원격 브랜치는 이미 없었다. main에 병합된 것을 확인하고 로컬
+`feat/28-web-observation-capture`를 삭제했다. 기존 15ee 작업실은 파일을 삭제하지
+않고 병합된 `e292c1c`의 detached HEAD로 보존했다. 승인된 push 대상은 origin의
+`feat/29-guided-investment-flow` 하나이며 PR 생성·병합은 사용자가 진행한다.
+승인된 27~29의 로컬 개발은 완료 상태이고 추가 기능이나 새 작업을 시작하지 않았다.
+
+### 이번 rebase 이후 검증
+
+- 잠금 파일 기준 `uv sync --frozen`, `pnpm --dir web install --frozen-lockfile` 통과.
+- `TRADING_TEST_DB=1 uv run pytest`: **2,254개 통과**, 128.05초. 기존
+  FastAPI/Starlette 의존성 deprecation 경고 2개가 남아 있다.
+- Ruff 검사·포맷 검사 통과, Python 253개 파일.
+- `mise run web-check`: OpenAPI·생성 SDK 16개 파일 일치, Svelte 오류·경고 0개,
+  Vitest **58개 통과**.
+- 웹 포맷 검사·프로덕션 빌드(3.10초) 통과. 빌드의 `PLUGIN_TIMINGS`는 플러그인
+  소요 시간 안내이며 빌드는 정상 종료했다.
+- 새 빌드로 Playwright 전체 **123개 통과**, 1.1분. 별도 합성 작업실을 생성하는
+  프로젝트 브라우저 검사이며 단계 연결·복구 E2E의 합성 HTTP 응답을 포함한다.
+- 기존 전용 `127.0.0.1:55432/trading`의 `b727f04e62d1`을 읽기 전용 조회로 확인했다.
+  새 migration·downgrade는 없으며 개인 저장소를 검증에 사용하지 않았다.
+- `git diff --check` 통과. 실제 Codex 모델·토스·시장·계좌·주문 API는 호출하지 않았다.
+
+검사 로그는 `/tmp/trading-pr29-rebase-pytest.log`, `/tmp/trading-pr29-web-check.log`,
+`/tmp/trading-pr29-web-format.log`, `/tmp/trading-pr29-web-build.log`,
+`/tmp/trading-pr29-e2e.log`에 있다. 브라우저 산출물은
+`/tmp/trading-pr29-rebase-e2e-58afc60/`에 있다.
+
+아래 실제 로컬 API·DB·worker의 출처 조합·단계 탐색·응답 유실·DB 비활성 읽기와
+별도 브라우저 검증은 최초 개발 완료 당시 기록이다. 이번에는 동일한 기능 코드에서
+전체 자동 검사를 다시 실행했으며 해당 수동 런타임 시나리오를 새로 실행했다고
+주장하지 않는다.
+
 # 2026-09-14 기능 29 인수인계
 
 ## 기능 29: 조사부터 기간 결과까지 선택 이어가기
